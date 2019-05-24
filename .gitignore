@@ -1,0 +1,3 @@
+*.swp
+*.pyc
+frida_stalk.egg-info
