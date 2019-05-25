@@ -1,5 +1,6 @@
 
 import logging
+logging.basicConfig(level=logging.WARN)
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +31,7 @@ class Stalker(object):
         self.parse_args()
 
         if self._args.verbose:
-            logger.level = logging.DEBUG
+            logger.setLevel(logging.DEBUG)
 
         atexit.register(self.at_exit)
         self.load_device()
@@ -88,10 +89,10 @@ class Stalker(object):
         self.print_threads()
 
     def print_modules(self):
-        logger.debug(self.modules_table)
+        logger.debug('\n' + str(self.modules_table))
 
     def print_threads(self):
-        logger.debug(self.threads_table)
+        logger.debug('\n' + str(self.threads_table))
 
     def action_windows_messages(self):
         """Stalk some windows messages."""
