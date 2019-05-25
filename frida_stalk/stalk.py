@@ -13,6 +13,7 @@ from termcolor import cprint
 from prettytable import PrettyTable
 
 import atexit
+from . import common
 
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -21,6 +22,8 @@ class Stalker(object):
     def __init__(self):
         # Just variable to ensure we don't garbage collect
         self._scripts = []
+        # Cache common module addrs
+        self._module_by_addr_cache = {}
 
         self.parse_args()
 
@@ -32,7 +35,12 @@ class Stalker(object):
         self.start_session()
         self.enumerate_modules()
         self.enumerate_threads()
-        self.stalk()
+
+        if self._args.action == 'stalk':
+            self.action_stalk()
+
+        elif self._args.action == 'windows_messages':
+            self.action_windows_messages()
 
     def load_device(self):
         # For now, assuming local
@@ -46,6 +54,7 @@ class Stalker(object):
 
         def modules_match(module, data=None):
             module = module['payload']
+            module['base'] = int(module['base'], 16)
             self.modules[module['name']] = module
 
         print("Enumerating modules\t\t... ", end='', flush=True)
@@ -82,12 +91,46 @@ class Stalker(object):
     def print_threads(self):
         logger.debug(self.threads_table)
 
-    def stalk(self):
+    def action_windows_messages(self):
+        """Stalk some windows messages."""
+        pass
+
+    def action_stalk(self):
         """Start the stalker."""
         
+        def stalk_cb_call(message):
+            """Specifically handle call stalk."""
+            call_from = int(message['location'],16)
+            call_to = int(message['target'], 16)
+            depth = message['depth']
+            #module_name = message['module']['name']
+            
+            module_from = self.get_module_by_addr(call_from)
+            module_from_offset = call_from - self.modules[module_from]['base']
+
+            module_to = self.get_module_by_addr(call_to)
+            module_to_offset = call_to - self.modules[module_to]['base']
+
+            print("{type: <10}{module_from}:{module_from_offset} -> {module_to}:{module_to_offset}".format(
+                type = 'call',
+                module_from = module_from,
+                module_from_offset = hex(module_from_offset),
+                module_to = module_to,
+                module_to_offset = hex(module_to_offset)
+                ))
+
         def stalk_cb(message, data):
-            print(message)
             message = message['payload']
+
+            if message['type'] == 'call':
+                stalk_cb_call(message)
+            
+            else:
+                logger.error('Unhandled type: ' + message['type'])
+                print(message)
+
+        # TODO: Add args for stalking other types of things
+        # TODO: Print output for other types of calls
 
         stalk_js = self.load_js('stalk.js')
         stalk_js = stalk_js.replace("INCLUDE_MODULE_HERE", self._args.include_module)
@@ -112,8 +155,8 @@ class Stalker(object):
         """Called to clean-up at exit."""
 
         # Unload anything we loaded first
-        for script in self._scripts:
-            script.unload()
+        #for script in self._scripts:
+        #    script.unload()
 
         # Detach our session
         self.session.detach()
@@ -148,6 +191,9 @@ class Stalker(object):
                 help="Spawn file.")
         spawn_group.add_argument('--resume', default=False, action='store_true',
                 help="Resume binary after spawning it (default: false).")
+
+        parser.add_argument('action', choices=('stalk', 'windows_messages'),
+                help="What type of stalking.")
 
         parser.add_argument('target', type=self.target_type, 
                 help="Target to attach to.")
@@ -200,11 +246,17 @@ class Stalker(object):
             except:
                 return None
 
+        try:
+            return self._module_by_addr_cache[addr]
+        except:
+            pass
+
         for name, module in self.modules.items():
-            base = int(module['base'],0)
+            base = module['base']
             size = module['size']
 
             if addr >= base and addr <= base+size:
+                self._module_by_addr_cache[addr] = module['name'] # Add to cache
                 return module['name']
 
         return None
