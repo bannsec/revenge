@@ -9,8 +9,9 @@ import colorama
 colorama.init()
 
 import os
-from termcolor import cprint
+from termcolor import cprint, colored
 from prettytable import PrettyTable
+import time
 
 import atexit
 from . import common
@@ -93,7 +94,31 @@ class Stalker(object):
 
     def action_windows_messages(self):
         """Stalk some windows messages."""
-        pass
+
+        def windows_cb(message, data):
+            handler_ip = int(message['payload'], 16)
+            handler_module = self.get_module_by_addr(handler_ip)
+            handler_offset = handler_ip - self.modules[handler_module]['base']
+
+            print("Found Message Handler: " + colored(handler_module, 'cyan') + ":" + colored(hex(handler_offset), "magenta"))
+
+        # TODO: Figure out better sanity check to determine if Frida device object is on Windows
+        try:
+            next(True for x in self.device.enumerate_processes() if x.name.lower() == 'svchost.exe')
+        except StopIteration:
+            logger.error('This doesn\'t appear to be a Windows device...')
+            exit(1)
+
+        windows_js = self.load_js('windows_stalk_message_handlers.js')
+
+        script = self.session.create_script(windows_js)
+        script.on('message', windows_cb)
+
+        logger.debug("Starting Windows Message monitor ... ")
+        script.load()
+
+        # Save so that we don't GC it
+        self._scripts.append(script)
 
     def action_stalk(self):
         """Start the stalker."""
@@ -288,7 +313,9 @@ class Stalker(object):
 
 def main():
     stalk = Stalker()
-    input("waiting")
+
+    while True:
+        time.sleep(1)
 
 if __name__ == '__main__':
     main()

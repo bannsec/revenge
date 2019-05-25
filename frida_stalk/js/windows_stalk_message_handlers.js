@@ -29,7 +29,7 @@ function hwnd_resolver(hwnd) {
 
     // Only return NEW discoveries
     if ( known_window_handlers.indexOf(phandler) == -1 ) {
-        console.log(phandler);
+        send(phandler);
         known_window_handlers = known_window_handlers.concat(phandler);
     }
 }
@@ -76,7 +76,45 @@ Interceptor.attach(Module.getExportByName('user32.dll', 'TranslateAcceleratorW')
     onLeave: function (retval) {}
 });
 
-// TODO: Watch IsDialogMessage, DispatchMessage, SendMessage
+//
+// Watch IsDialogMessage commands
+// NOTE: Untested...
+
+Interceptor.attach(Module.getExportByName('user32.dll', 'IsDialogMessageA'), {
+    onEnter: function (args) {
+        return hwnd_resolver(args[0]);
+    },
+
+    onLeave: function (retval) {}
+});
+
+Interceptor.attach(Module.getExportByName('user32.dll', 'IsDialogMessageW'), {
+    onEnter: function (args) {
+        return hwnd_resolver(args[0]);
+    },
+
+    onLeave: function (retval) {}
+});
+
+//
+// Watch SendMessage commands
+// NOTE: Untested...
+
+Interceptor.attach(Module.getExportByName('user32.dll', 'SendMessageA'), {
+    onEnter: function (args) {
+        return hwnd_resolver(args[0]);
+    },
+
+    onLeave: function (retval) {}
+});
+
+Interceptor.attach(Module.getExportByName('user32.dll', 'SendMessageW'), {
+    onEnter: function (args) {
+        return hwnd_resolver(args[0]);
+    },
+
+    onLeave: function (retval) {}
+});
 
 /*
 * 
