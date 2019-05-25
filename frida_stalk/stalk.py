@@ -12,6 +12,8 @@ import os
 from termcolor import cprint
 from prettytable import PrettyTable
 
+import atexit
+
 here = os.path.dirname(os.path.abspath(__file__))
 
 class Stalker(object):
@@ -21,14 +23,22 @@ class Stalker(object):
         self._scripts = []
 
         self.parse_args()
+
+        if self._args.verbose:
+            logger.level = logging.DEBUG
+
+        atexit.register(self.at_exit)
+        self.load_device()
         self.start_session()
         self.enumerate_modules()
-        self.print_modules()
-
         self.enumerate_threads()
-        self.print_threads()
-
         self.stalk()
+
+    def load_device(self):
+        # For now, assuming local
+        # TODO: Make this variable
+
+        self.device = frida.get_local_device()
 
     def enumerate_modules(self):
 
@@ -46,6 +56,8 @@ class Stalker(object):
 
         cprint("[ DONE ]", "green")
 
+        self.print_modules()
+
     def enumerate_threads(self):
 
         self.threads = {}
@@ -62,11 +74,13 @@ class Stalker(object):
 
         cprint("[ DONE ]", "green")
 
+        self.print_threads()
+
     def print_modules(self):
-        print(self.modules_table)
+        logger.debug(self.modules_table)
 
     def print_threads(self):
-        print(self.threads_table)
+        logger.debug(self.threads_table)
 
     def stalk(self):
         """Start the stalker."""
@@ -88,11 +102,25 @@ class Stalker(object):
             script = self.session.create_script(stalk_js_replaced)
             script.on('message', stalk_cb)
 
-            print("Starting stalker on TID: " + str(tid))
+            logger.debug("Starting stalker on TID: " + str(tid))
             script.load()
 
             # Save so that we don't GC it
             self._scripts.append(script)
+
+    def at_exit(self):
+        """Called to clean-up at exit."""
+
+        # Unload anything we loaded first
+        for script in self._scripts:
+            script.unload()
+
+        # Detach our session
+        self.session.detach()
+
+        # If we spawned it, kill it
+        if self._spawned is not None:
+            self.device.kill(self._spawned)
     
     #######################
     # On Message Handlers #
@@ -107,20 +135,43 @@ class Stalker(object):
         parser = argparse.ArgumentParser(
             description='CLI wrapper around Frida Stalker.'
             )
+
         parser.add_argument('--tid', type=int, default=None,
                 help="Thread to stalk. (Default: all threads.)")
         parser.add_argument('--include-module', "-I", type=str, default="",
                 help="Module to include for stalking (default: All modules).")
-        parser.add_argument('target', type=self.target_type,
+        parser.add_argument('--verbose', "-v", action='store_true', default=False,
+                help="Output more verbose information (defualt: False)")
+
+        spawn_group = parser.add_argument_group('spawn options')
+        spawn_group.add_argument('--file', '-f', type=str, metavar=('FILE','ARGS'), default=None, nargs='+',
+                help="Spawn file.")
+        spawn_group.add_argument('--resume', default=False, action='store_true',
+                help="Resume binary after spawning it (default: false).")
+
+        parser.add_argument('target', type=self.target_type, 
                 help="Target to attach to.")
         self._args = parser.parse_args()
 
 
     def start_session(self):
+
+        self._spawned = None
+
+        if self._args.file is not None:
+            print("Spawning file\t\t\t... ", end='', flush=True)
+            self._spawned = self.device.spawn(self._args.file)
+
+            if self._args.resume:
+                self.device.resume(self._spawned)
+
+            cprint("[ DONE ]", "green")
+
         print('Attaching to the session\t... ', end='', flush=True)
 
         try:
-            self.session = frida.attach(self._args.target)
+            # Default attach to what we just spawned
+            self.session = frida.attach(self._spawned or self._args.target)
         except frida.ProcessNotFoundError:
             logger.error('Could not find that target process to attach to!')
             exit(1)

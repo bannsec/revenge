@@ -1,3 +1,4 @@
 *.swp
 *.pyc
 frida_stalk.egg-info
+__handlers__
