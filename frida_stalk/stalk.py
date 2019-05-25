@@ -14,6 +14,7 @@ from prettytable import PrettyTable
 import time
 
 import atexit
+import signal
 from . import common
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -95,12 +96,18 @@ class Stalker(object):
     def action_windows_messages(self):
         """Stalk some windows messages."""
 
+        self._known_windows_message_handlers = []
+
         def windows_cb(message, data):
+            # REMINDER: The JavaScript is filtering out dups. We will only be getting each handler once.
+
             handler_ip = int(message['payload'], 16)
             handler_module = self.get_module_by_addr(handler_ip)
             handler_offset = handler_ip - self.modules[handler_module]['base']
 
-            print("Found Message Handler: " + colored(handler_module, 'cyan') + ":" + colored(hex(handler_offset), "magenta"))
+            self._known_windows_message_handlers.append(handler_ip)
+
+            print("Found Message Handler: " + colored(handler_module, 'cyan') + ":" + colorama.Style.BRIGHT + colored(hex(handler_offset), "cyan"))
 
         # TODO: Figure out better sanity check to determine if Frida device object is on Windows
         try:
@@ -310,8 +317,13 @@ class Stalker(object):
         
         return table
 
+def sigint_handler(sig, frame):
+    exit()
 
 def main():
+    signal.signal(signal.SIGINT, sigint_handler)
+
+    global stalk
     stalk = Stalker()
 
     while True:
