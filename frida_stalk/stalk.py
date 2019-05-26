@@ -114,7 +114,7 @@ class Stalker(object):
             lParam = int(lParam,16)
 
             try:
-                msg = ','.join(common.windows_messages_by_id[Msg])
+                msg = ','.join(colored(x,'magenta') for x in common.windows_messages_by_id[Msg])
             except KeyError:
                 msg = 'Unknown (' + hex(Msg) + ')'
 
@@ -153,7 +153,7 @@ class Stalker(object):
 
             # Allow downselection to this module
             if self._args.include_module == handler_module:
-                print("Found Message Handler: " + colored(handler_module, 'cyan') + ":" + colorama.Style.BRIGHT + colored(hex(handler_offset), "cyan"))
+                print("{: <32}".format("Found Message Handler") + colored(handler_module, 'cyan') + ":" + colorama.Style.BRIGHT + colored(hex(handler_offset), "cyan"))
                 self._action_windows_messages_intercept(handler_module, handler_offset)
 
         # TODO: Figure out better sanity check to determine if Frida device object is on Windows
