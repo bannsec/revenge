@@ -73,6 +73,10 @@ class Stalker(object):
 
         cprint("[ DONE ]", "green")
 
+        # Sanity check
+        if self._args.include_module is not None and self._args.include_module not in self.modules:
+            logger.warn("Your chosen include_module doesn't match any modules found. Double check the capitalization or spelling.")
+
         self.print_modules()
 
     def enumerate_threads(self):
@@ -99,6 +103,40 @@ class Stalker(object):
     def print_threads(self):
         logger.debug('\n' + str(self.threads_table))
 
+    def _action_windows_messages_intercept(self, module, offset):
+        """Start watching for windows events on this handler."""
+
+        def window_message_cb(message, data):
+            Hwnd, Msg, wParam, lParam, module = message['payload']
+            Hwnd = int(Hwnd,16)
+            Msg = int(Msg,16)
+            wParam = int(wParam,16)
+            lParam = int(lParam,16)
+
+            try:
+                msg = ','.join(common.windows_messages_by_id[Msg])
+            except KeyError:
+                msg = 'Unknown (' + hex(Msg) + ')'
+
+            print('{module: <32}{msg}'.format(
+                module=module,
+                msg=msg
+                ))
+
+
+        js = self.load_js('windows_intercept_message_handler.js')
+
+        js = js.replace("OFFSET_HERE", hex(offset))
+        js = js.replace("MODULE_HERE", module)
+
+        script = self.session.create_script(js)
+        script.on('message', window_message_cb)
+        script.load()
+
+        # Save so that we don't GC it
+        self._scripts.append(script)
+
+
     def action_windows_messages(self):
         """Stalk some windows messages."""
 
@@ -113,7 +151,10 @@ class Stalker(object):
 
             self._known_windows_message_handlers.append(handler_ip)
 
-            print("Found Message Handler: " + colored(handler_module, 'cyan') + ":" + colorama.Style.BRIGHT + colored(hex(handler_offset), "cyan"))
+            # Allow downselection to this module
+            if self._args.include_module == handler_module:
+                print("Found Message Handler: " + colored(handler_module, 'cyan') + ":" + colorama.Style.BRIGHT + colored(hex(handler_offset), "cyan"))
+                self._action_windows_messages_intercept(handler_module, handler_offset)
 
         # TODO: Figure out better sanity check to determine if Frida device object is on Windows
         try:
