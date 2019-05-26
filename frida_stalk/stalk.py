@@ -39,6 +39,11 @@ class Stalker(object):
         self.enumerate_modules()
         self.enumerate_threads()
 
+        if self._args.rw_everything:
+            print('RW\'ing memory areas\t\t... ', end='', flush=True)
+            self.run_script_generic('rw_everything.js')
+            cprint('[ DONE ]', 'green')
+
         if self._args.action == 'stalk':
             self.action_stalk()
 
@@ -138,11 +143,17 @@ class Stalker(object):
             depth = message['depth']
             #module_name = message['module']['name']
             
-            module_from = self.get_module_by_addr(call_from)
-            module_from_offset = call_from - self.modules[module_from]['base']
+            module_from = self.get_module_by_addr(call_from) or "Unknown"
+            if module_from == "Unknown":
+                module_from_offset = 0
+            else:
+                module_from_offset = call_from - self.modules[module_from]['base']
 
-            module_to = self.get_module_by_addr(call_to)
-            module_to_offset = call_to - self.modules[module_to]['base']
+            module_to = self.get_module_by_addr(call_to) or "Unknown"
+            if module_to == "Unknown":
+                module_to_offset = 0
+            else:
+                module_to_offset = call_to - self.modules[module_to]['base']
 
             print("{type: <10}{module_from}:{module_from_offset} -> {module_to}:{module_to_offset}".format(
                 type = 'call',
@@ -219,6 +230,10 @@ class Stalker(object):
         parser.add_argument('--verbose', "-v", action='store_true', default=False,
                 help="Output more verbose information (defualt: False)")
 
+        stalk_group = parser.add_argument_group('stalk options')
+        stalk_group.add_argument('--rw-everything', '-rw', default=False, action='store_true',
+                help="Change all r-- memory areas into rw-. This can sometimes help segfault issues (default: off)")
+
         spawn_group = parser.add_argument_group('spawn options')
         spawn_group.add_argument('--file', '-f', type=str, metavar=('FILE','ARGS'), default=None, nargs='+',
                 help="Spawn file.")
@@ -294,6 +309,13 @@ class Stalker(object):
 
         return None
 
+    def run_script_generic(self, script_name):
+        """Run scripts that don't require anything special."""
+
+        js = self.load_js(script_name)
+        script = self.session.create_script(js)
+        script.load()
+
     ############
     # Property #
     ############
@@ -312,7 +334,7 @@ class Stalker(object):
         table = PrettyTable(['name', 'base', 'size', 'path'])
 
         for name, module in self.modules.items():
-            table.add_row([name, module['base'], module['size'], module['path']])
+            table.add_row([name, hex(module['base']), hex(module['size']), module['path']])
 
         table.align['path'] = 'l'
         
