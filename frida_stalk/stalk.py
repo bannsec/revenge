@@ -118,9 +118,10 @@ class Stalker(object):
             except KeyError:
                 msg = 'Unknown (' + hex(Msg) + ')'
 
-            print('{module: <32}{msg}'.format(
+            print('{module: <32}{msg} {wParam}'.format(
                 module=module,
-                msg=msg
+                msg=msg,
+                wParam=hex(wParam)
                 ))
 
 
