@@ -262,6 +262,28 @@ class Stalker(object):
         
         return table
 
+    @property
+    def device_platform(self):
+        """Wrapper to discover the device's platform."""
+
+        def message(x, y):
+            self.device_platform = x['payload']
+
+        try:
+            return self.__device_platform
+        except:
+            pass
+
+        js = "send(Process.platform)"
+        script = self.session.create_script(js)
+        script.on('message', message)
+        script.load()
+        return self.__device_platform
+
+    @device_platform.setter
+    def device_platform(self, platform):
+        self.__device_platform = platform
+
 def sigint_handler(sig, frame):
     exit()
 

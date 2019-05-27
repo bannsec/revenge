@@ -42,10 +42,7 @@ class ActionWindowsMessages:
                 print("{: <32}".format("Found Message Handler") + colored(handler_module, 'cyan') + ":" + colorama.Style.BRIGHT + colored(hex(handler_offset), "cyan"))
                 self._action_windows_messages_intercept(handler_module, handler_offset)
 
-        # TODO: Figure out better sanity check to determine if Frida device object is on Windows
-        try:
-            next(True for x in self._stalker.device.enumerate_processes() if x.name.lower() == 'svchost.exe')
-        except StopIteration:
+        if self._stalker.device_platform != 'windows':
             logger.error('This doesn\'t appear to be a Windows device...')
             exit(1)
 
