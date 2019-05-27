@@ -118,10 +118,18 @@ class Stalker(object):
             except KeyError:
                 msg = 'Unknown (' + hex(Msg) + ')'
 
-            print('{module: <32}{msg} {wParam}'.format(
+            extra = ""
+            if Msg in common.windows_messages_by_id and any(True for x in common.windows_messages_by_id[Msg] if x in ['WM_SYSKEYDOWN', 'WM_SYSKEYUP', 'WM_KEYUP', 'WM_KEYDOWN']):
+                key = common.windows_keys_by_id[wParam]
+                extra = key['Constant'] + ": " + key['Description']
+
+            else:
+                extra = 'wParam: {} lParam: {}'.format(hex(wParam), hex(lParam))
+
+            print('{module: <32}{msg} {extra}'.format(
                 module=module,
                 msg=msg,
-                wParam=hex(wParam)
+                extra=extra,
                 ))
 
 
