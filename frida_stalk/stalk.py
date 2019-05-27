@@ -29,6 +29,7 @@ class Stalker(object):
         self._scripts = []
         # Cache common module addrs
         self._module_by_addr_cache = {}
+        self.session = None
 
         self.parse_args()
 
@@ -47,7 +48,8 @@ class Stalker(object):
             cprint('[ DONE ]', 'green')
 
         if self._args.action == 'stalk':
-            self.action_stalk()
+            self.action_stalker = actions.ActionStalker(self, **vars(self._args))
+            self.action_stalker.run()
 
         elif self._args.action == 'windows_messages':
             self.action_windows_messages = actions.ActionWindowsMessages(self, **vars(self._args))
@@ -106,68 +108,6 @@ class Stalker(object):
 
     def print_threads(self):
         logger.debug('\n' + str(self.threads_table))
-
-    def action_stalk(self):
-        """Start the stalker."""
-        
-        def stalk_cb_call(message):
-            """Specifically handle call stalk."""
-            call_from = int(message['location'],16)
-            call_to = int(message['target'], 16)
-            depth = message['depth']
-            #module_name = message['module']['name']
-            
-            module_from = self.get_module_by_addr(call_from) or "Unknown"
-            if module_from == "Unknown":
-                module_from_offset = 0
-            else:
-                module_from_offset = call_from - self.modules[module_from]['base']
-
-            module_to = self.get_module_by_addr(call_to) or "Unknown"
-            if module_to == "Unknown":
-                module_to_offset = 0
-            else:
-                module_to_offset = call_to - self.modules[module_to]['base']
-
-            print("{type: <10}{module_from}:{module_from_offset} -> {module_to}:{module_to_offset}".format(
-                type = 'call',
-                module_from = module_from,
-                module_from_offset = hex(module_from_offset),
-                module_to = module_to,
-                module_to_offset = hex(module_to_offset)
-                ))
-
-        def stalk_cb(message, data):
-            message = message['payload']
-
-            if message['type'] == 'call':
-                stalk_cb_call(message)
-            
-            else:
-                logger.error('Unhandled type: ' + message['type'])
-                print(message)
-
-        # TODO: Add args for stalking other types of things
-        # TODO: Print output for other types of calls
-
-        stalk_js = self.load_js('stalk.js')
-        stalk_js = stalk_js.replace("INCLUDE_MODULE_HERE", self._args.include_module)
-
-        if self._args.tid == None:
-            tid_list = self.threads.keys()
-        else:
-            tid_list = [self._args.tid]
-
-        for tid in tid_list:
-            stalk_js_replaced = stalk_js.replace("THREAD_ID_HERE", str(tid))
-            script = self.session.create_script(stalk_js_replaced)
-            script.on('message', stalk_cb)
-
-            logger.debug("Starting stalker on TID: " + str(tid))
-            script.load()
-
-            # Save so that we don't GC it
-            self._scripts.append(script)
 
     def at_exit(self):
         """Called to clean-up at exit."""
