@@ -20,7 +20,7 @@ class ActionStalker:
 
         self._stalker = stalker
         self._scripts = []
-        self.include_module = include_module
+        self.include_module = include_module or []
         self.tid = tid
 
     def run(self):
@@ -70,7 +70,7 @@ class ActionStalker:
         # TODO: Print output for other types of calls
 
         stalk_js = self._stalker.load_js('stalk.js')
-        stalk_js = stalk_js.replace("INCLUDE_MODULE_HERE", self.include_module)
+        stalk_js = stalk_js.replace("INCLUDE_MODULE_HERE", json.dumps(self.include_module))
 
         if self.tid == None:
             tid_list = self._stalker.threads.keys()
@@ -79,7 +79,7 @@ class ActionStalker:
 
         for tid in tid_list:
             stalk_js_replaced = stalk_js.replace("THREAD_ID_HERE", str(tid))
-            script = self._stalker.session.create_script(stalk_js_replaced)
+            script = self._stalker.session.create_script(stalk_js_replaced,  runtime='v8')
             script.on('message', stalk_cb)
 
             logger.debug("Starting stalker on TID: " + str(tid))

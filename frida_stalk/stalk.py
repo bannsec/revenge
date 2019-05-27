@@ -80,8 +80,12 @@ class Stalker(object):
         cprint("[ DONE ]", "green")
 
         # Sanity check
-        if self._args.include_module is not None and self._args.include_module not in self.modules:
-            logger.warn("Your chosen include_module doesn't match any modules found. Double check the capitalization or spelling.")
+        if self._args.include_module is not None:
+            try:
+                bad_mod = next(module for module in self._args.include_module if module not in self.modules)
+                logger.warn("Your chosen include_module ({}) doesn't match any modules found. Double check the capitalization or spelling.".format(bad_mod))
+            except:
+                pass
 
         self.print_modules()
 
@@ -116,6 +120,12 @@ class Stalker(object):
         #for script in self._scripts:
         #    script.unload()
 
+        # Genericall unstalk everything
+        for tid in self.threads.keys():
+            js = "Stalker.unfollow({tid})".format(tid=tid)
+            script = self.session.create_script(js)
+            script.load()
+
         # Detach our session
         self.session.detach()
 
@@ -139,7 +149,7 @@ class Stalker(object):
 
         parser.add_argument('--tid', type=int, default=None,
                 help="Thread to stalk. (Default: all threads.)")
-        parser.add_argument('--include-module', "-I", type=str, default="",
+        parser.add_argument('--include-module', "-I", type=str, default=None, metavar='module', nargs='+',
                 help="Module to include for stalking (default: All modules).")
         parser.add_argument('--verbose', "-v", action='store_true', default=False,
                 help="Output more verbose information (defualt: False)")

@@ -151,11 +151,9 @@ Stalker.follow(THREAD_ID_HERE, {
             }
 
             // Optionally only include some
-            var include = "INCLUDE_MODULE_HERE"
-            if (include != "") {
-                if (event['module'].name.toUpperCase() != include.toUpperCase()) {
-                    return
-                }
+            var include = INCLUDE_MODULE_HERE
+            if (include.length > 0 && !include.includes(event['module'].name)) {
+                return
             }
 
             send(event);

@@ -16,7 +16,7 @@ class ActionWindowsMessages:
             stalker: Parent stalker instantiation
         """
         self._stalker = stalker
-        self.include_module = include_module
+        self.include_module = include_module or []
         self.windows_message = windows_message
         self._scripts = []
 
@@ -38,7 +38,7 @@ class ActionWindowsMessages:
             self._known_windows_message_handlers.append(handler_ip)
 
             # Allow downselection to this module
-            if self.include_module == handler_module:
+            if handler_module in self.include_module:
                 print("{: <32}".format("Found Message Handler") + colored(handler_module, 'cyan') + ":" + colorama.Style.BRIGHT + colored(hex(handler_offset), "cyan"))
                 self._action_windows_messages_intercept(handler_module, handler_offset)
 
