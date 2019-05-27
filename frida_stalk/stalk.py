@@ -16,6 +16,8 @@ import time
 
 import atexit
 import signal
+import json
+
 from . import common
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -107,11 +109,18 @@ class Stalker(object):
         """Start watching for windows events on this handler."""
 
         def window_message_cb(message, data):
-            Hwnd, Msg, wParam, lParam, module = message['payload']
+            Hwnd, Msg, wParam, lParam, module, context, tid, depth = message['payload']
+            # context is dict of regs. i.e.: context['pc'], context['rax'], etc
+            tid = int(tid)
+            depth = int(depth)
             Hwnd = int(Hwnd,16)
             Msg = int(Msg,16)
             wParam = int(wParam,16)
             lParam = int(lParam,16)
+
+            # Bail early if we don't care about this message
+            #if self._args.windows_message is not None and Msg not in self._args.windows_message:
+            #    return
 
             try:
                 msg = ','.join(colored(x,'magenta') for x in common.windows_messages_by_id[Msg])
@@ -119,7 +128,7 @@ class Stalker(object):
                 msg = 'Unknown (' + hex(Msg) + ')'
 
             extra = ""
-            if Msg in common.windows_messages_by_id and any(True for x in common.windows_messages_by_id[Msg] if x in ['WM_SYSKEYDOWN', 'WM_SYSKEYUP', 'WM_KEYUP', 'WM_KEYDOWN']):
+            if Msg in common.windows_messages_by_id and any(True for x in common.windows_messages_by_id[Msg] if x in ['WM_SYSKEYDOWN', 'WM_SYSKEYUP', 'WM_KEYUP', 'WM_KEYDOWN', 'WM_CHAR']):
                 key = common.windows_keys_by_id[wParam]
                 extra = key['Constant'] + ": " + key['Description']
 
@@ -138,7 +147,15 @@ class Stalker(object):
         js = js.replace("OFFSET_HERE", hex(offset))
         js = js.replace("MODULE_HERE", module)
 
-        script = self.session.create_script(js)
+        constraints = ""
+
+        # Constrain what messages we're looking at
+        if self._args.windows_message is not None:
+            constraints += 'if (! {}.includes(Number(args[1]))) {{ return; }}\n'.format(json.dumps(self._args.windows_message))
+
+        js = js.replace('CONSTRAINTS_HERE', constraints)
+
+        script = self.session.create_script(js, runtime='v8')
         script.on('message', window_message_cb)
         script.load()
 
@@ -284,6 +301,10 @@ class Stalker(object):
         stalk_group.add_argument('--rw-everything', '-rw', default=False, action='store_true',
                 help="Change all r-- memory areas into rw-. This can sometimes help segfault issues (default: off)")
 
+        windows_group = parser.add_argument_group('windows options')
+        windows_group.add_argument('--windows-message', '-wm', default=None, type=str, nargs='+', metavar='Message',
+                help="Down select to these specific windows messages (i.e.: WM_KEYUP, WM_KEYDOWN).")
+
         spawn_group = parser.add_argument_group('spawn options')
         spawn_group.add_argument('--file', '-f', type=str, metavar=('FILE','ARGS'), default=None, nargs='+',
                 help="Spawn file.")
@@ -296,6 +317,10 @@ class Stalker(object):
         parser.add_argument('target', type=self.target_type, 
                 help="Target to attach to.")
         self._args = parser.parse_args()
+
+        # Clean up windows messages
+        if self._args.windows_message is not None:
+            self._args.windows_message = [common.windows_messages_by_name[x] for x in self._args.windows_message]
 
 
     def start_session(self):
