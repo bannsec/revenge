@@ -31,6 +31,9 @@ class Stalker(object):
         # Cache common module addrs
         self._module_by_addr_cache = {}
         self.session = None
+        self.__file_name = None
+        self.__file_type = None
+        self.__entrypoint = None
 
         self.parse_args()
 
@@ -263,12 +266,33 @@ class Stalker(object):
 
         return None
 
-    def run_script_generic(self, script_name):
-        """Run scripts that don't require anything special."""
+    def run_script_generic(self, script_name, raw=False):
+        """Run scripts that don't require anything special.
+        
+        Args:
+            script_name (str): What script to load from the js directory
+            raw (bool): Should the script_name actually be considered the script contents?
 
-        js = self.load_js(script_name)
+        Returns:
+            tuple: msg, data return from the script
+        """
+
+        msg = []
+        data = []
+
+        def on_message(m, d):
+            msg.append(m['payload'])
+            data.append(d)
+
+        if not raw:
+            js = self.load_js(script_name)
+        else:
+            js = script_name
         script = self.session.create_script(js)
+        script.on('message', on_message)
         script.load()
+
+        return msg, data
 
     ############
     # Property #
@@ -320,6 +344,47 @@ class Stalker(object):
     def pid(self):
         return self.session._impl.pid
 
+    @property
+    def entrypoint_rebased(self):
+        """Entrypoint as it exists in the current rebased program."""
+        return self.entrypoint + next(module['base'] for name, module in self.modules.items() if name == self.file_name)
+
+    @property
+    def entrypoint(self):
+        """int: Returns the entrypoint for this running program."""
+
+        if self.__entrypoint is None:
+            if self.file_type == 'ELF':
+                self.__entrypoint = int(self.run_script_generic("""send(Memory.readPointer(ptr(Number(Process.getModuleByName('{}').base) + 0x18)))""".format(self.file_name), raw=True)[0][0],16)
+
+            else:
+                logger.warn('entrypoint not implemented for file of type {}'.format(self.file_type))
+                return None
+            
+        return self.__entrypoint
+
+    @property
+    def file_type(self):
+        """Guesses the file type."""
+
+        # TODO: Update this with other formats. PE/COFF/MACHO/etc
+        if self.__file_type is None:
+            if self.run_script_generic("""send('bytes', Process.getModuleByName('{}').base.readByteArray(4))""".format(self.file_name), raw=True)[1][0] == b'\x7fELF':
+                self.__file_type = 'ELF'
+            else:
+                self.__file_type = 'Unknown'
+
+        return self.__file_type
+
+    @property
+    def file_name(self):
+        """The base file name."""
+        # TODO: This assumes the base module is always first...
+        if self.__file_name is None:
+            self.__file_name = self.run_script_generic("""send(Process.enumerateModulesSync())""", raw=True)[0][0][0]['name']
+
+        return self.__file_name
+
 def sigint_handler(sig, frame):
     exit()
 
@@ -328,6 +393,7 @@ def main():
 
     global stalk
     stalk = Stalker()
+
 
     while True:
         time.sleep(1)
