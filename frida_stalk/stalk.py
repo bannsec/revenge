@@ -17,6 +17,7 @@ import time
 import atexit
 import signal
 import json
+import psutil
 
 from . import common, actions
 
@@ -48,12 +49,17 @@ class Stalker(object):
             cprint('[ DONE ]', 'green')
 
         if self._args.action == 'stalk':
+            # Issue where stalk elf doesn't enumerate threads...
             self.action_stalker = actions.ActionStalker(self, **vars(self._args))
             self.action_stalker.run()
 
         elif self._args.action == 'windows_messages':
             self.action_windows_messages = actions.ActionWindowsMessages(self, **vars(self._args))
             self.action_windows_messages.run()
+
+        # Resume file if need be
+        if self._args.resume:
+            self.device.resume(self._spawned)
 
 
     def load_device(self):
@@ -103,6 +109,16 @@ class Stalker(object):
         script.on('message', threads_match)
         script.load()
 
+        # Frida thread enumeration bug: https://github.com/frida/frida/issues/900
+        # Fallback to using psutil
+        if self.threads == {}:
+            logger.warn("Frida threads bug... falling back to psutil.")
+            p = psutil.Process(self.pid)
+            for t in p.threads():
+                # TODO: Format this the same way frida threads come back
+                self.threads[t.id] = {'state': 'psutil/unknown', 'context': {'pc': 0}}
+
+
         cprint("[ DONE ]", "green")
 
         self.print_threads()
@@ -120,18 +136,28 @@ class Stalker(object):
         #for script in self._scripts:
         #    script.unload()
 
-        # Genericall unstalk everything
-        for tid in self.threads.keys():
-            js = "Stalker.unfollow({tid})".format(tid=tid)
-            script = self.session.create_script(js)
-            script.load()
+        try:
+
+            # Genericall unstalk everything
+            for tid in self.threads.keys():
+                js = "Stalker.unfollow({tid})".format(tid=tid)
+                script = self.session.create_script(js)
+                script.load()
+        
+        except frida.InvalidOperationError:
+            # Session is already detached.
+            pass
 
         # Detach our session
         self.session.detach()
 
         # If we spawned it, kill it
-        if self._spawned is not None:
-            self.device.kill(self._spawned)
+        try:
+            if self._spawned is not None:
+                self.device.kill(self._spawned)
+        except frida.ProcessNotFoundError:
+            # It's already dead
+            pass
     
     #######################
     # On Message Handlers #
@@ -187,10 +213,6 @@ class Stalker(object):
         if self._args.file is not None:
             print("Spawning file\t\t\t... ", end='', flush=True)
             self._spawned = self.device.spawn(self._args.file)
-
-            if self._args.resume:
-                self.device.resume(self._spawned)
-
             cprint("[ DONE ]", "green")
 
         print('Attaching to the session\t... ', end='', flush=True)
@@ -293,6 +315,10 @@ class Stalker(object):
     @device_platform.setter
     def device_platform(self, platform):
         self.__device_platform = platform
+
+    @property
+    def pid(self):
+        return self.session._impl.pid
 
 def sigint_handler(sig, frame):
     exit()

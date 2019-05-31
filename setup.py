@@ -30,7 +30,7 @@ setup(
     ],
     keywords='frida stalker python3',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
-    install_requires=['frida', 'frida-tools', 'prettytable', 'colorama', 'termcolor'],
+    install_requires=['frida', 'frida-tools', 'prettytable', 'colorama', 'termcolor', 'psutil'],
     entry_points={
         'console_scripts': [
             'frida-stalk = frida_stalk.stalk:main',
