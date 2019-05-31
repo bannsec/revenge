@@ -1,4 +1,5 @@
 
+from . import Colorer
 import logging
 logging.basicConfig(level=logging.WARN)
 

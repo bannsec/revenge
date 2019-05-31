@@ -6,6 +6,7 @@ import colorama
 from termcolor import cprint, colored
 from .. import common
 import json
+import frida
 
 class ActionStalker:
     """General stalking action."""
@@ -83,7 +84,12 @@ class ActionStalker:
             script.on('message', stalk_cb)
 
             logger.debug("Starting stalker on TID: " + str(tid))
-            script.load()
+            try:
+                script.load()
+            except frida.TransportError:
+                logger.error("Couldn't load stalker! Possibly due to Frida AVX2 dependency")
+                logger.error("Check out issue for more info: https://github.com/frida/frida/issues/901")
+                exit(1)
 
             # Save so that we don't GC it
             self._scripts.append(script)
