@@ -32,9 +32,9 @@ class ActionStalker:
         
         def stalk_cb_call(message):
             """Specifically handle call stalk."""
-            call_from = int(message['location'],16)
-            call_to = int(message['target'], 16)
-            depth = message['depth']
+            call_from = int(message[1],16)
+            call_to = int(message[2], 16)
+            depth = message[3]
             #module_name = message['module']['name']
             
             module_from = self._stalker.get_module_by_addr(call_from) or "Unknown"
@@ -58,14 +58,17 @@ class ActionStalker:
                 ))
 
         def stalk_cb(message, data):
-            message = message['payload']
+            messages = message['payload']
+            #print('stalk_cb: ', message)
 
-            if message['type'] == 'call':
-                stalk_cb_call(message)
-            
-            else:
-                logger.error('Unhandled type: ' + message['type'])
-                print(message)
+            for message in messages:
+
+                if message[0] == 'call':
+                    stalk_cb_call(message)
+                
+                else:
+                    logger.error('Unhandled type: ' + message[0])
+                    print(message)
 
         # TODO: Add args for stalking other types of things
         # TODO: Print output for other types of calls

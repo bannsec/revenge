@@ -130,6 +130,8 @@ function reverse(arr) {
 //var threads = Process.enumerateThreadsSync()
 //for (var i=0; i < threads.length; i++) {
 
+var module_map = new ModuleMap();
+
 Stalker.follow(THREAD_ID_HERE, {
     events: {
         call: true, // CALL instructions
@@ -141,7 +143,37 @@ Stalker.follow(THREAD_ID_HERE, {
         block: false, // block executed: coarse execution trace
         compile: false // block compiled: useful for coverage
     },
+
     onReceive: function (events) {
+        //return send(Stalker.parse(events, {annotate: true, stringify: true}));
+        //send(Stalker.parse(events, {annotate: true, stringify: true}));
+        
+        var filtered_events = [];
+
+        Stalker.parse(events, {annotate: true, stringify: true}).forEach(function x(event) { 
+
+            var name = module_map.getName(ptr(event[1]));
+
+            // Couldn't resolve a name...
+            if ( name == null ) {
+                filtered_events.push(event);
+                return;
+            }
+
+            // Ignore frida agent calls
+            if ( name.substring(0, 11) == "frida-agent" ) {
+                return;
+            }
+
+            filtered_events.push(event);
+        });
+
+        if ( filtered_events.length != 0 ) {
+            send(filtered_events);
+        }
+
+        return;
+
         parseEvents(events, function (event) {
             event['module'] = Process.getModuleByAddress(event['location']);
 

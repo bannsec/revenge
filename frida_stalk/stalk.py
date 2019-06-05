@@ -35,6 +35,7 @@ class Stalker(object):
         self.__file_name = None
         self.__file_type = None
         self.__entrypoint = None
+        self._resume_addr = None
 
         self.parse_args()
 
@@ -45,6 +46,24 @@ class Stalker(object):
         self.load_device()
         self.start_session()
         self.enumerate_modules()
+
+        # ELF binaries start up in ptrace, which causes some issues, shim at entrypoint so we can remove ptrace
+        if self.file_type == 'ELF':
+
+            # Load up our replacement shim
+            suspend = self.load_js('generic_suspend_until_true.js').replace("FUNCTION_HERE", hex(self.entrypoint_rebased))
+
+            # Save off the address we will need to update
+            self._resume_addr = int(self.run_script_generic(suspend, raw=True)[0][0],16)
+
+            self.run_script_generic('pause_on_exit.js')
+
+            # Resume to remove ptrace
+            self.device.resume(self._spawned)
+
+            time.sleep(1)
+
+
         self.enumerate_threads()
 
         if self._args.rw_everything:
@@ -60,10 +79,17 @@ class Stalker(object):
         elif self._args.action == 'windows_messages':
             self.action_windows_messages = actions.ActionWindowsMessages(self, **vars(self._args))
             self.action_windows_messages.run()
-
+        
+        time.sleep(1)
         # Resume file if need be
         if self._args.resume:
-            self.device.resume(self._spawned)
+
+            # If we are using a resume variable
+            if self._resume_addr is not None:
+                self.run_script_generic("""ptr("{}").writePointer(ptr(1));""".format(hex(self._resume_addr)), raw=True)
+            
+            else:
+                self.device.resume(self._spawned)
 
 
     def load_device(self):
@@ -112,6 +138,7 @@ class Stalker(object):
         script = self.session.create_script(self.load_js('enumerate_threads.js'))
         script.on('message', threads_match)
         script.load()
+        #print(self.run_script_generic("enumerate_threads.js"))
 
         # Frida thread enumeration bug: https://github.com/frida/frida/issues/900
         # Fallback to using psutil
@@ -136,6 +163,14 @@ class Stalker(object):
     def at_exit(self):
         """Called to clean-up at exit."""
 
+        # If we spawned it, kill it
+        try:
+            if self._spawned is not None:
+                return self.device.kill(self._spawned)
+        except frida.ProcessNotFoundError:
+            # It's already dead
+            return
+
         # Unload anything we loaded first
         #for script in self._scripts:
         #    script.unload()
@@ -155,13 +190,6 @@ class Stalker(object):
         # Detach our session
         self.session.detach()
 
-        # If we spawned it, kill it
-        try:
-            if self._spawned is not None:
-                self.device.kill(self._spawned)
-        except frida.ProcessNotFoundError:
-            # It's already dead
-            pass
     
     #######################
     # On Message Handlers #
@@ -282,6 +310,7 @@ class Stalker(object):
         data = []
 
         def on_message(m, d):
+            logger.debug("on_message: {}".format([m,d]))
             msg.append(m['payload'])
             data.append(d)
 
