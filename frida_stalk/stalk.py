@@ -209,6 +209,8 @@ class Stalker(object):
                 help="Thread to stalk. (Default: all threads.)")
         parser.add_argument('--include-module', "-I", type=str, default=None, metavar='module', nargs='+',
                 help="Module to include for stalking (default: All modules).")
+        parser.add_argument('--include-function', "-i", type=str, default=None, metavar='module:offset',
+                help="Function to include for stalking (default: All functions).")
         parser.add_argument('--verbose', "-v", action='store_true', default=False,
                 help="Output more verbose information (defualt: False)")
 

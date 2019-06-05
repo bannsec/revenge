@@ -7,11 +7,12 @@ from termcolor import cprint, colored
 from .. import common
 import json
 import frida
+import collections
 
 class ActionStalker:
     """General stalking action."""
 
-    def __init__(self, stalker, include_module=None, tid=None, call=False, ret=False, exec=False, block=False, compile=False, *args, **kwargs):
+    def __init__(self, stalker, include_module=None, tid=None, call=False, ret=False, exec=False, block=False, compile=False, include_function=None, *args, **kwargs):
         """
         Args:
             stalker: Parent stalker instantiation
@@ -24,11 +25,20 @@ class ActionStalker:
         self.include_module = include_module or []
         self.tid = tid
 
+        self.include_function = include_function
+        if include_function is not None:
+            function_module, function_offset = include_function.split(":")
+            function_offset = int(function_offset, 16)
+            self.include_function = self._stalker.modules[function_module]['base'] + function_offset
+            logger.debug("Include function at: " + hex(self.include_function))
 
-        self.call = call
-        self.ret = ret
+        self._include_function_traces = collections.defaultdict(lambda :list()) # key = pid, value = list/trace
+        self._include_function_traces_depth = {}
+
+        self.call = True if self.include_function is not None else call
+        self.ret = True if self.include_function is not None else ret
         self.exec = exec
-        self.block = block
+        self.block = True if self.include_function is not None else block
         self.compile = compile
 
     def run(self):
@@ -63,14 +73,52 @@ class ActionStalker:
             else:
                 module_to_offset = call_to - self._stalker.modules[module_to]['base']
 
-            print("{type: <10}{tid: <10}{module_from}:{module_from_offset} -> {module_to}:{module_to_offset}".format(
+            record = {
+                'type': type,
+                'tid': tid,
+                'from': {
+                    'ip': module_from_offset,
+                    'module': module_from
+                    },
+                'to': {
+                    'ip': module_to_offset,
+                    'module': module_to,
+                    },
+                'depth': depth
+                }
+
+            #
+            # Downselecting into specific function
+            # 
+
+            if self.include_function is not None:
+                # We're not in a trace and we're not starting now
+                if tid not in self._include_function_traces and call_from != self.include_function:
+                    return
+
+                self._include_function_traces[tid].append(record)
+
+                # Implicitly determining our depth
+                # NOTE: Having to do this since Windows doesn't always directly call a function, sometimes it does jmp tricks.
+                if tid not in self._include_function_traces_depth and type in ['call', 'ret']:
+                    self._include_function_traces_depth[tid] = depth
+
+                # If we're returning at our min depth, we're done.
+                if type == 'ret' and depth == self._include_function_traces_depth[tid]:
+                    self._include_function_traces_depth.pop(tid)
+                    self._include_function_traces.pop(tid)
+
+
+            print("{type: <10}{tid: <10}{module_from}:{module_from_offset} -> {module_to}:{module_to_offset} {depth}".format(
                 type = type,
                 tid = hex(tid),
                 module_from = module_from,
                 module_from_offset = hex(module_from_offset),
                 module_to = module_to,
-                module_to_offset = hex(module_to_offset)
+                module_to_offset = hex(module_to_offset),
+                depth=depth
                 ))
+
 
         def stalk_cb_exec(message):
             """Specifically handle exec stalk."""

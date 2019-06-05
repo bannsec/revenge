@@ -10,4 +10,7 @@ frida-stalk -I notepad.exe windows_messages notepad.exe
 
 # Only show information about windows message WM_CHAR and WM_KEYDOWN from notepad.exe
 frida-stalk -I notepad.exe -rw windows_messages notepad.exe -wm WM_CHAR WM_KEYDOWN
+
+# Only look at traces from notepad's Windows Message handler function
+frida-stalk stalk notepad.exe --include-function notepad.exe:0x3a50 -I notepad.exe
 ```
