@@ -38,7 +38,7 @@ class ActionWindowsMessages:
             self._known_windows_message_handlers.append(handler_ip)
 
             # Allow downselection to this module
-            if handler_module in self.include_module:
+            if self.include_module == [] or handler_module in self.include_module:
                 print("{: <32}".format("Found Message Handler") + colored(handler_module, 'cyan') + ":" + colorama.Style.BRIGHT + colored(hex(handler_offset), "cyan"))
                 self._action_windows_messages_intercept(handler_module, handler_offset)
 
