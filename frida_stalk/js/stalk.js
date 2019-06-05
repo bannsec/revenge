@@ -132,6 +132,7 @@ function reverse(arr) {
 
 var module_map = new ModuleMap();
 var tid = THREAD_ID_HERE;
+var include = INCLUDE_MODULE_HERE
 
 Stalker.follow(tid, {
     events: {
@@ -162,6 +163,11 @@ Stalker.follow(tid, {
             // Ignore frida agent calls
             if ( from_module.substring(0, 11) == "frida-agent" ) {
                 return;
+            }
+
+            // Optionally only include some
+            if (include.length > 0 && !include.includes(from_module)) {
+                return
             }
 
             var event_dict = {}
