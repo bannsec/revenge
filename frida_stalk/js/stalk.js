@@ -131,17 +131,18 @@ function reverse(arr) {
 //for (var i=0; i < threads.length; i++) {
 
 var module_map = new ModuleMap();
+var tid = THREAD_ID_HERE;
 
-Stalker.follow(THREAD_ID_HERE, {
+Stalker.follow(tid, {
     events: {
-        call: true, // CALL instructions
+        call: STALK_CALL, // CALL instructions
 
         // Other events:
-        ret: false, // RET instructions
-        exec: false, // all instructions: not recommended as it's
+        ret: STALK_RET, // RET instructions
+        exec: STALK_EXEC, // all instructions: not recommended as it's
                      //                   a lot of data
-        block: false, // block executed: coarse execution trace
-        compile: false // block compiled: useful for coverage
+        block: STALK_BLOCK, // block executed: coarse execution trace
+        compile: STALK_COMPILE // block compiled: useful for coverage
     },
 
     onReceive: function (events) {
@@ -151,21 +152,72 @@ Stalker.follow(THREAD_ID_HERE, {
         var filtered_events = [];
 
         Stalker.parse(events, {annotate: true, stringify: true}).forEach(function x(event) { 
+            
+            //
+            // Module filtering
+            //
 
-            var name = module_map.getName(ptr(event[1]));
-
-            // Couldn't resolve a name...
-            if ( name == null ) {
-                filtered_events.push(event);
-                return;
-            }
+            var from_module = module_map.getName(ptr(event[1]));
 
             // Ignore frida agent calls
-            if ( name.substring(0, 11) == "frida-agent" ) {
+            if ( from_module.substring(0, 11) == "frida-agent" ) {
                 return;
             }
 
-            filtered_events.push(event);
+            var event_dict = {}
+
+            if ( event[0] == 'call' ) {
+
+                var to_module   = module_map.getName(ptr(event[2]));
+                event_dict['tid']         = tid;
+                event_dict['type']        = 'call';
+                event_dict['from_ip']     = event[1];
+                event_dict['to_ip']       = event[2];
+                event_dict['depth']       = event[3];
+                event_dict['from_module'] = from_module;
+                event_dict['to_module']   = to_module;
+
+            } else if ( event[0] == 'ret' ) {
+                
+                var to_module   = module_map.getName(ptr(event[2]));
+                event_dict['tid']         = tid;
+                event_dict['type']        = 'ret';
+                event_dict['from_ip']     = event[1];
+                event_dict['to_ip']       = event[2];
+                event_dict['depth']       = event[3];
+                event_dict['from_module'] = from_module;
+                event_dict['to_module']   = to_module;
+
+            } else if ( event[0] == 'exec' ) {
+                
+                event_dict['tid']         = tid;
+                event_dict['type']        = 'exec';
+                event_dict['ip']          = event[1];
+                event_dict['module']      = from_module;
+
+            } else if ( event[0] == 'block' ) {
+
+                var to_module   = module_map.getName(ptr(event[2]));
+                event_dict['tid']         = tid;
+                event_dict['type']        = 'block';
+                event_dict['from_ip']     = event[1];
+                event_dict['to_ip']       = event[2];
+                event_dict['from_module'] = from_module;
+                event_dict['to_module']   = to_module;
+                
+            } else if ( event[0] == 'compile' ) {
+
+                var to_module   = module_map.getName(ptr(event[2]));
+                event_dict['tid']         = tid;
+                event_dict['type']        = 'compile';
+                event_dict['from_ip']     = event[1];
+                event_dict['to_ip']       = event[2];
+                event_dict['from_module'] = from_module;
+                event_dict['to_module']   = to_module;
+
+            }
+
+            filtered_events.push(event_dict);
         });
 
         if ( filtered_events.length != 0 ) {

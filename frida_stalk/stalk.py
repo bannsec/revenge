@@ -48,7 +48,7 @@ class Stalker(object):
         self.enumerate_modules()
 
         # ELF binaries start up in ptrace, which causes some issues, shim at entrypoint so we can remove ptrace
-        if self.file_type == 'ELF':
+        if self._spawned is not None and self.file_type == 'ELF':
 
             # Load up our replacement shim
             suspend = self.load_js('generic_suspend_until_true.js').replace("FUNCTION_HERE", hex(self.entrypoint_rebased))
@@ -213,6 +213,16 @@ class Stalker(object):
                 help="Output more verbose information (defualt: False)")
 
         stalk_group = parser.add_argument_group('stalk options')
+        stalk_group.add_argument('--call', action='store_true', default=False,
+                help="Stalk calls")
+        stalk_group.add_argument('--ret', action='store_true', default=False,
+                help="Stalk rets")
+        stalk_group.add_argument('--exec', action='store_true', default=False,
+                help="Stalks every single instruction.")
+        stalk_group.add_argument('--block', action='store_true', default=False,
+                help="Stalks every code block.")
+        stalk_group.add_argument('--compile', action='store_true', default=False,
+                help="Stalks every time Frida needs to compile.")
         stalk_group.add_argument('--rw-everything', '-rw', default=False, action='store_true',
                 help="Change all r-- memory areas into rw-. This can sometimes help segfault issues (default: off)")
 
