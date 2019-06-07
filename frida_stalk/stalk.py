@@ -79,6 +79,10 @@ class Stalker(object):
         elif self._args.action == 'windows_messages':
             self.action_windows_messages = actions.ActionWindowsMessages(self, **vars(self._args))
             self.action_windows_messages.run()
+
+        elif self._args.action == 'find':
+            self.action_find = actions.ActionFind(self, **vars(self._args))
+            self.action_find.run()
         
         time.sleep(1)
         # Resume file if need be
@@ -232,13 +236,17 @@ class Stalker(object):
         windows_group.add_argument('--windows-message', '-wm', default=None, type=str, nargs='+', metavar='Message',
                 help="Down select to these specific windows messages (i.e.: WM_KEYUP, WM_KEYDOWN).")
 
+        find_group = parser.add_argument_group('find options')
+        find_group.add_argument('--string', type=str, default=None,
+                help="Search for string in program memory.")
+
         spawn_group = parser.add_argument_group('spawn options')
         spawn_group.add_argument('--file', '-f', type=str, metavar=('FILE','ARGS'), default=None, nargs='+',
                 help="Spawn file.")
         spawn_group.add_argument('--resume', default=False, action='store_true',
                 help="Resume binary after spawning it (default: false).")
 
-        parser.add_argument('action', choices=('stalk', 'windows_messages'),
+        parser.add_argument('action', choices=('stalk', 'windows_messages', 'find'),
                 help="What type of stalking.")
 
         parser.add_argument('target', type=self.target_type, 
