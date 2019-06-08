@@ -93,6 +93,11 @@ class Stalker(object):
         elif self._args.action == 'find':
             self.action_find = actions.ActionFind(self, **vars(self._args))
             self.action_find.run()
+            print({hex(x):y for x,y in self.action_find.discovered_locations.items()})
+
+        elif self._args.action == 'diff_find':
+            self.action_diff = actions.ActionDiffFind(self, **vars(self._args))
+            self.action_diff.run()
         
         time.sleep(1)
         # Resume file if need be
@@ -323,7 +328,7 @@ class Stalker(object):
         spawn_group.add_argument('--resume', default=False, action='store_true',
                 help="Resume binary after spawning it (default: false).")
 
-        parser.add_argument('action', choices=('stalk', 'windows_messages', 'find'),
+        parser.add_argument('action', choices=('stalk', 'windows_messages', 'find', 'diff_find'),
                 help="What type of stalking.")
 
         parser.add_argument('target', type=self.target_type, 

@@ -9,6 +9,7 @@ from .. import common
 import binascii
 import time
 import struct
+import threading
 
 class ActionFind:
     """Handle finding things in memory."""
@@ -33,6 +34,8 @@ class ActionFind:
         self.int64 = number if number else int64
         self.number = number
 
+        self._lock = threading.Lock()
+
         # Couple sanity checks
         if self._stalker.bits < 64:
             self.uint64 = None
@@ -45,9 +48,9 @@ class ActionFind:
         self.discovered_locations = {}
 
     def run(self):
+        # Sync
         self.action_find()
-        #print([hex(x) for x in self.discovered_locations])
-        print({hex(x):y for x,y in self.discovered_locations.items()})
+        #print({hex(x):y for x,y in self.discovered_locations.items()})
 
     def action_find(self):
 
@@ -59,6 +62,8 @@ class ActionFind:
                 assert type(found) is list, 'Unexpected found type of {}'.format(type(found))
                 for f in found:
                     self.discovered_locations[int(f['address'],16)] = pattern_type
+
+            self._lock.release()
 
         find_patterns = {}
         endian_str = "<" if self._stalker.endianness == 'little' else '>'
@@ -141,6 +146,9 @@ class ActionFind:
         # Actually do search
         #
 
+        # Using lock since i need to async query memory for long running searches
+        self._lock.acquire()
+
         for find_pattern, pattern_type in find_patterns.items():
 
             find_js = self._stalker.load_js('find_in_memory.js')
@@ -149,5 +157,11 @@ class ActionFind:
             script = self._stalker.session.create_script(find_js)
             script.on('message', find_cb)
 
-            logger.debug("Starting Memory find ... ")
+            logger.debug("Starting Memory find ... {}".format(find_pattern))
+            #print("Finding: " + repr(find_pattern))
             script.load()
+
+            # Wait until we're good to do the next one
+            self._lock.acquire()
+        
+        self._lock.release()

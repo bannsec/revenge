@@ -28,11 +28,18 @@ function memory_scan_completed () {
 // Add downselect to include module here
 var search_space = Process;
 var total_matches = [];
+var protection = null;
 
-search_space.enumerateRangesSync('rw').forEach(
-    function (range) {
-        Memory.scanSync(range.base, range.size, "SCAN_PATTERN_HERE").forEach( memory_scan_match );
-    });
+setTimeout(function () {
+    search_space.enumerateRangesSync('rw').forEach(
+        function (range) {
+            protection = Process.getRangeByAddress(range.base).protection;
 
-memory_scan_completed()
+            // Protection can actually change between enumerating at the execution of scan. Try to catch that.
+            if ( protection == "rw-" || protection == "rwx" ) {
+                Memory.scanSync(range.base, range.size, "SCAN_PATTERN_HERE").forEach( memory_scan_match );
+            };
+        });
 
+    memory_scan_completed();
+});
