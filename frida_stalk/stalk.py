@@ -36,6 +36,7 @@ class Stalker(object):
         self.__file_type = None
         self.__entrypoint = None
         self._resume_addr = None
+        self.__endianness = None
 
         self.parse_args()
 
@@ -412,6 +413,26 @@ class Stalker(object):
                 return None
             
         return self.__entrypoint
+
+    @property
+    def endianness(self):
+        """Determine which endianness this binary is. (little, big)"""
+
+        if self.__endianness != None:
+            return self.__endianness
+
+        if self.device_platform == 'windows':
+            # TODO: Technically assumption, but like 99% of the time it's right.
+            self.__endianness = 'little'
+
+        elif self.file_type == 'ELF':
+            endianness = self.run_script_generic("""send(ptr(Number(Process.enumerateModulesSync()[0].base) + 5).readS8())""", raw=True)[0][0]
+            self.__endianness = 'little' if endianness == 1 else 'big'
+
+        else:
+            logger.warn("Unhandled endianness check for ({}, {}), assuming little".format(self.file_type, self.device_platform))
+
+        return self.__endianness
 
     @property
     def file_type(self):
