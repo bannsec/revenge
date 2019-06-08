@@ -29,3 +29,13 @@ Find things in memory.
 # Find where your string 'hello world' is in notepad (will check for char and wchar versions)
 frida-stalk find notepad.exe --string "Hello world"
 ```
+
+## General Options
+Replacing functions dynamically during execution
+```
+# Replace function located at offset 0x64a in a.out binary, returning value 0x123
+frida-stalk stalk a.out -f ./a.out --resume -rf "a.out:0x64a?0x123"
+
+# Disable alarm and ptrace functions
+frida-stalk stalk test2 -f ./test2 --resume -rf ":alarm?1" ":ptrace?1"
+```

@@ -19,6 +19,7 @@ import atexit
 import signal
 import json
 import psutil
+import pprint
 
 from . import common, actions
 
@@ -47,6 +48,10 @@ class Stalker(object):
         self.load_device()
         self.start_session()
         self.enumerate_modules()
+
+        # Replace any functions needed
+        for f in self._args.replace_function:
+            self.replace_function(f)
 
         # ELF binaries start up in ptrace, which causes some issues, shim at entrypoint so we can remove ptrace
         if self._spawned is not None and self.file_type == 'ELF':
@@ -165,6 +170,30 @@ class Stalker(object):
     def print_threads(self):
         logger.debug('\n' + str(self.threads_table))
 
+    def replace_function(self, f):
+        """Replace a given function to always return a given value. <module:offset|symbol>?<return_val>"""
+        assert type(f) == str, "Unexpected replace function argument type of {}".format(type(f))
+
+        location, return_value = f.split("?")
+        module, offset_or_symbol = location.split(":")
+        
+        try:
+            offset = hex(int(offset_or_symbol,0))
+            symbol = ""
+        except ValueError:
+            offset = "0"
+            symbol = offset_or_symbol
+
+        replace_vars = {
+                "FUNCTION_SYMBOL_HERE": symbol,
+                "FUNCTION_MODULE_HERE": module,
+                "FUNCTION_OFFSET_HERE": offset,
+                "FUNCTION_RETURN_VALUE_HERE": return_value,
+                }
+
+        self.run_script_generic("replace_function.js", replace=replace_vars)
+
+
     def at_exit(self):
         """Called to clean-up at exit."""
 
@@ -216,6 +245,8 @@ class Stalker(object):
                 help="Module to include for stalking (default: All modules).")
         parser.add_argument('--include-function', "-i", type=str, default=None, metavar='module:offset',
                 help="Function to include for stalking (default: All functions).")
+        parser.add_argument('--replace-function', "-rf", type=str, default=[], metavar='<module:offset|symbol>?<return_val>', nargs='+',
+                help="Replace given function by simply returning the given value instead.")
         parser.add_argument('--verbose', "-v", action='store_true', default=False,
                 help="Output more verbose information (defualt: False)")
 
@@ -316,12 +347,13 @@ class Stalker(object):
 
         return None
 
-    def run_script_generic(self, script_name, raw=False):
+    def run_script_generic(self, script_name, raw=False, replace=None):
         """Run scripts that don't require anything special.
         
         Args:
             script_name (str): What script to load from the js directory
-            raw (bool): Should the script_name actually be considered the script contents?
+            raw (bool, optional): Should the script_name actually be considered the script contents?
+            replace (dict, optional): Replace key strings from dictionary with value into script.
 
         Returns:
             tuple: msg, data return from the script
@@ -331,6 +363,11 @@ class Stalker(object):
         data = []
 
         def on_message(m, d):
+
+            if m['type'] == 'error':
+                logger.error(pprint.pformat(m['description']))
+                return
+
             logger.debug("on_message: {}".format([m,d]))
             msg.append(m['payload'])
             data.append(d)
@@ -339,6 +376,15 @@ class Stalker(object):
             js = self.load_js(script_name)
         else:
             js = script_name
+
+        if replace is not None:
+            assert type(replace) == dict, "Unexpected replace type of {}".format(type(replace))
+
+            for key, value in replace.items():
+                js = js.replace(key, value)
+
+        logger.debug("Running script: %s", js)
+
         script = self.session.create_script(js)
         script.on('message', on_message)
         script.load()
