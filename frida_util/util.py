@@ -28,7 +28,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 class Util(object):
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         # Just variable to ensure we don't garbage collect
         self._scripts = []
         # Cache common module addrs
@@ -42,7 +42,11 @@ class Util(object):
         self.__bits = None
         self.memory = Memory(self)
 
-        self.parse_args()
+        self.parse_args(kwargs!={})
+
+        # Generic passthrough of arguments
+        for key, val in kwargs.items():
+            setattr(self._args, key, val)
 
         if self._args.verbose:
             logger.setLevel(logging.DEBUG)
@@ -70,7 +74,7 @@ class Util(object):
 
         if self._args.rw_everything:
             print('RW\'ing memory areas\t\t... ', end='', flush=True)
-            self.run_script_generic('rw_everything.js')
+            self.run_script_generic('rw_everything.js', unload=True)
             cprint('[ DONE ]', 'green')
 
         # Replace any functions needed
@@ -107,7 +111,7 @@ class Util(object):
 
             # If we are using a resume variable
             if self._resume_addr is not None:
-                self.run_script_generic("""ptr("{}").writePointer(ptr(1));""".format(hex(self._resume_addr)), raw=True)
+                self.run_script_generic("""ptr("{}").writePointer(ptr(1));""".format(hex(self._resume_addr)), raw=True, unload=True)
             
             else:
                 self.device.resume(self._spawned)
@@ -133,6 +137,7 @@ class Util(object):
         script = self.session.create_script(self.load_js('enumerate_modules.js'))
         script.on('message', modules_match)
         script.load()
+        script.unload()
 
         cprint("[ DONE ]", "green")
 
@@ -206,6 +211,13 @@ class Util(object):
     def at_exit(self):
         """Called to clean-up at exit."""
 
+        # Unload our scripts
+        for script, text in self._scripts:
+            logger.debug("Unloading Script: %s", text)
+            script.unload()
+
+        logger.debug("Done unloading")
+
         # If we spawned it, kill it
         try:
             if self._spawned is not None:
@@ -242,7 +254,13 @@ class Util(object):
         """Generic on message handler."""
         print("Caught message", message, data)
 
-    def parse_args(self):
+    def parse_args(self, defaults=False):
+        """
+
+        Args:
+            defaults (bool, optional): Just use argparse to set up default values.
+        """
+
         parser = argparse.ArgumentParser(
             description='CLI wrapper around Frida Stalker.'
             )
@@ -311,7 +329,11 @@ class Util(object):
 
         parser.add_argument('target', type=self.target_type, 
                 help="Target to attach to.")
-        self._args = parser.parse_args()
+
+        if defaults != False:
+            self._args = parser.parse_args(['stalk','PLACEHOLDER'])
+        else:
+            self._args = parser.parse_args()
 
         # Clean up windows messages
         if self._args.windows_message is not None:
@@ -375,13 +397,14 @@ class Util(object):
 
         return None
 
-    def run_script_generic(self, script_name, raw=False, replace=None):
+    def run_script_generic(self, script_name, raw=False, replace=None, unload=False):
         """Run scripts that don't require anything special.
         
         Args:
             script_name (str): What script to load from the js directory
             raw (bool, optional): Should the script_name actually be considered the script contents?
             replace (dict, optional): Replace key strings from dictionary with value into script.
+            unload (bool, optional): Auto unload the script. Set to true if the script is fully synchronous.
 
         Returns:
             tuple: msg, data return from the script
@@ -416,6 +439,12 @@ class Util(object):
         script = self.session.create_script(js)
         script.on('message', on_message)
         script.load()
+        
+        if unload:
+            script.unload()
+        else:
+            # Inserting instead of appending since earlier scripts need to be unloaded later
+            self._scripts.insert(0, [script, js])
 
         return msg, data
 
@@ -431,7 +460,7 @@ class Util(object):
                 "FUNCTION_OFFSET_HERE": offset,
                 }
 
-        return common.auto_int(self.run_script_generic("resolve_location_address.js", replace=replace_vars)[0][0])
+        return common.auto_int(self.run_script_generic("resolve_location_address.js", replace=replace_vars, unload=True)[0][0])
 
     ############
     # Property #
@@ -494,7 +523,7 @@ class Util(object):
 
         if self.__entrypoint is None:
             if self.file_type == 'ELF':
-                self.__entrypoint = int(self.run_script_generic("""send(Memory.readPointer(ptr(Number(Process.getModuleByName('{}').base) + 0x18)))""".format(self.file_name), raw=True)[0][0],16)
+                self.__entrypoint = int(self.run_script_generic("""send(Memory.readPointer(ptr(Number(Process.getModuleByName('{}').base) + 0x18)))""".format(self.file_name), raw=True, unload=True)[0][0],16)
 
             else:
                 logger.warn('entrypoint not implemented for file of type {}'.format(self.file_type))
@@ -514,7 +543,7 @@ class Util(object):
             self.__endianness = 'little'
 
         elif self.file_type == 'ELF':
-            endianness = self.run_script_generic("""send(ptr(Number(Process.enumerateModulesSync()[0].base) + 5).readS8())""", raw=True)[0][0]
+            endianness = self.run_script_generic("""send(ptr(Number(Process.enumerateModulesSync()[0].base) + 5).readS8())""", raw=True, unload=True)[0][0]
             self.__endianness = 'little' if endianness == 1 else 'big'
 
         else:
@@ -528,7 +557,7 @@ class Util(object):
 
         # TODO: Update this with other formats. PE/COFF/MACHO/etc
         if self.__file_type is None:
-            if self.run_script_generic("""send('bytes', Process.getModuleByName('{}').base.readByteArray(4))""".format(self.file_name), raw=True)[1][0] == b'\x7fELF':
+            if self.run_script_generic("""send('bytes', Process.getModuleByName('{}').base.readByteArray(4))""".format(self.file_name), raw=True, unload=True)[1][0] == b'\x7fELF':
                 self.__file_type = 'ELF'
             else:
                 self.__file_type = 'Unknown'
@@ -540,7 +569,7 @@ class Util(object):
         """The base file name."""
         # TODO: This assumes the base module is always first...
         if self.__file_name is None:
-            self.__file_name = self.run_script_generic("""send(Process.enumerateModulesSync())""", raw=True)[0][0][0]['name']
+            self.__file_name = self.run_script_generic("""send(Process.enumerateModulesSync())""", raw=True, unload=True)[0][0][0]['name']
 
         return self.__file_name
 
@@ -548,7 +577,7 @@ class Util(object):
     def bits(self):
         """int: How many bits is the CPU?"""
         if self.__bits == None:
-            self.__bits = self.run_script_generic("""send(Process.pointerSize);""", raw=True)[0][0] * 8
+            self.__bits = self.run_script_generic("""send(Process.pointerSize);""", raw=True, unload=True)[0][0] * 8
         
         return self.__bits
 

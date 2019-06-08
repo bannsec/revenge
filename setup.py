@@ -31,6 +31,9 @@ setup(
     keywords='frida stalker python3',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     install_requires=['frida', 'frida-tools', 'prettytable', 'colorama', 'termcolor', 'psutil'],
+    extras_require={
+        'dev': ['ipython','twine','pytest','python-coveralls','coverage','pytest-cov','pytest-xdist','sphinxcontrib-napoleon', 'sphinx_rtd_theme','sphinx-autodoc-typehints', 'pyOpenSSL'],
+    },
     entry_points={
         'console_scripts': [
             'frida-util = frida_util.util:main',
