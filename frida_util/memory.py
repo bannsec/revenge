@@ -77,7 +77,7 @@ class MemoryBytes(object):
 
     @int64.setter
     def int64(self, val):
-        self._util.run_script_generic("""send(ptr({}).writeS64({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
+        self._util.run_script_generic("""ptr({}).writeS64({})""".format(hex(self.address), val), raw=True, unload=True)
     
     @property
     def uint64(self):
@@ -86,7 +86,7 @@ class MemoryBytes(object):
 
     @uint64.setter
     def uint64(self, val):
-        self._util.run_script_generic("""send(ptr({}).writeU64({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
+        self._util.run_script_generic("""ptr({}).writeU64("{}")""".format(hex(self.address), val), raw=True, unload=True)
 
     @property
     def string_ansi(self):

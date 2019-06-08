@@ -397,7 +397,7 @@ class Util(object):
 
         return None
 
-    def run_script_generic(self, script_name, raw=False, replace=None, unload=False):
+    def run_script_generic(self, script_name, raw=False, replace=None, unload=False, runtime='duk'):
         """Run scripts that don't require anything special.
         
         Args:
@@ -405,6 +405,7 @@ class Util(object):
             raw (bool, optional): Should the script_name actually be considered the script contents?
             replace (dict, optional): Replace key strings from dictionary with value into script.
             unload (bool, optional): Auto unload the script. Set to true if the script is fully synchronous.
+            runtime (str, optional): Runtime to use for this script, either 'duk' or 'v8'.
 
         Returns:
             tuple: msg, data return from the script
@@ -436,7 +437,7 @@ class Util(object):
 
         logger.debug("Running script: %s", js)
 
-        script = self.session.create_script(js)
+        script = self.session.create_script(js, runtime=runtime)
         script.on('message', on_message)
         script.load()
         
@@ -461,6 +462,9 @@ class Util(object):
                 }
 
         return common.auto_int(self.run_script_generic("resolve_location_address.js", replace=replace_vars, unload=True)[0][0])
+
+    def __del__(self):
+        self.at_exit()
 
     ############
     # Property #
