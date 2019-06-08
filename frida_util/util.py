@@ -22,6 +22,7 @@ import psutil
 import pprint
 
 from . import common, actions
+from .memory import Memory
 
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -39,6 +40,7 @@ class Util(object):
         self._resume_addr = None
         self.__endianness = None
         self.__bits = None
+        self.memory = Memory(self)
 
         self.parse_args()
 
@@ -181,15 +183,9 @@ class Util(object):
 
     def pause_at(self, location):
         """Pause at a given point in execution."""
-        module, offset, symbol = self._parse_location_string(location)        
 
-        replace_vars = {
-                "FUNCTION_SYMBOL_HERE": symbol,
-                "FUNCTION_MODULE_HERE": module,
-                "FUNCTION_OFFSET_HERE": offset,
-                }
-
-        self.run_script_generic('pause_at2.js', replace=replace_vars)
+        pause_location = self._resolve_location_string(location)
+        self.run_script_generic('pause_at2.js', replace={"FUNCTION_ADDRESS_HERE": hex(pause_location)})
         
 
     def replace_function(self, f):
@@ -197,13 +193,11 @@ class Util(object):
         assert type(f) == str, "Unexpected replace function argument type of {}".format(type(f))
 
         location, return_value = f.split("?")
-        module, offset, symbol = self._parse_location_string(location)        
+        replace_location = self._resolve_location_string(location)
 
         replace_vars = {
-                "FUNCTION_SYMBOL_HERE": symbol,
-                "FUNCTION_MODULE_HERE": module,
-                "FUNCTION_OFFSET_HERE": offset,
                 "FUNCTION_RETURN_VALUE_HERE": return_value,
+                "FUNCTION_ADDRESS_HERE": hex(replace_location),
                 }
 
         self.run_script_generic("replace_function.js", replace=replace_vars)
@@ -247,22 +241,6 @@ class Util(object):
     def on_message(self, message, data=None):
         """Generic on message handler."""
         print("Caught message", message, data)
-
-    def _parse_location_string(self, s):
-        """Parse location string <[module:offset]|symbol> into (module, offset, symbol)."""
-
-        assert type(s) == str, "Unexpected argument type of {}".format(type(s))
-
-        module, offset_or_symbol = s.split(":")
-        
-        try:
-            offset = hex(int(offset_or_symbol,0))
-            symbol = ""
-        except ValueError:
-            offset = "0"
-            symbol = offset_or_symbol
-
-        return module, offset, symbol
 
     def parse_args(self):
         parser = argparse.ArgumentParser(
@@ -441,6 +419,20 @@ class Util(object):
 
         return msg, data
 
+    def _resolve_location_string(self, location):
+        """Take location string s and resolve it into an integer address."""
+        assert type(location) is str, "Invalid call to resolve_location_string with type {}".format(type(location))
+
+        module, offset, symbol = common.parse_location_string(location)
+
+        replace_vars = {
+                "FUNCTION_SYMBOL_HERE": symbol,
+                "FUNCTION_MODULE_HERE": module,
+                "FUNCTION_OFFSET_HERE": offset,
+                }
+
+        return common.auto_int(self.run_script_generic("resolve_location_address.js", replace=replace_vars)[0][0])
+
     ############
     # Property #
     ############
@@ -569,6 +561,8 @@ def main():
     global util
     util = Util()
 
+    import IPython
+    IPython.embed()
 
     while True:
         time.sleep(1)
