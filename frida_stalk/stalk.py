@@ -297,6 +297,22 @@ class Stalker(object):
         find_group = parser.add_argument_group('find options')
         find_group.add_argument('--string', type=str, default=None,
                 help="Search for string in program memory.")
+        find_group.add_argument('--uint8', type=int, default=None,
+                help="Search for unsigned 8bit int in program memory.")
+        find_group.add_argument('--int8', type=int, default=None,
+                help="Search for signed 8bit int in program memory.")
+        find_group.add_argument('--uint16', type=int, default=None,
+                help="Search for unsigned 16bit int in program memory.")
+        find_group.add_argument('--int16', type=int, default=None,
+                help="Search for signed 16bit int in program memory.")
+        find_group.add_argument('--uint32', type=int, default=None,
+                help="Search for unsigned 32bit int in program memory.")
+        find_group.add_argument('--int32', type=int, default=None,
+                help="Search for signed 32bit int in program memory.")
+        find_group.add_argument('--uint64', type=int, default=None,
+                help="Search for unsigned 64bit int in program memory.")
+        find_group.add_argument('--int64', type=int, default=None,
+                help="Search for signed 64bit int in program memory.")
 
         spawn_group = parser.add_argument_group('spawn options')
         spawn_group.add_argument('--file', '-f', type=str, metavar=('FILE','ARGS'), default=None, nargs='+',
