@@ -31,7 +31,7 @@ basic_one_ui64_addr = 0x201028
 basic_one_string_addr = 0x724
 basic_open_func_addr = 0x64A
 
-util = frida_util.Util(action="find", target="basic_one", file=basic_one_path, resume=True)
+util = frida_util.Util(action="find", target="basic_one", file=basic_one_path, resume=True, verbose=True)
 
 def test_memory_read_int():
 
