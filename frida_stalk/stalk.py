@@ -49,10 +49,6 @@ class Stalker(object):
         self.start_session()
         self.enumerate_modules()
 
-        # Replace any functions needed
-        for f in self._args.replace_function:
-            self.replace_function(f)
-
         # ELF binaries start up in ptrace, which causes some issues, shim at entrypoint so we can remove ptrace
         if self._spawned is not None and self.file_type == 'ELF':
 
@@ -62,20 +58,27 @@ class Stalker(object):
             # Save off the address we will need to update
             self._resume_addr = int(self.run_script_generic(suspend, raw=True)[0][0],16)
 
-            self.run_script_generic('pause_on_exit.js')
+            self.run_script_generic('pause_at.js', replace={"PAUSE_AT_ARRAY_HERE": json.dumps(['exit', '_exit'])})
 
             # Resume to remove ptrace
             self.device.resume(self._spawned)
 
             time.sleep(1)
 
-
-        self.enumerate_threads()
-
         if self._args.rw_everything:
             print('RW\'ing memory areas\t\t... ', end='', flush=True)
             self.run_script_generic('rw_everything.js')
             cprint('[ DONE ]', 'green')
+
+        # Replace any functions needed
+        for f in self._args.replace_function:
+            self.replace_function(f)
+
+        # Setup any requested pauses
+        for location in self._args.pause_at:
+            self.pause_at(location)
+
+        self.enumerate_threads()
 
         if self._args.action == 'stalk':
             # Issue where stalk elf doesn't enumerate threads...
@@ -170,19 +173,25 @@ class Stalker(object):
     def print_threads(self):
         logger.debug('\n' + str(self.threads_table))
 
+    def pause_at(self, location):
+        """Pause at a given point in execution."""
+        module, offset, symbol = self._parse_location_string(location)        
+
+        replace_vars = {
+                "FUNCTION_SYMBOL_HERE": symbol,
+                "FUNCTION_MODULE_HERE": module,
+                "FUNCTION_OFFSET_HERE": offset,
+                }
+
+        self.run_script_generic('pause_at2.js', replace=replace_vars)
+        
+
     def replace_function(self, f):
         """Replace a given function to always return a given value. <module:offset|symbol>?<return_val>"""
         assert type(f) == str, "Unexpected replace function argument type of {}".format(type(f))
 
         location, return_value = f.split("?")
-        module, offset_or_symbol = location.split(":")
-        
-        try:
-            offset = hex(int(offset_or_symbol,0))
-            symbol = ""
-        except ValueError:
-            offset = "0"
-            symbol = offset_or_symbol
+        module, offset, symbol = self._parse_location_string(location)        
 
         replace_vars = {
                 "FUNCTION_SYMBOL_HERE": symbol,
@@ -233,6 +242,21 @@ class Stalker(object):
         """Generic on message handler."""
         print("Caught message", message, data)
 
+    def _parse_location_string(self, s):
+        """Parse location string <[module:offset]|symbol> into (module, offset, symbol)."""
+
+        assert type(s) == str, "Unexpected argument type of {}".format(type(s))
+
+        module, offset_or_symbol = s.split(":")
+        
+        try:
+            offset = hex(int(offset_or_symbol,0))
+            symbol = ""
+        except ValueError:
+            offset = "0"
+            symbol = offset_or_symbol
+
+        return module, offset, symbol
 
     def parse_args(self):
         parser = argparse.ArgumentParser(
@@ -247,6 +271,8 @@ class Stalker(object):
                 help="Function to include for stalking (default: All functions).")
         parser.add_argument('--replace-function', "-rf", type=str, default=[], metavar='<module:offset|symbol>?<return_val>', nargs='+',
                 help="Replace given function by simply returning the given value instead.")
+        parser.add_argument('--pause-at', type=str, default=[], metavar='<module:offset|symbol>', nargs='+',
+                help="Pause execution at address.")
         parser.add_argument('--verbose', "-v", action='store_true', default=False,
                 help="Output more verbose information (defualt: False)")
 
