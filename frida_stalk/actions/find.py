@@ -32,6 +32,15 @@ class ActionFind:
         self.uint64 = uint64
         self.int64 = int64
 
+        # Couple sanity checks
+        if self._stalker.bits < 64:
+            self.uint64 = None
+            self.int64 = None
+
+        if self._stalker.bits < 32:
+            self.uint32 = None
+            self.int32 = None
+
         self.discovered_locations = {}
 
     def run(self):

@@ -38,6 +38,7 @@ class Stalker(object):
         self.__entrypoint = None
         self._resume_addr = None
         self.__endianness = None
+        self.__bits = None
 
         self.parse_args()
 
@@ -543,6 +544,14 @@ class Stalker(object):
             self.__file_name = self.run_script_generic("""send(Process.enumerateModulesSync())""", raw=True)[0][0][0]['name']
 
         return self.__file_name
+
+    @property
+    def bits(self):
+        """int: How many bits is the CPU?"""
+        if self.__bits == None:
+            self.__bits = self.run_script_generic("""send(Process.pointerSize);""", raw=True)[0][0] * 8
+        
+        return self.__bits
 
 def sigint_handler(sig, frame):
     exit()
