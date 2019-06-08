@@ -78,8 +78,6 @@ def test_memory_write():
     assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].int32 == x
     assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].uint32 == x
 
-    """
-    # TODO: Re-enable this once Frida fixes it: https://github.com/frida/frida/issues/917
     x = -random.randint(1, 2**63-1)
     util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].int64 = x
     assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].int64 == x
@@ -89,7 +87,6 @@ def test_memory_write():
     util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].uint64 = x
     assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].int64 == x
     assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].uint64 == x
-    """
 
     x = round(random.random(),4)
     util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].float = x
