@@ -314,6 +314,8 @@ class Stalker(object):
                 help="Search for unsigned 64bit int in program memory.")
         find_group.add_argument('--int64', type=int, default=None,
                 help="Search for signed 64bit int in program memory.")
+        find_group.add_argument('--number', type=int, default=None,
+                help="Search for number of any size in program memory.")
 
         spawn_group = parser.add_argument_group('spawn options')
         spawn_group.add_argument('--file', '-f', type=str, metavar=('FILE','ARGS'), default=None, nargs='+',

@@ -15,7 +15,7 @@ class ActionFind:
 
     def __init__(self, stalker, include_module=None, string=None, uint8=None, 
             int8=None, uint16=None, int16=None, uint32=None, int32=None,
-            uint64=None, int64=None, *args, **kwargs):
+            uint64=None, int64=None, number=None, *args, **kwargs):
         """
         Args:
             stalker: Parent stalker instantiation
@@ -23,14 +23,15 @@ class ActionFind:
         self._stalker = stalker
         self.include_module = include_module or []
         self.string = string
-        self.uint8 = uint8
-        self.int8 = int8
-        self.uint16 = uint16
-        self.int16 = int16
-        self.uint32 = uint32
-        self.int32 = int32
-        self.uint64 = uint64
-        self.int64 = int64
+        self.uint8 = number if number else uint8
+        self.int8 = number if number else int8
+        self.uint16 = number if number else uint16
+        self.int16 = number if number else int16
+        self.uint32 = number if number else uint32
+        self.int32 = number if number else int32
+        self.uint64 = number if number else uint64
+        self.int64 = number if number else int64
+        self.number = number
 
         # Couple sanity checks
         if self._stalker.bits < 64:
@@ -79,29 +80,62 @@ class ActionFind:
             #find_patterns.append({'type': 'utf-16', 'search': wchar})
             find_patterns[wchar] = 'utf-16'
 
+        # Ignoring exceptions when we're blanket searching for some 'number'
         if self.uint8 is not None:
-            find_patterns[binascii.hexlify(struct.pack(endian_str + "B", self.uint8)).decode()] = 'uint8'
+            try:
+                find_patterns[binascii.hexlify(struct.pack(endian_str + "B", self.uint8)).decode()] = 'uint8'
+            except Exception as e:
+                if self.number is None:
+                    raise e
 
         if self.int8 is not None:
-            find_patterns[binascii.hexlify(struct.pack(endian_str + "b", self.int8)).decode()] = 'int8'
+            try:
+                find_patterns[binascii.hexlify(struct.pack(endian_str + "b", self.int8)).decode()] = 'int8'
+            except Exception as e:
+                if self.number is None:
+                    raise e
 
         if self.uint16 is not None:
-            find_patterns[binascii.hexlify(struct.pack(endian_str + "H", self.uint16)).decode()] = 'uint16'
+            try:
+                find_patterns[binascii.hexlify(struct.pack(endian_str + "H", self.uint16)).decode()] = 'uint16'
+            except Exception as e:
+                if self.number is None:
+                    raise e
 
         if self.int16 is not None:
-            find_patterns[binascii.hexlify(struct.pack(endian_str + "h", self.int16)).decode()] = 'int16'
+            try:
+                find_patterns[binascii.hexlify(struct.pack(endian_str + "h", self.int16)).decode()] = 'int16'
+            except Exception as e:
+                if self.number is None:
+                    raise e
 
         if self.uint32 is not None:
-            find_patterns[binascii.hexlify(struct.pack(endian_str + "I", self.uint32)).decode()] = 'uint32'
+            try:
+                find_patterns[binascii.hexlify(struct.pack(endian_str + "I", self.uint32)).decode()] = 'uint32'
+            except Exception as e:
+                if self.number is None:
+                    raise e
 
         if self.int32 is not None:
-            find_patterns[binascii.hexlify(struct.pack(endian_str + "i", self.int32)).decode()] = 'int32'
+            try:
+                find_patterns[binascii.hexlify(struct.pack(endian_str + "i", self.int32)).decode()] = 'int32'
+            except Exception as e:
+                if self.number is None:
+                    raise e
 
         if self.uint64 is not None:
-            find_patterns[binascii.hexlify(struct.pack(endian_str + "Q", self.uint64)).decode()] = 'uint64'
+            try:
+                find_patterns[binascii.hexlify(struct.pack(endian_str + "Q", self.uint64)).decode()] = 'uint64'
+            except Exception as e:
+                if self.number is None:
+                    raise e
 
         if self.int64 is not None:
-            find_patterns[binascii.hexlify(struct.pack(endian_str + "q", self.int64)).decode()] = 'int64'
+            try:
+                find_patterns[binascii.hexlify(struct.pack(endian_str + "q", self.int64)).decode()] = 'int64'
+            except Exception as e:
+                if self.number is None:
+                    raise e
 
         #
         # Actually do search
