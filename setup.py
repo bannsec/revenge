@@ -12,11 +12,11 @@ version = '1.0'
 long_description = "See website for more info."
 
 setup(
-    name='frida-stalk',
+    name='frida-util',
     version=version,
-    description='Wrapper around Frida and calling it\'s Stalk functionality.',
+    description='Wrapper around Frida.',
     long_description=long_description,
-    url='https://github.com/bannsec/frida-stalk',
+    url='https://github.com/bannsec/frida-util',
     author='Michael Bann',
     author_email='self@bannsecurity.com',
     license='MIT',
@@ -33,7 +33,7 @@ setup(
     install_requires=['frida', 'frida-tools', 'prettytable', 'colorama', 'termcolor', 'psutil'],
     entry_points={
         'console_scripts': [
-            'frida-stalk = frida_stalk.stalk:main',
+            'frida-util = frida_util.util:main',
         ],
     },
 )

@@ -25,7 +25,7 @@ from . import common, actions
 
 here = os.path.dirname(os.path.abspath(__file__))
 
-class Stalker(object):
+class Util(object):
 
     def __init__(self):
         # Just variable to ensure we don't garbage collect

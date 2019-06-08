@@ -14,14 +14,14 @@ import threading
 class ActionFind:
     """Handle finding things in memory."""
 
-    def __init__(self, stalker, include_module=None, string=None, uint8=None, 
+    def __init__(self, util, include_module=None, string=None, uint8=None, 
             int8=None, uint16=None, int16=None, uint32=None, int32=None,
             uint64=None, int64=None, number=None, *args, **kwargs):
         """
         Args:
-            stalker: Parent stalker instantiation
+            util: Parent util instantiation
         """
-        self._stalker = stalker
+        self._util = util
         self.include_module = include_module or []
         self.string = string
         self.uint8 = number if number else uint8
@@ -37,11 +37,11 @@ class ActionFind:
         self._lock = threading.Lock()
 
         # Couple sanity checks
-        if self._stalker.bits < 64:
+        if self._util.bits < 64:
             self.uint64 = None
             self.int64 = None
 
-        if self._stalker.bits < 32:
+        if self._util.bits < 32:
             self.uint32 = None
             self.int32 = None
 
@@ -66,7 +66,7 @@ class ActionFind:
             self._lock.release()
 
         find_patterns = {}
-        endian_str = "<" if self._stalker.endianness == 'little' else '>'
+        endian_str = "<" if self._util.endianness == 'little' else '>'
 
         #
         # Create search patterns
@@ -151,10 +151,10 @@ class ActionFind:
 
         for find_pattern, pattern_type in find_patterns.items():
 
-            find_js = self._stalker.load_js('find_in_memory.js')
+            find_js = self._util.load_js('find_in_memory.js')
             find_js = find_js.replace("SCAN_PATTERN_HERE", find_pattern)
 
-            script = self._stalker.session.create_script(find_js)
+            script = self._util.session.create_script(find_js)
             script.on('message', find_cb)
 
             logger.debug("Starting Memory find ... {}".format(find_pattern))

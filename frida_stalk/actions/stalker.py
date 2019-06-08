@@ -12,15 +12,15 @@ import collections
 class ActionStalker:
     """General stalking action."""
 
-    def __init__(self, stalker, include_module=None, tid=None, call=False, ret=False, exec=False, block=False, compile=False, include_function=None, *args, **kwargs):
+    def __init__(self, util, include_module=None, tid=None, call=False, ret=False, exec=False, block=False, compile=False, include_function=None, *args, **kwargs):
         """
         Args:
-            stalker: Parent stalker instantiation
+            util: Parent util instantiation
             include_module: What module to follow, specifically
             tid (int, optional): What Thread ID to specifically follow (default: All)
         """
 
-        self._stalker = stalker
+        self._util = util
         self._scripts = []
         self.include_module = include_module or []
         self.tid = tid
@@ -29,7 +29,7 @@ class ActionStalker:
         if include_function is not None:
             function_module, function_offset = include_function.split(":")
             function_offset = int(function_offset, 16)
-            self.include_function = self._stalker.modules[function_module]['base'] + function_offset
+            self.include_function = self._util.modules[function_module]['base'] + function_offset
             logger.debug("Include function at: " + hex(self.include_function))
 
         self._include_function_traces = collections.defaultdict(lambda :list()) # key = pid, value = list/trace
@@ -65,13 +65,13 @@ class ActionStalker:
             if module_from == "Unknown":
                 module_from_offset = 0
             else:
-                module_from_offset = call_from - self._stalker.modules[module_from]['base']
+                module_from_offset = call_from - self._util.modules[module_from]['base']
 
             module_to = message['to_module'] or "Unknown"
             if module_to == "Unknown":
                 module_to_offset = 0
             else:
-                module_to_offset = call_to - self._stalker.modules[module_to]['base']
+                module_to_offset = call_to - self._util.modules[module_to]['base']
 
             record = {
                 'type': type,
@@ -131,7 +131,7 @@ class ActionStalker:
             if module_from == "Unknown":
                 module_from_offset = 0
             else:
-                module_from_offset = ip - self._stalker.modules[module_from]['base']
+                module_from_offset = ip - self._util.modules[module_from]['base']
 
             print("{type: <10}{tid: <10}{module_from}:{module_from_offset}".format(
                 type = type,
@@ -161,7 +161,7 @@ class ActionStalker:
         # TODO: Add args for stalking other types of things
         # TODO: Print output for other types of calls
 
-        stalk_js = self._stalker.load_js('stalk.js')
+        stalk_js = self._util.load_js('stalk.js')
         stalk_js = stalk_js.replace("INCLUDE_MODULE_HERE", json.dumps(self.include_module))
         stalk_js = stalk_js.replace("STALK_CALL", json.dumps(self.call))
         stalk_js = stalk_js.replace("STALK_RET", json.dumps(self.ret))
@@ -170,13 +170,13 @@ class ActionStalker:
         stalk_js = stalk_js.replace("STALK_COMPILE", json.dumps(self.compile))
 
         if self.tid == None:
-            tid_list = self._stalker.threads.keys()
+            tid_list = self._util.threads.keys()
         else:
             tid_list = [self.tid]
 
         for tid in tid_list:
             stalk_js_replaced = stalk_js.replace("THREAD_ID_HERE", str(tid))
-            script = self._stalker.session.create_script(stalk_js_replaced,  runtime='v8')
+            script = self._util.session.create_script(stalk_js_replaced,  runtime='v8')
             script.on('message', stalk_cb)
 
             logger.debug("Starting stalker on TID: " + str(tid))
