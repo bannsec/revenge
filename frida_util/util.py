@@ -566,8 +566,8 @@ def sigint_handler(sig, frame):
 def main():
     signal.signal(signal.SIGINT, sigint_handler)
 
-    global stalk
-    stalk = Stalker()
+    global util
+    util = Util()
 
 
     while True:
