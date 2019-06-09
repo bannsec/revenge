@@ -3,3 +3,4 @@
 frida_util.egg-info/
 __handlers__
 dist/
+coverage/

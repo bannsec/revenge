@@ -5,7 +5,10 @@ services:
 python:
     - 3.6
 env:
-    - DOCKERFILE=Dockerfile
+    matrix:
+        - DOCKERFILE=Dockerfile
+    global:
+        secure: DSXns4hOc8LSs6vsId086QB1iE8uaFb8ggQVLjy93kFD0zTwpHWHi1uxVoxHdT8pTv4DpGWAfUT+Ltxtji2dbmWhGxuQ9TSDRxnsdDlRCx00KsN7CvxkjPeTIgQmSTvhvMBBWUIJrCmF9x9G3L5aN4lxvLiY92d7gTjn7DbyPwyfFE51LvfRPyu+1/chKks/+QVj5CYGV5etEEZ69pLJvoYdm60VdBLxwzwfKsYbVtssoGthCXbCx+UrH1zLit+aLt5De61QsIXcIRpWcHL5hBJEillHJO62XzE923Gw7xZHi8EY8bjOaiCVpq0xnI6Tntvt/qaAE11xPE1A2pFKMcIjlnRIKaUA3IwazB7mzJwf33SXfPEipDECza/E4Piuw313iBwNq6A9yWF+AOVsQi7W4OiWcgNP4rJ5PKQYC4SUPLA9MXlh3HzFQy1zi8x7pC4HrgZKoWs7YjJ7G1lrfz3arADMGDyZwxV/A0NoJ30CrYwhiT0V5FGwp78040ap3n3bYs6KP4NMMBBVgl2Xy3vnFZxOX3yIDA/kc0bMqgExx1BRp95mIiv4ykTDF4DDra1PGOMoCSDEEvU4W9nRm6LLdHjtd4W2KFp8dVWqpOs9YMfJStDmVOu9kiII1cf9bUE+UD+iGYeXKcrQRARYfkiCAYLDXxOhglkaZl+hr1M=
 before_install:
     - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
     - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
@@ -14,4 +17,4 @@ before_install:
 install:
     - docker build -t bannsec/frida-util -f $DOCKERFILE .
 script:
-    - docker run -it --rm --privileged --cap-add ALL -e TRAVIS_BRANCH=$TRAVIS_BRANCH bannsec/frida-util bash -c 'cd /opt/frida-util && pytest -v tests/linux && if [ ! -z "$COVERALLS_REPO_TOKEN" ]; then coveralls; fi'
+    - docker run -it --rm --privileged --cap-add ALL -e TRAVIS_BRANCH=$TRAVIS_BRANCH bannsec/frida-util bash -c 'cd /opt/frida-util && ./test.sh && if [ ! -z "$COVERALLS_REPO_TOKEN" ]; then coveralls; fi'

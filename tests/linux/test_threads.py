@@ -11,6 +11,7 @@ import frida_util
 import time
 
 amd64_regs = ['pc', 'sp', 'rax', 'rbx', 'rcx', 'rdx', 'rsp', 'rbp', 'rdi', 'rsi', 'r8', 'r9', 'r10', 'r11', 'r12', 'r13', 'r14', 'r15', 'rip']
+# TODO: Test i386, arm, aarch64
 
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "bins")

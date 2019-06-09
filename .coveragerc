@@ -1,0 +1,9 @@
+[run]
+include = frida_util/*
+omit = frida_util/Colorer.py
+branch = True
+concurrency = thread
+data_file = coverage/.coverage
+
+[html]
+directory = coverage
