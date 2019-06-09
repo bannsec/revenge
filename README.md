@@ -6,6 +6,9 @@ This is meant to be a similar functionality to `frida-trace`, but to allow for e
 # Install
 ```
 pip3 install https://github.com/bannsec/frida-util/archive/master.zip
+
+# Or
+pip3 install frida-util
 ```
 
 # Examples

@@ -5,7 +5,7 @@ from codecs import open
 import os, sys, ast
 
 here = os.path.abspath(os.path.dirname(__file__))
-version = '1.0'
+version = '0.1'
 
 #with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 #    long_description = f.read()
@@ -14,7 +14,7 @@ long_description = "See website for more info."
 setup(
     name='frida-util',
     version=version,
-    description='Wrapper around Frida.',
+    description='Silly python wrapper around Frida.',
     long_description=long_description,
     url='https://github.com/bannsec/frida-util',
     author='Michael Bann',
@@ -39,5 +39,6 @@ setup(
             'frida-util = frida_util.util:main',
         ],
     },
+    include_package_data = True,
 )
 
