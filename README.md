@@ -78,11 +78,13 @@ util.memory[0x12345:0x12345+32]
 ```python
 # List threads
 >>> print(util.threads)
+"""
 +-------+---------+----------------+--------------+
 |   id  |  state  |       pc       |    module    |
 +-------+---------+----------------+--------------+
 | 29638 | waiting | 0x7feeb83439d0 | libc-2.27.so |
 +-------+---------+----------------+--------------+
+"""
 
 >>> list(util.threads)
 [<Thread 0x73c6 @ 0x7feeb83439d0 waiting (libc-2.27.so)>]
@@ -94,6 +96,7 @@ t = util.threads[29638]
 <Thread 0x73c6 @ 0x7feeb83439d0 waiting (libc-2.27.so)>
 
 >>> print(t)
+"""
 +--------+--------------------+
 | TID    | 29638              |
 | State  | waiting            |
@@ -118,4 +121,5 @@ t = util.threads[29638]
 | r15    | 0x7feeb43ed040     |
 | rip    | 0x7feeb83439d0     |
 +--------+--------------------+
+"""
 ```
