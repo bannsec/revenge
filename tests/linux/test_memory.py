@@ -134,6 +134,7 @@ def test_memory_read_write_str_byte():
     assert util.memory[string.address:] == None
     assert util.memory[:string.address] == None
     assert util.memory[string.address:string.address+5:2] == None
+    assert util.memory[b'blerg'] == None
 
 def test_memory_write():
 
