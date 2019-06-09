@@ -10,6 +10,7 @@ import os
 import random
 import numpy as np
 import time
+from copy import copy
 
 import frida_util
 
@@ -59,8 +60,20 @@ def test_memory_breakpoint():
 
     # Break here
     assert func.breakpoint == False
+
+    # Setting already false breakpoint to false shouldn't change anything
+    old_breakpoints = copy(util2.memory._active_breakpoints)
+    func.breakpoint = False
+    assert old_breakpoints == util2.memory._active_breakpoints
+    
+    # Set new breakpoint, this should change our active breakpoints dict
     func.breakpoint = True
-    func_malloc_addr = util2.memory._active_breakpoints[func.address]
+    assert old_breakpoints != util2.memory._active_breakpoints
+
+    # Setting already true breakpoint to true shouldn't change anything
+    old_breakpoints = copy(util2.memory._active_breakpoints)
+    func.breakpoint = True
+    assert old_breakpoints == util2.memory._active_breakpoints
 
     assert func.breakpoint == True
 
