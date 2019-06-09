@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/bannsec/frida-util.svg?branch=master)](https://travis-ci.org/bannsec/frida-util)
+[![PyPI Statistics](https://img.shields.io/pypi/dm/frida-util.svg)](https://pypistats.org/packages/frida-util)
 
 # Overview
 This is meant to be a similar functionality to `frida-trace`, but to allow for easier `Stalk` functionality.
