@@ -42,6 +42,13 @@ basic_two_d_addr = 0x201018
 
 util2 = frida_util.Util(action="find", target="basic_two", file=basic_two_path, resume=False, verbose=False)
 
+def test_memory_repr():
+
+    printf = util.memory[':printf']
+    repr(printf)
+
+    repr(util.memory)
+
 def test_memory_breakpoint():
 
     # Initial value
@@ -94,12 +101,20 @@ def test_memory_read_int():
     assert util.memory['basic_one:{}'.format(hex(basic_one_i64_addr))].int64 == -1337
     assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].uint64 == 1337
 
-def test_memory_read_str_byte():
+def test_memory_read_write_str_byte():
 
-    string_addr = util.memory['basic_one:{}'.format(hex(basic_one_string_addr))].address
-    assert util.memory[string_addr].string_utf8 == "This is my string"
-    assert util.memory[string_addr].bytes == b'T'
-    assert util.memory[string_addr:string_addr+17].bytes == b"This is my string"
+    #string_addr = util.memory['basic_one:{}'.format(hex(basic_one_string_addr))].address
+    string = util.memory['basic_one:{}'.format(hex(basic_one_string_addr))]
+    assert string.string_utf8 == "This is my string"
+    assert string.bytes == b'T'
+    assert util.memory[string.address:string.address+17].bytes == b"This is my string"
+
+    string.string_utf8 = "New string"
+    assert string.string_utf8 == "New string"
+
+    string.string_utf16 = "New string"
+    assert string.string_utf8 != "New string"
+    assert string.string_utf16 == "New string"
 
 def test_memory_write():
 
