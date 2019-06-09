@@ -56,3 +56,9 @@ def test_thread_repr_str():
     repr(t)
     str(t)
 
+def test_thread_getitem():
+
+    t = list(util.threads)[0]
+    assert util.threads[t.id] is not None
+    assert util.threads[0] is None
+    assert util.threads[b'blerg'] is None
