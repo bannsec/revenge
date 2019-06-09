@@ -10,9 +10,17 @@ from . import common
 class MemoryBytes(object):
     """Meta-class used for resolving bytes into something else."""
 
-    def __init__(self, util, address):
+    def __init__(self, util, address, address_stop=None):
+        """Abstracting what memory location is.
+
+        Args:
+            util: Util object
+            address (int): Starting address of the memory location.
+            address_stop (int, optional): Optional stopping memory location.
+        """
         self._util = util
         self.address = address
+        self.address_stop = address_stop
 
     def __repr__(self):
         return "<MemoryBytes {}>".format(hex(self.address))
@@ -174,6 +182,17 @@ class MemoryBytes(object):
             #print('Unsuspend pointer: ' + hex(unbreak))
             self._util.memory._active_breakpoints[self.address] = unbreak
 
+    @property
+    def bytes(self):
+        """bytes: Return this as raw bytes."""
+        
+        if self.address_stop is None:
+            length = 1 # Default to 1 byte
+        else:
+            length = self.address_stop - self.address
+
+        return self._util.run_script_generic("""send('array', ptr("{}").readByteArray({}))""".format(hex(self.address), hex(length)), raw=True, unload=True)[1][0]
+
 
 class Memory(object):
     """Class to simplify getting and writing things to memory. Behaves like a list.
@@ -205,7 +224,6 @@ class Memory(object):
                 logger.error("Memory slices must have start and stop and not contain a step option.")
                 return
 
-            return self._util.run_script_generic("""send('array', ptr("{}").readByteArray({}))""".format(hex(item.start), hex(item.stop-item.start)), raw=True, unload=True)[1][0]
-
+            return MemoryBytes(self._util, item.start, item.stop)
 
         logger.error("Unhandled memory type of {}".format(type(item)))

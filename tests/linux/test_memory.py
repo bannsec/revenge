@@ -94,7 +94,12 @@ def test_memory_read_int():
     assert util.memory['basic_one:{}'.format(hex(basic_one_i64_addr))].int64 == -1337
     assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].uint64 == 1337
 
-    assert util.memory['basic_one:{}'.format(hex(basic_one_string_addr))].string_utf8 == "This is my string"
+def test_memory_read_str_byte():
+
+    string_addr = util.memory['basic_one:{}'.format(hex(basic_one_string_addr))].address
+    assert util.memory[string_addr].string_utf8 == "This is my string"
+    assert util.memory[string_addr].bytes == b'T'
+    assert util.memory[string_addr:string_addr+17].bytes == b"This is my string"
 
 def test_memory_write():
 
