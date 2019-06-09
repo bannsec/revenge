@@ -13,7 +13,7 @@ Interceptor.attach(func_ptr, {onEnter: function (args) {
     send("Waiting at function.");
 
     while ( shared_var.readPointer() == 0 ) {
-        Thread.sleep(0.5);
+        Thread.sleep(0.2);
         send("Still waiting at function.");
     };
 

@@ -20,6 +20,7 @@ import signal
 import json
 import psutil
 import pprint
+from copy import copy
 
 from . import common, actions
 from .memory import Memory
@@ -59,13 +60,12 @@ class Util(object):
         # ELF binaries start up in ptrace, which causes some issues, shim at entrypoint so we can remove ptrace
         if self._spawned is not None and self.file_type == 'ELF':
 
-            # Load up our replacement shim
-            suspend = self.load_js('generic_suspend_until_true.js').replace("FUNCTION_HERE", hex(self.entrypoint_rebased))
+            # Set breakpoint at entry
+            self.memory[self.entrypoint_rebased].breakpoint = True
 
-            # Save off the address we will need to update
-            self._resume_addr = int(self.run_script_generic(suspend, raw=True)[0][0],16)
-
-            self.run_script_generic('pause_at.js', replace={"PAUSE_AT_ARRAY_HERE": json.dumps(['exit', '_exit'])})
+            # Set breakpoints at exit calls
+            for c in [':exit', ':_exit']:
+                self.memory[c].breakpoint = True
 
             # Resume to remove ptrace
             self.device.resume(self._spawned)
@@ -110,8 +110,8 @@ class Util(object):
         if self._args.resume:
 
             # If we are using a resume variable
-            if self._resume_addr is not None:
-                self.run_script_generic("""ptr("{}").writePointer(ptr(1));""".format(hex(self._resume_addr)), raw=True, unload=True)
+            if self.memory[self.entrypoint_rebased].breakpoint:
+                self.memory[self.entrypoint_rebased].breakpoint = False
             
             else:
                 self.device.resume(self._spawned)
@@ -210,6 +210,13 @@ class Util(object):
 
     def at_exit(self):
         """Called to clean-up at exit."""
+
+        self.run_script_generic("""Interceptor.detachAll()""", raw=True, unload=True)
+
+        # Remove breakpoints
+        for addr in copy(self.memory._active_breakpoints):
+            logger.debug("Removing breakpoint: " + hex(addr))
+            self.memory[addr].breakpoint = False
 
         # Unload our scripts
         for script, text in self._scripts:
@@ -463,8 +470,6 @@ class Util(object):
 
         return common.auto_int(self.run_script_generic("resolve_location_address.js", replace=replace_vars, unload=True)[0][0])
 
-    def __del__(self):
-        self.at_exit()
 
     ############
     # Property #

@@ -142,6 +142,34 @@ class MemoryBytes(object):
     def pointer(self, val):
         common.auto_int(self._util.run_script_generic("""send(ptr({}).writePointer(ptr({})))""".format(hex(self.address), hex(val)), raw=True, unload=True)[0][0])
 
+    @property
+    def breakpoint(self):
+        """bool: Does this address have an active breakpoint?"""
+        return self.address in self._util.memory._active_breakpoints
+
+    @breakpoint.setter
+    def breakpoint(self, val):
+        """bool: Set this as a breakpoint or remove the breakpoint."""
+        
+        assert type(val) is bool, "breakpoint set must be boolean."
+
+        if val is False:
+            # We're already not a breakpoint
+            if not self.breakpoint:
+                return
+
+            # Remove breakpoint
+            self._util.run_script_generic("""ptr("{}").writePointer(ptr('1'));""".format(hex(self._util.memory._active_breakpoints[self.address])), raw=True, unload=True)
+            self._util.memory._active_breakpoints.pop(self.address)
+
+        else:
+            # Breakpoint already exists
+            if self.breakpoint:
+                return
+
+            unbreak = int(self._util.run_script_generic('generic_suspend_until_true.js', replace={"FUNCTION_HERE": hex(self.address)})[0][0],16)
+            self._util.memory._active_breakpoints[self.address] = unbreak
+
 class Memory(object):
     """Class to simplify getting and writing things to memory. Behaves like a list.
     
@@ -152,6 +180,10 @@ class Memory(object):
 
     def __init__(self, util):
         self._util = util
+
+        # Keep track of where we've inserted breakpoints
+        # key == address of breakpoint, value == memory location to un-breakpoint it
+        self._active_breakpoints = {}
 
     def __getitem__(self, item):
 
