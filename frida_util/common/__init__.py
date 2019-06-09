@@ -1,5 +1,11 @@
-import json
+
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
+logger = logging.getLogger(__name__)
+
 import os
+import json
 
 here = os.path.dirname(os.path.abspath(__file__))
 
