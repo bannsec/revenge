@@ -3,7 +3,7 @@ FROM ubuntu:bionic
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt update && apt dist-upgrade -y && \
-    apt install -y python3 python3-pip python3-venv && \
+    apt install -y python3 python3-pip python3-venv git && \
     mkdir -p /opt
 
 COPY . /opt/frida-util/
