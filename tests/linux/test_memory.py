@@ -118,53 +118,59 @@ def test_memory_read_write_str_byte():
 
 def test_memory_write():
 
+    ui64 = util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))]
+
     x = -random.randint(1, 2**7-1)
-    util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].int8 = x
-    assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].int8 == x
-    assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].uint8 == np.uint8(x)
+    ui64.int8 = x
+    assert ui64.int8 == x
+    assert ui64.uint8 == np.uint8(x)
     
     x = random.randint(1, 2**7-1)
-    util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].uint8 = x
-    assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].int8 == x
-    assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].uint8 == x
+    ui64.uint8 = x
+    assert ui64.int8 == x
+    assert ui64.uint8 == x
 
     x = -random.randint(1, 2**15-1)
-    util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].int16 = x
-    assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].int16 == x
-    assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].uint16 == np.uint16(x)
+    ui64.int16 = x
+    assert ui64.int16 == x
+    assert ui64.uint16 == np.uint16(x)
 
     x = random.randint(1, 2**15-1)
-    util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].uint16 = x
-    assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].int16 == x
-    assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].uint16 == x
+    ui64.uint16 = x
+    assert ui64.int16 == x
+    assert ui64.uint16 == x
 
     x = -random.randint(1, 2**31-1)
-    util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].int32 = x
-    assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].int32 == x
-    assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].uint32 == np.uint32(x)
+    ui64.int32 = x
+    assert ui64.int32 == x
+    assert ui64.uint32 == np.uint32(x)
 
     x = random.randint(1, 2**31-1)
-    util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].uint32 = x
-    assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].int32 == x
-    assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].uint32 == x
+    ui64.uint32 = x
+    assert ui64.int32 == x
+    assert ui64.uint32 == x
 
     x = -random.randint(1, 2**63-1)
-    util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].int64 = x
-    assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].int64 == x
-    assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].uint64 == np.uint64(x)
+    ui64.int64 = x
+    assert ui64.int64 == x
+    assert ui64.uint64 == np.uint64(x)
 
     x = random.randint(1, 2**63-1)
-    util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].uint64 = x
-    assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].int64 == x
-    assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].uint64 == x
+    ui64.uint64 = x
+    assert ui64.int64 == x
+    assert ui64.uint64 == x
+
+    x = random.randint(1, 2**64-1)
+    ui64.pointer = x
+    assert ui64.pointer == x
 
     x = round(random.random(),4)
-    util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].float = x
-    assert abs(util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].float - x) < 0.0001
+    ui64.float = x
+    assert abs(ui64.float - x) < 0.0001
 
     x = round(random.random(),4)
-    util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].double = x
-    assert abs(util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].double - x) < 0.0001
+    ui64.double = x
+    assert abs(ui64.double - x) < 0.0001
 
 if __name__ == '__main__':
     test_memory_breakpoint()
