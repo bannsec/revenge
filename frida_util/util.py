@@ -221,7 +221,12 @@ class Util(object):
         # Unload our scripts
         for script, text in self._scripts:
             logger.debug("Unloading Script: %s", text)
-            script.unload()
+
+            try:
+                script.unload()
+            except frida.InvalidOperationError:
+                # Already unloaded probably
+                pass
 
         logger.debug("Done unloading")
 
@@ -229,9 +234,15 @@ class Util(object):
         try:
             if self._spawned is not None:
                 return self.device.kill(self._spawned)
-        except frida.ProcessNotFoundError:
-            # It's already dead
-            return
+
+        except (frida.PermissionDeniedError, frida.ProcessNotFoundError) as e:
+            # This can indicate the process is already dead.
+            try:
+                next(x for x in self.device.enumerate_processes() if x.pid == self._spawned)
+                logger.error("Device kill permission error, with process apparently %d still alive.", self._spawned)
+                raise e
+            except StopIteration:
+                return
 
         # Unload anything we loaded first
         #for script in self._scripts:

@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 import os
 import random
 import numpy as np
+import time
 
 import frida_util
 
@@ -32,6 +33,55 @@ basic_one_string_addr = 0x724
 basic_open_func_addr = 0x64A
 
 util = frida_util.Util(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
+
+basic_two_path = os.path.join(bin_location, "basic_two")
+basic_two_func_addr = 0x64A
+basic_two_i32_addr = 0x201020
+basic_two_f_addr = 0x201010
+basic_two_d_addr = 0x201018
+
+util2 = frida_util.Util(action="find", target="basic_two", file=basic_two_path, resume=False, verbose=False)
+
+def test_memory_breakpoint():
+
+    # Initial value
+    assert util2.memory['basic_two:{}'.format(hex(basic_two_i32_addr))].int32 == 1337
+
+    func = util2.memory['basic_two:{}'.format(hex(basic_two_func_addr))]
+    i32 = util2.memory['basic_two:{}'.format(hex(basic_two_i32_addr))]
+
+    # Break here
+    assert func.breakpoint == False
+    func.breakpoint = True
+    func_malloc_addr = util2.memory._active_breakpoints[func.address]
+
+    assert func.breakpoint == True
+
+    # Release from entrypoint
+    util2.memory[util2.entrypoint_rebased].breakpoint = False
+    assert util2.memory[util2.entrypoint_rebased].breakpoint == False
+    assert func.breakpoint == True
+    
+    # Ensure we're not duplicating alloc places
+    assert len(util2.memory._active_breakpoints.values()) == len(set(util2.memory._active_breakpoints.values()))
+
+    # Shouldn't have changed just yet
+    time.sleep(0.2)
+    assert i32.int32 == 1337
+
+    # Let it continue to print statement
+    util2.memory[':printf'].breakpoint = True
+    func.breakpoint = False
+
+    time.sleep(0.2)
+    # It should have changed now
+    assert i32.int32 == 31337
+
+
+
+def test_memory_read_float_double():
+    assert abs(util2.memory['basic_two:{}'.format(hex(basic_two_f_addr))].float - 4.1251) < 0.0001
+    assert abs(util2.memory['basic_two:{}'.format(hex(basic_two_d_addr))].double - 10.4421) < 0.0001
 
 def test_memory_read_int():
 
@@ -97,5 +147,6 @@ def test_memory_write():
     assert abs(util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].double - x) < 0.0001
 
 if __name__ == '__main__':
-    test_memory_read_int()
-    test_memory_write()
+    test_memory_breakpoint()
+    #test_memory_read_int()
+    #test_memory_write()
