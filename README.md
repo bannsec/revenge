@@ -75,7 +75,7 @@ util.memory[':strcmp'].breakpoint = False
 util.memory[0x12345].int16 = -55
 
 # Extract a range of bytes
-util.memory[0x12345:0x12345+32]
+util.memory[0x12345:0x12345+32].bytes
 ```
 
 ### Threads
