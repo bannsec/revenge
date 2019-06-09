@@ -24,6 +24,7 @@ from copy import copy
 
 from . import common, actions
 from .memory import Memory
+from .threads import Threads
 
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -42,6 +43,7 @@ class Util(object):
         self.__endianness = None
         self.__bits = None
         self.memory = Memory(self)
+        self.threads = Threads(self)
 
         self.parse_args(kwargs!={})
 
@@ -84,8 +86,6 @@ class Util(object):
         # Setup any requested pauses
         for location in self._args.pause_at:
             self.pause_at(location)
-
-        self.enumerate_threads()
 
         if self._args.action == 'stalk':
             # Issue where stalk elf doesn't enumerate threads...
@@ -151,40 +151,8 @@ class Util(object):
 
         self.print_modules()
 
-    def enumerate_threads(self):
-
-        self.threads = {}
-
-        def threads_match(module, data=None):
-            thread = module['payload']
-            self.threads[thread['id']] = thread
-
-        print("Enumerating threads\t\t... ", end='', flush=True)
-
-        script = self.session.create_script(self.load_js('enumerate_threads.js'))
-        script.on('message', threads_match)
-        script.load()
-        #print(self.run_script_generic("enumerate_threads.js"))
-
-        # Frida thread enumeration bug: https://github.com/frida/frida/issues/900
-        # Fallback to using psutil
-        if self.threads == {}:
-            logger.warn("Frida threads bug... falling back to psutil.")
-            p = psutil.Process(self.pid)
-            for t in p.threads():
-                # TODO: Format this the same way frida threads come back
-                self.threads[t.id] = {'state': 'psutil/unknown', 'context': {'pc': 0}}
-
-
-        cprint("[ DONE ]", "green")
-
-        self.print_threads()
-
     def print_modules(self):
         logger.debug('\n' + str(self.modules_table))
-
-    def print_threads(self):
-        logger.debug('\n' + str(self.threads_table))
 
     def pause_at(self, location):
         """Pause at a given point in execution."""
@@ -251,10 +219,8 @@ class Util(object):
         try:
 
             # Genericall unstalk everything
-            for tid in self.threads.keys():
-                js = "Stalker.unfollow({tid})".format(tid=tid)
-                script = self.session.create_script(js)
-                script.load()
+            for thread in self.threads:
+                self.run_script_generic("Stalker.unfollow({tid})".format(tid=thread.id), raw=True, unload=True)
         
         except frida.InvalidOperationError:
             # Session is already detached.
@@ -485,15 +451,6 @@ class Util(object):
     ############
     # Property #
     ############
-
-    @property
-    def threads_table(self):
-        table = PrettyTable(['id', 'state', 'pc', 'pc_module'])
-
-        for id, thread in self.threads.items():
-            table.add_row([str(id), thread['state'], thread['context']['pc'], self.get_module_by_addr(thread['context']['pc'])])
-
-        return table
 
     @property
     def modules_table(self):

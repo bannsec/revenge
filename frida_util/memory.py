@@ -174,6 +174,7 @@ class MemoryBytes(object):
             #print('Unsuspend pointer: ' + hex(unbreak))
             self._util.memory._active_breakpoints[self.address] = unbreak
 
+
 class Memory(object):
     """Class to simplify getting and writing things to memory. Behaves like a list.
     
