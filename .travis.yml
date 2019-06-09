@@ -17,4 +17,4 @@ before_install:
 install:
     - docker build -t bannsec/frida-util -f $DOCKERFILE .
 script:
-    - docker run -it --rm --privileged --cap-add ALL -e TRAVIS_BRANCH=$TRAVIS_BRANCH bannsec/frida-util bash -c 'cd /opt/frida-util && ./test.sh && if [ ! -z "$COVERALLS_REPO_TOKEN" ]; then coveralls; fi'
+    - docker run -it --rm --privileged --cap-add ALL -e TRAVIS_BRANCH=$TRAVIS_BRANCH -e COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN bannsec/frida-util bash -c 'cd /opt/frida-util && ./test.sh && if [ ! -z "$COVERALLS_REPO_TOKEN" ]; then coveralls; fi'
