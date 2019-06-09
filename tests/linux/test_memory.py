@@ -129,6 +129,12 @@ def test_memory_read_write_str_byte():
     assert string.string_utf8 != "New string"
     assert string.string_utf16 == "New string"
 
+
+    # This currently isn't supported
+    assert util.memory[string.address:] == None
+    assert util.memory[:string.address] == None
+    assert util.memory[string.address:string.address+5:2] == None
+
 def test_memory_write():
 
     ui64 = util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))]
