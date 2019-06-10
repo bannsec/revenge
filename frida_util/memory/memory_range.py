@@ -4,7 +4,7 @@ logging.basicConfig(level=logging.WARN)
 
 logger = logging.getLogger(__name__)
 
-from .. import common
+from .. import common, types
 
 class MemoryRange(object):
 
@@ -78,4 +78,4 @@ class MemoryRange(object):
 
     @base.setter
     def base(self, base):
-        self.__base = common.auto_int(base)
+        self.__base = types.Pointer(common.auto_int(base))
