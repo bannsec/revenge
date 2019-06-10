@@ -13,6 +13,9 @@ pip3 install https://github.com/bannsec/frida-util/archive/master.zip
 pip3 install frida-util
 ```
 
+# Platforms
+The goal is for this to be mostly platform independent. Since the backend is python and Frida, it should support Windows, Mac, Linux and Android. YMMV.
+
 # Examples
 
 ## Windows Messages
@@ -40,6 +43,21 @@ Find things in memory.
 ```
 # Find where your string 'hello world' is in notepad (will check for char and wchar versions)
 frida-util find notepad.exe --string "Hello world"
+```
+
+## IPython
+Drop into an interactive shell from the command line
+```
+$ frida-util ipython ls -f /bin/ls
+Spawning file                   ... [ DONE ]
+Attaching to the session        ... [ DONE ]
+Enumerating modules             ... [ DONE ]
+Python 3.6.7 (default, Oct 22 2018, 11:32:17)
+Type 'copyright', 'credits' or 'license' for more information
+IPython 7.5.0 -- An enhanced Interactive Python. Type '?' for help.
+
+In [1]: process
+Out[1]: <frida_util.util.Util at 0x7fa036bc14e0>
 ```
 
 ## General Options
