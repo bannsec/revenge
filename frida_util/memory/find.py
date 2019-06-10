@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 import json
 
 from .. import common, types
+import time
 
 class MemoryFind(object):
     """Find something in memory.
@@ -34,6 +35,12 @@ class MemoryFind(object):
 
         self._start()
 
+    def sleep_until_completed(self):
+        """This call sleeps and only returns once the search is completed."""
+
+        while not self.completed:
+            time.sleep(0.1)
+
     def _start(self):
         """Starts the search."""
 
@@ -51,7 +58,7 @@ class MemoryFind(object):
 
         if type(payload) is list:
             for addr in payload:
-                self.found.add(common.auto_int(addr['address']))
+                self.found.add(types.Pointer(common.auto_int(addr['address'])))
         
         elif type(payload) is str and payload == 'DONE':
             self.completed = True
@@ -63,6 +70,7 @@ class MemoryFind(object):
         # Be sure to unload our script
         if self._script is not None:
             self._script[0].unload()
+            self._script = None
 
     def __repr__(self):
         attr = ["MemoryFind"]
@@ -113,8 +121,9 @@ class MemoryFind(object):
     def thing(self, thing):
         
         if not isinstance(thing, types.all_types):
-            logger.error("Invalid search thing of type {}".format(type(thing)))
-            return
+            error = "Invalid search thing of type {}".format(type(thing))
+            logger.error(error)
+            raise Exception(error)
 
         self.__thing = thing
 
@@ -142,8 +151,9 @@ class MemoryFind(object):
             self.__ranges = [ranges]
 
         if type(ranges) not in (list, tuple):
-            logger.error("Invalid range type of {}".format(type(ranges)))
-            return
+            error = "Invalid range type of {}".format(type(ranges))
+            logger.error(error)
+            raise Exception(error)
 
         self.__ranges = ranges
 

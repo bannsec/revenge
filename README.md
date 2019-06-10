@@ -147,6 +147,12 @@ process = frida_process.Util(action="find", target="ls", file="/bin/ls", resume=
 
 # Allocate a string in memory
 >>> mem = process.memory.alloc_string("Hello!")
+
+# Look for something in memory
+>>> f = process.memory.find(types.StringUTF8('/bin/sh'))
+<MemoryFind found 1 completed>
+>>> [hex(x) for x in f]
+['0x7f9c1f3ede9a']
 ```
 
 ### Threads

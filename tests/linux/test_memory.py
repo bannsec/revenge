@@ -64,11 +64,6 @@ def test_memory_type_to_search():
     assert util.memory._type_to_search_string(types.UInt64(12)) == '0c00000000000000'
 
 
-def test_memory_find():
-
-    # Test invalid find
-    assert util.memory.find(1.12) == None
-
 def test_memory_call():
 
     strlen = util.memory[':strlen']

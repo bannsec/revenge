@@ -86,14 +86,9 @@ class Memory(object):
         mem.bytes = s
         return mem
 
-    def find(self, thing):
+    def find(self, *args, **kwargs):
         """Search for thing in memory. Must be one of the defined types."""
-
-        if not isinstance(thing, types.all_types):
-            logger.error('Find thing must be one of defined types.')
-            return
-
-        return MemoryFind(self._util, thing)
+        return MemoryFind(self._util, *args, **kwargs)
 
     def _type_to_search_string(self, thing):
         """Converts the given object into something relevant that can be fed into a memory search query."""
@@ -147,7 +142,7 @@ class Memory(object):
             # Assume it's something we need to resolve
             item = self._util._resolve_location_string(item)
 
-        if type(item) == int:
+        if isinstance(item, int):
             return MemoryBytes(self._util, item)
 
         elif type(item) == slice:
