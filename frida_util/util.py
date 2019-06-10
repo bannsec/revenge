@@ -391,7 +391,7 @@ class Util(object):
 
         return None
 
-    def run_script_generic(self, script_name, raw=False, replace=None, unload=False, runtime='duk'):
+    def run_script_generic(self, script_name, raw=False, replace=None, unload=False, runtime='duk', on_message=None):
         """Run scripts that don't require anything special.
         
         Args:
@@ -400,6 +400,7 @@ class Util(object):
             replace (dict, optional): Replace key strings from dictionary with value into script.
             unload (bool, optional): Auto unload the script. Set to true if the script is fully synchronous.
             runtime (str, optional): Runtime to use for this script, either 'duk' or 'v8'.
+            on_message(callable, optional): Set the on_message handler to this instead.
 
         Returns:
             tuple: msg, data return from the script
@@ -408,7 +409,11 @@ class Util(object):
         msg = []
         data = []
 
-        def on_message(m, d):
+        if not on_message is None and not callable(on_message):
+            logger.error('on_message handler must be callable.')
+            return None
+
+        def on_msg(m, d):
 
             if m['type'] == 'error':
                 logger.error(pprint.pformat(m['description']))
@@ -417,6 +422,8 @@ class Util(object):
             logger.debug("on_message: {}".format([m,d]))
             msg.append(m['payload'])
             data.append(d)
+
+        on_message = on_msg if on_message is None else on_message
 
         if not raw:
             js = self.load_js(script_name)

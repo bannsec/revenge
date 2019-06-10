@@ -50,6 +50,8 @@ class Memory(object):
             s (bytes, str): String to allocate
             encoding (str, optional): How to encode the string if passed in as type str.
         """
+
+        # TODO: Smart guess encoding, linux is usually utf-8, Windows has function call to determine utf-8 vs 16. Mac...?
         
         if type(s) is str:
             s = s.encode(encoding)
