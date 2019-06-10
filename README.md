@@ -126,6 +126,9 @@ process = frida_process.Util(action="find", target="ls", file="/bin/ls", resume=
 
 # Free it up when done
 >>> mem.free()
+
+# Allocate a string in memory
+>>> mem = process.memory.alloc_string("Hello!")
 ```
 
 ### Threads

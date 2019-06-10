@@ -353,6 +353,30 @@ class Memory(object):
         self._allocated_memory[pointer] = script
         return MemoryBytes(self._util, pointer, pointer+size)
 
+    def alloc_string(self, s, encoding='latin-1'):
+        """Short-hand to run alloc of appropriate size, then write in the string.
+        
+        Args:
+            s (bytes, str): String to allocate
+            encoding (str, optional): How to encode the string if passed in as type str.
+        """
+        
+        if type(s) is str:
+            s = s.encode(encoding)
+            if encoding == 'utf-16':
+                s = s[2:] # Remove BOM
+
+        if type(s) is not bytes:
+            logger.error("Invalid string type of {}".format(type(s)))
+            return None
+        
+        # Null terminate
+        s = s + b'\x00'
+
+        mem = self.alloc(len(s))
+        mem.bytes = s
+        return mem
+
     def __getitem__(self, item):
 
         if type(item) == str:

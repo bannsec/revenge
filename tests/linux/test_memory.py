@@ -208,6 +208,17 @@ def test_memory_read_write_str_byte():
     mem.bytes = "A"*23
     mem.free()
 
+    # alloc_string test
+    mem = util.memory.alloc_string("Test!")
+    assert mem.string_utf8 == "Test!"
+    mem.free()
+
+    mem = util.memory.alloc_string("Test!", encoding='utf-16')
+    assert mem.string_utf16 == "Test!"
+    mem.free()
+
+    assert util.memory.alloc_string(1.23) == None
+
 
 def test_memory_write():
 
