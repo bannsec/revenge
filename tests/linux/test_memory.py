@@ -46,6 +46,31 @@ basic_two_d_addr = 0x201018
 
 util2 = frida_util.Util(action="find", target="basic_two", file=basic_two_path, resume=False, verbose=False)
 
+def test_memory_type_to_search():
+
+    # TODO: This assumes little endianness of teting machine
+
+    assert util.memory._type_to_search_string(types.StringUTF8('test')) == '74657374'
+    assert util.memory._type_to_search_string(types.StringUTF16('test')) == '7400650073007400'
+
+    assert util.memory._type_to_search_string(types.Int8(-12)) == 'f4'
+    assert util.memory._type_to_search_string(types.UInt8(12)) == '0c'
+
+    assert util.memory._type_to_search_string(types.Int16(-12)) == 'f4ff'
+    assert util.memory._type_to_search_string(types.UInt16(12)) == '0c00'
+
+    assert util.memory._type_to_search_string(types.Int32(-12)) == 'f4ffffff'
+    assert util.memory._type_to_search_string(types.UInt32(12)) == '0c000000'
+
+    assert util.memory._type_to_search_string(types.Int64(-12)) == 'f4ffffffffffffff'
+    assert util.memory._type_to_search_string(types.UInt64(12)) == '0c00000000000000'
+
+
+def test_memory_find():
+
+    # Test invalid find
+    assert util.memory.find(1.12) == None
+
 def test_memory_call():
 
     strlen = util.memory[':strlen']

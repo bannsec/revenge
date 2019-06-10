@@ -5,6 +5,9 @@ logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
 from prettytable import PrettyTable
+import binascii
+import struct
+
 from .. import common
 from .. import types
 
@@ -90,6 +93,54 @@ class Memory(object):
             logger.error('Find thing must be one of defined types.')
             return
 
+        return MemoryFind(self._util, thing)
+
+    def _type_to_search_string(self, thing):
+        """Converts the given object into something relevant that can be fed into a memory search query."""
+
+        if not isinstance(thing, types.all_types):
+            logger.error("Please use valid type.")
+            return None
+
+        endian_str = "<" if self._util.endianness == 'little' else '>'
+
+        if isinstance(thing, types.StringUTF8):
+            # Normal string
+            return binascii.hexlify(thing.encode('utf-8')).decode()
+
+        elif isinstance(thing, types.StringUTF16):
+            # Wide Char String (Windows/UTF16)
+            return binascii.hexlify(thing.encode('utf-16')[2:]).decode()
+
+        elif isinstance(thing, types.UInt8):
+            return binascii.hexlify(struct.pack(endian_str + "B", thing)).decode()
+
+        elif isinstance(thing, types.Int8):
+            return binascii.hexlify(struct.pack(endian_str + "b", thing)).decode()
+
+        elif isinstance(thing, types.UInt16):
+            return binascii.hexlify(struct.pack(endian_str + "H", thing)).decode()
+
+        elif isinstance(thing, types.Int16):
+            return binascii.hexlify(struct.pack(endian_str + "h", thing)).decode()
+
+        elif isinstance(thing, types.UInt32):
+            return binascii.hexlify(struct.pack(endian_str + "I", thing)).decode()
+
+        elif isinstance(thing, types.Int32):
+            return binascii.hexlify(struct.pack(endian_str + "i", thing)).decode()
+
+        elif isinstance(thing, types.UInt64):
+            return binascii.hexlify(struct.pack(endian_str + "Q", thing)).decode()
+
+        elif isinstance(thing, types.Int64):
+            return binascii.hexlify(struct.pack(endian_str + "q", thing)).decode()
+        
+        else:
+            logger.error("Unexpected type to convert of {}".format(type(thing)))
+            return None
+        
+
     def __getitem__(self, item):
 
         if type(item) == str:
@@ -133,3 +184,4 @@ class Memory(object):
 
 from . import MemoryBytes
 from . import MemoryRange
+from . import MemoryFind
