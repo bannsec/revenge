@@ -15,6 +15,7 @@ import re
 
 import frida_util
 from frida_util.memory import MemoryRange
+types = frida_util.types
 
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "bins")
@@ -54,8 +55,16 @@ def test_memory_call():
     assert abs(5) == 5
     assert abs(frida_util.types.Int(-12)) == 12
 
+    atof = util.memory[':atof']
+    atof.return_type = types.Double
+    assert atof('12.123') == 12.123
+    # This should fail
+    atof.return_type = int
+    assert atof.return_type == types.Double
+    atof.return_type = 'blerg'
+    assert atof.return_type == types.Double
+
     # TODO: test something that modifies str
-    # TODO: test something that returns something aside from pointer compatible
 
     assert abs({}) == None
 

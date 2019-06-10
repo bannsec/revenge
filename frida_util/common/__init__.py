@@ -30,6 +30,10 @@ def auto_int(x):
     if type(x) is str:
         return int(x,0)
 
+    # Accepting this as OK for now.
+    if type(x) is float:
+        return x
+
     logger.error("Unhandled auto_int type of {}".format(type(x)))
 
 def parse_location_string(s):

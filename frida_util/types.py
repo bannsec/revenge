@@ -13,114 +13,76 @@ class Basic:
         return str(self)
 
 class Int8(int, Basic):
-    @property
-    def type(self):
-        return "int8"
+    type = "int8"
 
 class UInt8(int, Basic):
-    @property
-    def type(self):
-        return "uint8"
+    type = "uint8"
 
 class Int16(int, Basic):
-    @property
-    def type(self):
-        return "int16"
+    type = "int16"
 
 class UInt16(int, Basic):
-    @property
-    def type(self):
-        return "uint16"
+    type = "uint16"
 
 class Int32(int, Basic):
-    @property
-    def type(self):
-        return "int32"
+    type = "int32"
 
 class UInt32(int, Basic):
-    @property
-    def type(self):
-        return "uint32"
+    type = "uint32"
 
 class Int64(int, Basic):
+    type = "int64"
+
     @property
     def js(self):
         return "int64('{}')".format(hex(self))
 
-    @property
-    def type(self):
-        return "int64"
-
 class UInt64(int, Basic):
+    type = "uint64"
+
     @property
     def js(self):
         return "uint64('{}')".format(hex(self))
 
-    @property
-    def type(self):
-        return "uint64"
-
 class Char(Int8):
-    @property
-    def type(self):
-        return "char"
+    type = "char"
 
 class UChar(UInt8):
-    @property
-    def type(self):
-        return "uchar"
+    type = "uchar"
 
 class Short(Int16):
-    @property
-    def type(self):
-        return "short"
+    type = "short"
 
 class UShort(UInt16):
-    @property
-    def type(self):
-        return "ushort"
+    type = "ushort"
 
 class Int(Int32):
-    @property
-    def type(self):
-        return "int"
+    type = "int"
 
 class UInt(UInt32):
-    @property
-    def type(self):
-        return "uint"
+    type = "uint"
 
 class Long(Int64):
-    @property
-    def type(self):
-        return "long"
+    type = "long"
 
 class ULong(UInt64):
-    @property
-    def type(self):
-        return "ulong"
+    type = "ulong"
 
 class Float(float):
-    @property
-    def type(self):
-        return "float"
+    type = "float"
 
     @property
     def js(self):
         return str(self)
 
 class Double(Float):
-    @property
-    def type(self):
-        return "double"
+    type = "double"
 
 class Pointer(UInt64):
+    type = "pointer"
+
     @property
     def js(self):
         return "ptr('{}')".format(hex(self))
-
-    @property
-    def type(self):
-        return "pointer"
 
 all_types = (Pointer, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64, Char, UChar, Short, UShort, Int, UInt, Long, ULong, Float, Double)

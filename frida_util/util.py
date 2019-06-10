@@ -22,7 +22,7 @@ import psutil
 import pprint
 from copy import copy
 
-from . import common, actions
+from . import common, actions, types
 from .memory import Memory
 from .threads import Threads
 

@@ -18,5 +18,5 @@ def test_common_auto_int():
     assert frida_util.common.auto_int('1') == 1
     assert frida_util.common.auto_int('0x1') == 1
     assert frida_util.common.auto_int('0x10') == 16
-    assert frida_util.common.auto_int(1.1) == None
-
+    assert frida_util.common.auto_int(1.1) == 1.1
+    assert frida_util.common.auto_int(None) == None

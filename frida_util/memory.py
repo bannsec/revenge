@@ -26,6 +26,7 @@ class MemoryBytes(object):
         self._util = util
         self.address = address
         self.address_stop = address_stop
+        self.return_type = types.Pointer # Default
 
     def free(self):
         """bool: Free this memory location. This is only valid if this memory location has been allocated by us."""
@@ -82,7 +83,7 @@ class MemoryBytes(object):
 
         js = """var f = new NativeFunction(ptr("{ptr}"), '{ret_type}', {args_types}); send(f({args}))""".format(
                 ptr = hex(self.address),
-                ret_type = 'pointer',
+                ret_type = self.return_type.type,
                 args_types = json.dumps(args_types),
                 args = ', '.join(args_resolved)
             )
@@ -95,6 +96,23 @@ class MemoryBytes(object):
         
         return common.auto_int(ret)
 
+    @property
+    def return_type(self):
+        """What's the return type for this? Only valid if this is a function."""
+        return self.__return_type
+
+    @return_type.setter
+    def return_type(self, ret):
+
+        if type(ret) is not type:
+            logger.error('Please set with types.<type>.')
+            return
+
+        if ret not in types.all_types:
+            logger.error('Unexpected type of {}. Please use types.<type>.'.format(ret))
+            return
+
+        self.__return_type = ret
 
     @property
     def int8(self):

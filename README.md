@@ -210,4 +210,10 @@ t = process.threads[29638]
 >>> abs = process.memory[':abs']
 >>> abs(types.Int(-12))
 12
+
+# Sometimes you need to define what you're expecting to get in return
+>>> atof = process.memory[':atof']
+>>> atof.return_type = types.Double # Way to be confusing libc...
+>>> atof('12.123')
+12.123
 ```
