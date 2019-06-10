@@ -205,4 +205,9 @@ t = process.threads[29638]
 >>> strlen = process.memory[':strlen']
 >>> strlen('hello world')
 11
+
+# You can specify the arg types if you need to=
+>>> abs = process.memory[':abs']
+>>> abs(types.Int(-12))
+12
 ```

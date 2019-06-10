@@ -10,6 +10,8 @@ from . import common
 from prettytable import PrettyTable
 import json
 
+from . import types
+
 class MemoryBytes(object):
     """Meta-class used for resolving bytes into something else."""
 
@@ -54,6 +56,7 @@ class MemoryBytes(object):
         # Resolve args to memory strings and such if needed
         args_resolved = []
         to_free = []
+        args_types = []
 
         for arg in args:
 
@@ -62,10 +65,16 @@ class MemoryBytes(object):
                 s = self._util.memory.alloc_string(arg)
                 args_resolved.append('ptr("' + hex(s.address) + '")')
                 to_free.append(s)
+                args_types.append('pointer')
 
             elif type(arg) is int:
                 # Defaulting these to pointers for now.
                 args_resolved.append('ptr("' + hex(arg) + '")')
+                args_types.append('pointer')
+
+            elif isinstance(arg, types.all_types):
+                args_resolved.append(arg.js)
+                args_types.append(arg.type)
 
             else:
                 logger.error("Unexpected argument type of {}".format(type(arg)))
@@ -74,7 +83,7 @@ class MemoryBytes(object):
         js = """var f = new NativeFunction(ptr("{ptr}"), '{ret_type}', {args_types}); send(f({args}))""".format(
                 ptr = hex(self.address),
                 ret_type = 'pointer',
-                args_types = json.dumps(['pointer'] * len(args)),
+                args_types = json.dumps(args_types),
                 args = ', '.join(args_resolved)
             )
 

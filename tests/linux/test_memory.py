@@ -52,7 +52,7 @@ def test_memory_call():
 
     abs = util.memory[':abs']
     assert abs(5) == 5
-    # TODO: test abs on negative numbers (need int types)
+    assert abs(frida_util.types.Int(-12)) == 12
 
     # TODO: test something that modifies str
     # TODO: test something that returns something aside from pointer compatible
