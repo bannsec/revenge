@@ -7,6 +7,8 @@ logger = logging.getLogger(__name__)
 import time
 from . import common
 
+from prettytable import PrettyTable
+
 class MemoryBytes(object):
     """Meta-class used for resolving bytes into something else."""
 
@@ -193,6 +195,81 @@ class MemoryBytes(object):
 
         return self._util.run_script_generic("""send('array', ptr("{}").readByteArray({}))""".format(hex(self.address), hex(length)), raw=True, unload=True)[1][0]
 
+class MemoryRange(object):
+
+    def __init__(self, util, base, size, protection, file=None):
+        self._util = util
+        self.base = base
+        self.size = size
+        self.protection = protection
+        self._file = file
+
+    def __repr__(self):
+        value = ["MemoryRange", hex(self.base), '-', hex(self.base+self.size), self.protection]
+        return '<' + ' '.join(value) + '>'
+
+
+    @property
+    def file(self):
+        """str: File backing this memory range, or None."""
+        if self._file is None:
+            return None
+
+        return self._file['path']
+
+    @property
+    def file_offset(self):
+        """str: Offset into backing file or None."""
+        if self._file is None:
+            return None
+
+        return self._file['offset']
+
+    @property
+    def readable(self):
+        """bool: Is this range readable?"""
+        return self.protection[0] == 'r'
+
+    @property
+    def writable(self):
+        """bool: Is this range writable?"""
+        return self.protection[1] == 'w'
+
+    @property
+    def executable(self):
+        """bool: Is this range executable?"""
+        return self.protection[2] == 'x'
+
+    @property
+    def protection(self):
+        """str: Protection for this range."""
+        return self.__protection
+
+    @protection.setter
+    def protection(self, protection):
+        assert type(protection) is str
+        assert len(protection) == 3
+        self.__protection = protection.lower()
+
+    @property
+    def size(self):
+        """int: Size for this range."""
+        return self.__size
+
+    @size.setter
+    def size(self, size):
+        self.__size = common.auto_int(size)
+
+    @property
+    def base(self):
+        """int: Base address for this range."""
+        return self.__base
+
+    @base.setter
+    def base(self, base):
+        self.__base = common.auto_int(base)
+
+
 
 class Memory(object):
     """Class to simplify getting and writing things to memory. Behaves like a list.
@@ -227,3 +304,25 @@ class Memory(object):
             return MemoryBytes(self._util, item.start, item.stop)
 
         logger.error("Unhandled memory type of {}".format(type(item)))
+
+    @property
+    def maps(self):
+        """Return a list of memory ranges that are currently allocated."""
+        ranges = self._util.run_script_generic("""send(Process.enumerateRangesSync(''));""", raw=True, unload=True)[0][0]
+        return [MemoryRange(self._util, **range) for range in ranges]
+
+    def __str__(self):
+        
+        table = PrettyTable(['range', 'prot', 'file'])
+        table.header = False
+        table.align = 'l'
+        table.border = False
+
+        for range in self.maps:
+            table.add_row([
+                hex(range.base)[2:] + '-' + hex(range.base+range.size)[2:],
+                range.protection,
+                range.file or '',
+                ])
+
+        return str(table)

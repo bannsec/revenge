@@ -64,19 +64,59 @@ util = frida_util.Util(action="find", target="ls", file="/bin/ls", resume=False,
 ### Memory
 ```python
 # Read string from memory at ls + 0x12345
-util.memory['ls:0x12345'].string_utf8
+>>> util.memory['ls:0x12345'].string_utf8
 
 # Set re-write breakpoint (not int3, not hardware) at strmp
-util.memory[':strcmp'].breakpoint = True
+>>> util.memory[':strcmp'].breakpoint = True
 
 # "Continue" execution from strcmp break
-util.memory[':strcmp'].breakpoint = False
+>>> util.memory[':strcmp'].breakpoint = False
 
 # Write a 16-bit signed int somewhere known in memory
-util.memory[0x12345].int16 = -55
+>>> util.memory[0x12345].int16 = -55
 
 # Extract a range of bytes
-util.memory[0x12345:0x12345+32].bytes
+>>> util.memory[0x12345:0x12345+32].bytes
+
+# Print memory map
+>>> print(util.memory)
+"""
+ 564031418000-56403141d000          r-x  /bin/ls
+ 56403141d000-56403141e000          rwx  /bin/ls
+ 56403141e000-564031437000          r-x  /bin/ls
+ 564031636000-564031638000          r--  /bin/ls
+ 564031638000-564031639000          rw-  /bin/ls
+ 564031639000-56403163a000          rw-
+ 5640326bd000-5640326de000          rw-
+ 7f07f0000000-7f07f0021000          rw-
+ 7f07f8000000-7f07f8021000          rw-
+ 7f07fc272000-7f07fca72000          rw-
+ 7f07fca73000-7f07fd273000          rw-
+ 7f07fd274000-7f07fda74000          rw-
+ 7f07fda75000-7f07fe275000          rw-
+ 7f07fe275000-7f07fe412000          r-x  /lib/x86_64-linux-gnu/libm-2.27.so
+ 7f07fe611000-7f07fe612000          r--  /lib/x86_64-linux-gnu/libm-2.27.so
+ 7f07fe612000-7f07fe613000          rw-  /lib/x86_64-linux-gnu/libm-2.27.so
+ 7f07fe613000-7f07fe61a000          r-x  /lib/x86_64-linux-gnu/librt-2.27.so
+ 7f07fe819000-7f07fe81a000          r--  /lib/x86_64-linux-gnu/librt-2.27.so
+ 7f07fe81a000-7f07fe81b000          rw-  /lib/x86_64-linux-gnu/librt-2.27.so
+ 7f07fffd5000-7f0800000000          rw-
+ 7f0800000000-7f0800021000          rw-
+ 7f0804013000-7f080402a000          r-x  /lib/x86_64-linux-gnu/libresolv-2.27.so
+ 7f080422a000-7f080422b000          r--  /lib/x86_64-linux-gnu/libresolv-2.27.so
+ 7f080422b000-7f080422c000          rw-  /lib/x86_64-linux-gnu/libresolv-2.27.so
+ 7f080422c000-7f080422e000          rw-
+ 7f080422f000-7f0804a2f000          rw-
+ 7f0804a2f000-7f0804a49000          r-x  /lib/x86_64-linux-gnu/libpthread-2.27.so
+ 7f0804c48000-7f0804c49000          r--  /lib/x86_64-linux-gnu/libpthread-2.27.so
+ 7f0804c49000-7f0804c4a000          rw-  /lib/x86_64-linux-gnu/libpthread-2.27.so
+ 7f0804c4a000-7f0804c4e000          rw-
+ 7f0804c4e000-7f0804c51000          r-x  /lib/x86_64-linux-gnu/libdl-2.27.so
+ <clipped>
+"""
+
+# Iterate through the memory map
+>>> [map for map in util.memory.maps]
 ```
 
 ### Threads

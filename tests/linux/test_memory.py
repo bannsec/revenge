@@ -11,8 +11,10 @@ import random
 import numpy as np
 import time
 from copy import copy
+import re
 
 import frida_util
+from frida_util.memory import MemoryRange
 
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "bins")
@@ -43,12 +45,54 @@ basic_two_d_addr = 0x201018
 
 util2 = frida_util.Util(action="find", target="basic_two", file=basic_two_path, resume=False, verbose=False)
 
-def test_memory_repr():
+def test_memory_maps():
+
+    ranges = util.memory.maps
+
+    # Expecting the following libraries to show up
+    next(range for range in ranges if range.file != None and re.findall(r'/ld.+\.so', range.file) != [] and range.protection == 'rw-')
+    next(range for range in ranges if range.file != None and re.findall(r'/ld.+\.so', range.file) != [] and range.protection == 'r--')
+
+    next(range for range in ranges if range.file != None and re.findall(r'/libc.+\.so', range.file) != [] and range.protection == 'r--')
+    next(range for range in ranges if range.file != None and re.findall(r'/libc.+\.so', range.file) != [] and range.protection == 'rw-')
+    next(range for range in ranges if range.file != None and re.findall(r'/libc.+\.so', range.file) != [] and range.protection == 'r-x')
+
+    next(range for range in ranges if range.file != None and range.file.endswith('basic_one') and range.protection == 'rw-')
+    next(range for range in ranges if range.file != None and range.file.endswith('basic_one') and range.protection == 'r--')
+
+def test_memory_range_class():
+
+    # Just try the repr
+    y = [repr(x) for x in util.memory.maps]
+
+    mr = MemoryRange(util, 0x123, 0x5, 'rw-', {'offset': 12, 'path': '/bin/ls'})
+    
+    assert mr.file == '/bin/ls'
+    assert mr.base == 0x123
+    assert mr.size == 0x5
+    assert mr.file_offset == 12
+    assert mr.readable
+    assert mr.writable
+    assert not mr.executable
+
+    mr = MemoryRange(util, 0x123, 0x5, 'rw-')
+    assert mr.file is None
+    assert mr.file_offset is None
+
+def test_memory_repr_str():
 
     printf = util.memory[':printf']
     repr(printf)
 
     repr(util.memory)
+
+    s = str(util.memory)
+    assert 'libc' in s
+    assert 'basic_one' in s
+    assert 'rw-' in s
+    assert 'r-x' in s
+    assert 'rwx' in s
+
 
 def test_memory_breakpoint():
 
