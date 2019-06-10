@@ -97,7 +97,7 @@ class MemoryBytes(object):
         for alloc in to_free:
             alloc.free()
         
-        return common.auto_int(ret)
+        return self.return_type(common.auto_int(ret))
 
     @property
     def return_type(self):
@@ -120,7 +120,7 @@ class MemoryBytes(object):
     @property
     def int8(self):
         """Signed 8-bit int"""
-        return self._util.run_script_generic("""send(ptr("{}").readS8())""".format(hex(self.address)), raw=True, unload=True)[0][0]
+        return types.Int8(self._util.run_script_generic("""send(ptr("{}").readS8())""".format(hex(self.address)), raw=True, unload=True)[0][0])
 
     @int8.setter
     def int8(self, val):
@@ -129,7 +129,7 @@ class MemoryBytes(object):
     @property
     def uint8(self):
         """Unsigned 8-bit int"""
-        return self._util.run_script_generic("""send(ptr("{}").readU8())""".format(hex(self.address)), raw=True, unload=True)[0][0]
+        return types.UInt8(self._util.run_script_generic("""send(ptr("{}").readU8())""".format(hex(self.address)), raw=True, unload=True)[0][0])
 
     @uint8.setter
     def uint8(self, val):
@@ -138,7 +138,7 @@ class MemoryBytes(object):
     @property
     def int16(self):
         """Signed 16-bit int"""
-        return self._util.run_script_generic("""send(ptr("{}").readS16())""".format(hex(self.address)), raw=True, unload=True)[0][0]
+        return types.Int16(self._util.run_script_generic("""send(ptr("{}").readS16())""".format(hex(self.address)), raw=True, unload=True)[0][0])
 
     @int16.setter
     def int16(self, val):
@@ -147,7 +147,7 @@ class MemoryBytes(object):
     @property
     def uint16(self):
         """Unsigned 16-bit int"""
-        return self._util.run_script_generic("""send(ptr("{}").readU16())""".format(hex(self.address)), raw=True, unload=True)[0][0]
+        return types.UInt16(self._util.run_script_generic("""send(ptr("{}").readU16())""".format(hex(self.address)), raw=True, unload=True)[0][0])
 
     @uint16.setter
     def uint16(self, val):
@@ -156,7 +156,7 @@ class MemoryBytes(object):
     @property
     def int32(self):
         """Signed 32-bit int"""
-        return self._util.run_script_generic("""send(ptr("{}").readS32())""".format(hex(self.address)), raw=True, unload=True)[0][0]
+        return types.Int32(self._util.run_script_generic("""send(ptr("{}").readS32())""".format(hex(self.address)), raw=True, unload=True)[0][0])
 
     @int32.setter
     def int32(self, val):
@@ -165,7 +165,7 @@ class MemoryBytes(object):
     @property
     def uint32(self):
         """Unsigned 32-bit int"""
-        return self._util.run_script_generic("""send(ptr("{}").readU32())""".format(hex(self.address)), raw=True, unload=True)[0][0]
+        return types.UInt32(self._util.run_script_generic("""send(ptr("{}").readU32())""".format(hex(self.address)), raw=True, unload=True)[0][0])
 
     @uint32.setter
     def uint32(self, val):
@@ -174,7 +174,7 @@ class MemoryBytes(object):
     @property
     def int64(self):
         """Signed 64-bit int"""
-        return common.auto_int(self._util.run_script_generic("""send(ptr("{}").readS64())""".format(hex(self.address)), raw=True, unload=True)[0][0])
+        return types.Int64(common.auto_int(self._util.run_script_generic("""send(ptr("{}").readS64())""".format(hex(self.address)), raw=True, unload=True)[0][0]))
 
     @int64.setter
     def int64(self, val):
@@ -183,7 +183,7 @@ class MemoryBytes(object):
     @property
     def uint64(self):
         """Unsigned 64-bit int"""
-        return common.auto_int(self._util.run_script_generic("""send(ptr("{}").readU64())""".format(hex(self.address)), raw=True, unload=True)[0][0])
+        return types.UInt64(common.auto_int(self._util.run_script_generic("""send(ptr("{}").readU64())""".format(hex(self.address)), raw=True, unload=True)[0][0]))
 
     @uint64.setter
     def uint64(self, val):
@@ -219,7 +219,7 @@ class MemoryBytes(object):
     @property
     def double(self):
         """Read as double val"""
-        return self._util.run_script_generic("""send(ptr("{}").readDouble())""".format(hex(self.address)), raw=True, unload=True)[0][0]
+        return types.Double(self._util.run_script_generic("""send(ptr("{}").readDouble())""".format(hex(self.address)), raw=True, unload=True)[0][0])
 
     @double.setter
     def double(self, val):
@@ -228,7 +228,7 @@ class MemoryBytes(object):
     @property
     def float(self):
         """Read as float val"""
-        return self._util.run_script_generic("""send(ptr("{}").readFloat())""".format(hex(self.address)), raw=True, unload=True)[0][0]
+        return types.Float(self._util.run_script_generic("""send(ptr("{}").readFloat())""".format(hex(self.address)), raw=True, unload=True)[0][0])
 
     @float.setter
     def float(self, val):
@@ -237,7 +237,7 @@ class MemoryBytes(object):
     @property
     def pointer(self):
         """Read as pointer val"""
-        return common.auto_int(self._util.run_script_generic("""send(ptr("{}").readPointer())""".format(hex(self.address)), raw=True, unload=True)[0][0])
+        return types.Pointer(common.auto_int(self._util.run_script_generic("""send(ptr("{}").readPointer())""".format(hex(self.address)), raw=True, unload=True)[0][0]))
 
     @pointer.setter
     def pointer(self, val):

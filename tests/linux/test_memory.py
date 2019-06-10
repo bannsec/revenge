@@ -50,6 +50,7 @@ def test_memory_call():
 
     strlen = util.memory[':strlen']
     assert strlen("Hello!") == 6
+    assert isinstance(strlen("Hello!"), types.Pointer)
 
     abs = util.memory[':abs']
     assert abs(5) == 5
@@ -58,6 +59,7 @@ def test_memory_call():
     atof = util.memory[':atof']
     atof.return_type = types.Double
     assert atof('12.123') == 12.123
+    assert isinstance(atof('12.123'), types.Float)
     # This should fail
     atof.return_type = int
     assert atof.return_type == types.Double
@@ -190,13 +192,28 @@ def test_memory_read_float_double():
 def test_memory_read_int():
 
     assert util.memory['basic_one:{}'.format(hex(basic_one_i8_addr))].int8 == -13
+    assert isinstance(util.memory['basic_one:{}'.format(hex(basic_one_i8_addr))].int8, types.Int8)
+
     assert util.memory['basic_one:{}'.format(hex(basic_one_ui8_addr))].uint8 == 13
+    assert isinstance(util.memory['basic_one:{}'.format(hex(basic_one_ui8_addr))].uint8, types.UInt8)
+
     assert util.memory['basic_one:{}'.format(hex(basic_one_i16_addr))].int16 == -1337
+    assert isinstance(util.memory['basic_one:{}'.format(hex(basic_one_i16_addr))].int16, types.Int16)
+
     assert util.memory['basic_one:{}'.format(hex(basic_one_ui16_addr))].uint16 == 1337
+    assert isinstance(util.memory['basic_one:{}'.format(hex(basic_one_ui16_addr))].uint16, types.UInt16)
+
     assert util.memory['basic_one:{}'.format(hex(basic_one_i32_addr))].int32 == -1337
+    assert isinstance(util.memory['basic_one:{}'.format(hex(basic_one_i32_addr))].int32, types.Int32)
+
     assert util.memory['basic_one:{}'.format(hex(basic_one_ui32_addr))].uint32 == 1337
+    assert isinstance(util.memory['basic_one:{}'.format(hex(basic_one_ui32_addr))].uint32, types.UInt32)
+
     assert util.memory['basic_one:{}'.format(hex(basic_one_i64_addr))].int64 == -1337
+    assert isinstance(util.memory['basic_one:{}'.format(hex(basic_one_i64_addr))].int64, types.Int64)
+
     assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].uint64 == 1337
+    assert isinstance(util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].uint64, types.UInt64)
 
 def test_memory_read_write_str_byte():
 
@@ -300,10 +317,12 @@ def test_memory_write():
     x = round(random.random(),4)
     ui64.float = x
     assert abs(ui64.float - x) < 0.0001
+    assert isinstance(ui64.float, types.Float)
 
     x = round(random.random(),4)
     ui64.double = x
     assert abs(ui64.double - x) < 0.0001
+    assert isinstance(ui64.double, types.Double)
 
 if __name__ == '__main__':
     test_memory_breakpoint()
