@@ -61,6 +61,9 @@ class MemoryBytes(object):
 
         for arg in args:
 
+            if type(arg) is MemoryBytes:
+                arg = arg.address
+
             # Make temporary string in memory
             if type(arg) in [str, bytes]:
                 s = self._util.memory.alloc_string(arg)

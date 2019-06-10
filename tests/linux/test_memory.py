@@ -64,7 +64,13 @@ def test_memory_call():
     atof.return_type = 'blerg'
     assert atof.return_type == types.Double
 
-    # TODO: test something that modifies str
+    # Test  doing something that modifies existing memory
+    mem = util.memory.alloc(128)
+    sprintf = util.memory[':sprintf']
+    assert not mem.bytes.startswith(b"Hello world!")
+    sprintf(mem, 'Hello %s', 'world!')
+    assert mem.bytes.startswith(b"Hello world!")
+    mem.free()
 
     assert abs({}) == None
 
