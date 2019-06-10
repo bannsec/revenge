@@ -59,8 +59,15 @@ class MemoryBytes(object):
             if type(arg) is MemoryBytes:
                 arg = arg.address
 
+            # Make temporary string first
+            if type(arg) in [types.StringUTF16, types.StringUTF8]:
+                s = self._util.memory.alloc_string(arg)
+                args_resolved.append('ptr("' + hex(s.address) + '")')
+                to_free.append(s)
+                args_types.append('pointer')
+
             # Make temporary string in memory
-            if type(arg) in [str, bytes]:
+            elif type(arg) in [str, bytes]:
                 s = self._util.memory.alloc_string(arg)
                 args_resolved.append('ptr("' + hex(s.address) + '")')
                 to_free.append(s)

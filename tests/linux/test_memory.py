@@ -51,6 +51,7 @@ def test_memory_call():
     strlen = util.memory[':strlen']
     assert strlen("Hello!") == 6
     assert isinstance(strlen("Hello!"), types.Pointer)
+    assert strlen(types.StringUTF8("Hello!")) == 6
 
     abs = util.memory[':abs']
     assert abs(5) == 5
@@ -254,12 +255,23 @@ def test_memory_read_write_str_byte():
     mem.bytes = "A"*23
     mem.free()
 
+    #
     # alloc_string test
+    #
+
     mem = util.memory.alloc_string("Test!")
     assert mem.string_utf8 == "Test!"
     mem.free()
 
+    mem = util.memory.alloc_string(types.StringUTF8("Test!"))
+    assert mem.string_utf8 == "Test!"
+    mem.free()
+
     mem = util.memory.alloc_string("Test!", encoding='utf-16')
+    assert mem.string_utf16 == "Test!"
+    mem.free()
+
+    mem = util.memory.alloc_string(types.StringUTF16("Test!"))
     assert mem.string_utf16 == "Test!"
     mem.free()
 

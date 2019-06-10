@@ -85,4 +85,25 @@ class Pointer(UInt64):
     def js(self):
         return "ptr('{}')".format(hex(self))
 
-all_types = (Pointer, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64, Char, UChar, Short, UShort, Int, UInt, Long, ULong, Float, Double)
+#
+# These don't directly have a return type value, they will just be pointers..
+# 
+
+class StringUTF8(str):
+    type = 'utf8'
+
+    @property
+    def js(self):
+        logger.error("Shouldn't be asking for js on this object...")
+        return str(self)
+
+class StringUTF16(str):
+    type = 'utf16'
+
+    @property
+    def js(self):
+        logger.error("Shouldn't be asking for js on this object...")
+        return str(self)
+
+
+all_types = (Pointer, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64, Char, UChar, Short, UShort, Int, UInt, Long, ULong, Float, Double, StringUTF8, StringUTF16)

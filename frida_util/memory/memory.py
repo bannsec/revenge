@@ -6,6 +6,7 @@ logger = logging.getLogger(__name__)
 
 from prettytable import PrettyTable
 from .. import common
+from .. import types
 
 
 class Memory(object):
@@ -52,12 +53,24 @@ class Memory(object):
         """
 
         # TODO: Smart guess encoding, linux is usually utf-8, Windows has function call to determine utf-8 vs 16. Mac...?
+
+        if type(s) in [types.StringUTF8, types.StringUTF16]:
+            if s.type == 'utf8':
+                encoding = 'utf-8'
+            elif s.type == 'utf16':
+                encoding = 'utf-16'
+            else:
+                logger.error('How did i get here??')
+                return
+
+            s = str(s)
         
         if type(s) is str:
             s = s.encode(encoding)
             if encoding == 'utf-16':
                 s = s[2:] # Remove BOM
                 s += b'\x00' # Extra null at end of utf-16
+        
 
         if type(s) is not bytes:
             logger.error("Invalid string type of {}".format(type(s)))
@@ -69,6 +82,13 @@ class Memory(object):
         mem = self.alloc(len(s))
         mem.bytes = s
         return mem
+
+    def find(self, thing):
+        """Search for thing in memory. Must be one of the defined types."""
+
+        if not isinstance(thing, types.all_types):
+            logger.error('Find thing must be one of defined types.')
+            return
 
     def __getitem__(self, item):
 
