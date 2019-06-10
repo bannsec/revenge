@@ -78,6 +78,9 @@ process = frida_process.Util(action="find", target="ls", file="/bin/ls", resume=
 # Extract a range of bytes
 >>> process.memory[0x12345:0x12345+32].bytes
 
+# Write bytes into memory
+>>> process.memory[0x12345:0x12345+32].bytes = b'AB\x13\x37'
+
 # Print memory map
 >>> print(process.memory)
 """

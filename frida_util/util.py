@@ -187,11 +187,9 @@ class Util(object):
         self.run_script_generic("""Interceptor.detachAll()""", raw=True, unload=True)
 
         # Unallocate our memory
-        for addr in self.memory._allocated_memory:
+        for addr in copy(self.memory._allocated_memory):
             logger.debug("Unallocating memory: " + hex(addr))
             self.memory[addr].free()
-            #script[0].unload()
-            #self.memory._allocated_memory.pop(addr)
 
         # Remove breakpoints
         for addr in copy(self.memory._active_breakpoints):

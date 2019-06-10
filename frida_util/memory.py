@@ -8,6 +8,7 @@ import time
 from . import common
 
 from prettytable import PrettyTable
+import json
 
 class MemoryBytes(object):
     """Meta-class used for resolving bytes into something else."""
@@ -40,8 +41,8 @@ class MemoryBytes(object):
     def __repr__(self):
         attrs = ['MemoryBytes', hex(self.address)]
 
-        if self.address_stop is not None:
-            attrs.append(str(self.address_stop - self.address) + ' bytes')
+        if self.size is not None:
+            attrs.append(str(self.size) + ' bytes')
 
         return "<{}>".format(' '.join(attrs))
 
@@ -206,13 +207,40 @@ class MemoryBytes(object):
     @property
     def bytes(self):
         """bytes: Return this as raw bytes."""
-        
         if self.address_stop is None:
             length = 1 # Default to 1 byte
         else:
             length = self.address_stop - self.address
 
         return self._util.run_script_generic("""send('array', ptr("{}").readByteArray({}))""".format(hex(self.address), hex(length)), raw=True, unload=True)[1][0]
+
+    @bytes.setter
+    def bytes(self, b):
+        if type(b) is str:
+            logger.warning("Implicitly converting str to bytes.")
+            b = b.encode('latin-1')
+
+        if type(b) is not bytes:
+            logger.error("Must use type 'bytes' when writing as bytes.")
+            return
+
+        # If we know our size, check that we're not overwriting
+        if self.size is not None and len(b) > self.size:
+            logger.warning("Writing more bytes than it appears is allocated.")
+
+        self._util.run_script_generic("""ptr("{}").writeByteArray({});""".format(
+            hex(self.address),
+            json.dumps(list(b)),
+            ), raw=True, unload=True)
+
+    @property
+    def size(self):
+        """int: Size of this MemoryBytes. Only valid if it was generated as a slice, alloc or something else that has known size."""
+        if self.address_stop is None:
+            return None
+
+        return self.address_stop - self.address
+
 
 class MemoryRange(object):
 
