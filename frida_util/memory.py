@@ -46,6 +46,47 @@ class MemoryBytes(object):
 
         return "<{}>".format(' '.join(attrs))
 
+    def __call__(self, *args):
+        """Call this memory location as a function."""
+
+        # Generically use pointers and figure it out later
+
+        # Resolve args to memory strings and such if needed
+        args_resolved = []
+        to_free = []
+
+        for arg in args:
+
+            # Make temporary string in memory
+            if type(arg) in [str, bytes]:
+                s = self._util.memory.alloc_string(arg)
+                args_resolved.append('ptr("' + hex(s.address) + '")')
+                to_free.append(s)
+
+            elif type(arg) is int:
+                # Defaulting these to pointers for now.
+                args_resolved.append('ptr("' + hex(arg) + '")')
+
+            else:
+                logger.error("Unexpected argument type of {}".format(type(arg)))
+                return None
+
+        js = """var f = new NativeFunction(ptr("{ptr}"), '{ret_type}', {args_types}); send(f({args}))""".format(
+                ptr = hex(self.address),
+                ret_type = 'pointer',
+                args_types = json.dumps(['pointer'] * len(args)),
+                args = ', '.join(args_resolved)
+            )
+
+        ret = self._util.run_script_generic(js, raw=True, unload=True)[0][0]
+
+        # Free stuff up
+        for alloc in to_free:
+            alloc.free()
+        
+        return common.auto_int(ret)
+
+
     @property
     def int8(self):
         """Signed 8-bit int"""
@@ -365,13 +406,14 @@ class Memory(object):
             s = s.encode(encoding)
             if encoding == 'utf-16':
                 s = s[2:] # Remove BOM
+                s += b'\x00' # Extra null at end of utf-16
 
         if type(s) is not bytes:
             logger.error("Invalid string type of {}".format(type(s)))
             return None
         
         # Null terminate
-        s = s + b'\x00'
+        s += b'\x00'
 
         mem = self.alloc(len(s))
         mem.bytes = s

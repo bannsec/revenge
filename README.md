@@ -180,3 +180,11 @@ t = process.threads[29638]
 +--------+--------------------+
 """
 ```
+
+### Functions
+```python
+# Call strlen on a string
+>>> strlen = process.memory[':strlen']
+>>> strlen('hello world')
+11
+```

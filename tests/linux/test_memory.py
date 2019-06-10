@@ -45,6 +45,20 @@ basic_two_d_addr = 0x201018
 
 util2 = frida_util.Util(action="find", target="basic_two", file=basic_two_path, resume=False, verbose=False)
 
+def test_memory_call():
+
+    strlen = util.memory[':strlen']
+    assert strlen("Hello!") == 6
+
+    abs = util.memory[':abs']
+    assert abs(5) == 5
+    # TODO: test abs on negative numbers (need int types)
+
+    # TODO: test something that modifies str
+    # TODO: test something that returns something aside from pointer compatible
+
+    assert abs({}) == None
+
 def test_memory_alloc():
 
     mem = util.memory.alloc(256)
