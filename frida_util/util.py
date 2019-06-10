@@ -116,6 +116,11 @@ class Util(object):
             else:
                 self.device.resume(self._spawned)
 
+        if self._args.action == 'ipython':
+            process = self
+            import IPython
+            IPython.embed()
+
 
     def load_device(self):
         # For now, assuming local
@@ -180,6 +185,13 @@ class Util(object):
         """Called to clean-up at exit."""
 
         self.run_script_generic("""Interceptor.detachAll()""", raw=True, unload=True)
+
+        # Unallocate our memory
+        for addr in self.memory._allocated_memory:
+            logger.debug("Unallocating memory: " + hex(addr))
+            self.memory[addr].free()
+            #script[0].unload()
+            #self.memory._allocated_memory.pop(addr)
 
         # Remove breakpoints
         for addr in copy(self.memory._active_breakpoints):
@@ -308,7 +320,7 @@ class Util(object):
         spawn_group.add_argument('--resume', default=False, action='store_true',
                 help="Resume binary after spawning it (default: false).")
 
-        parser.add_argument('action', choices=('stalk', 'windows_messages', 'find', 'diff_find'),
+        parser.add_argument('action', choices=('stalk', 'windows_messages', 'find', 'diff_find', 'ipython'),
                 help="What type of stalking.")
 
         parser.add_argument('target', type=self.target_type, 
@@ -566,9 +578,6 @@ def main():
 
     global util
     util = Util()
-
-    import IPython
-    IPython.embed()
 
     while True:
         time.sleep(1)

@@ -45,6 +45,17 @@ basic_two_d_addr = 0x201018
 
 util2 = frida_util.Util(action="find", target="basic_two", file=basic_two_path, resume=False, verbose=False)
 
+def test_memory_alloc():
+
+    mem = util.memory.alloc(256)
+    repr(mem)
+
+    # Success
+    assert mem.free()
+
+    # Fail
+    assert not mem.free()
+
 def test_memory_maps():
 
     ranges = util.memory.maps

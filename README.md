@@ -58,28 +58,28 @@ import frida_util
 
 # Any flag you pass command-line can be passed into the constructor
 # Start up /bin/ls
-util = frida_util.Util(action="find", target="ls", file="/bin/ls", resume=False, verbose=False)
+process = frida_process.Util(action="find", target="ls", file="/bin/ls", resume=False, verbose=False)
 ```
 
 ### Memory
 ```python
 # Read string from memory at ls + 0x12345
->>> util.memory['ls:0x12345'].string_utf8
+>>> process.memory['ls:0x12345'].string_utf8
 
 # Set re-write breakpoint (not int3, not hardware) at strmp
->>> util.memory[':strcmp'].breakpoint = True
+>>> process.memory[':strcmp'].breakpoint = True
 
 # "Continue" execution from strcmp break
->>> util.memory[':strcmp'].breakpoint = False
+>>> process.memory[':strcmp'].breakpoint = False
 
 # Write a 16-bit signed int somewhere known in memory
->>> util.memory[0x12345].int16 = -55
+>>> process.memory[0x12345].int16 = -55
 
 # Extract a range of bytes
->>> util.memory[0x12345:0x12345+32].bytes
+>>> process.memory[0x12345:0x12345+32].bytes
 
 # Print memory map
->>> print(util.memory)
+>>> print(process.memory)
 """
  564031418000-56403141d000          r-x  /bin/ls
  56403141d000-56403141e000          rwx  /bin/ls
@@ -116,13 +116,19 @@ util = frida_util.Util(action="find", target="ls", file="/bin/ls", resume=False,
 """
 
 # Iterate through the memory map
->>> [map for map in util.memory.maps]
+>>> [map for map in process.memory.maps]
+
+# Allocate some space
+>>> mem = process.memory.alloc(128)
+
+# Free it up when done
+>>> mem.free()
 ```
 
 ### Threads
 ```python
 # List threads
->>> print(util.threads)
+>>> print(process.threads)
 """
 +-------+---------+----------------+--------------+
 |   id  |  state  |       pc       |    module    |
@@ -131,11 +137,11 @@ util = frida_util.Util(action="find", target="ls", file="/bin/ls", resume=False,
 +-------+---------+----------------+--------------+
 """
 
->>> list(util.threads)
+>>> list(process.threads)
 [<Thread 0x73c6 @ 0x7feeb83439d0 waiting (libc-2.27.so)>]
 
 # Look at individual thread
-t = util.threads[29638]
+t = process.threads[29638]
 
 >>> t
 <Thread 0x73c6 @ 0x7feeb83439d0 waiting (libc-2.27.so)>

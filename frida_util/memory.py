@@ -24,8 +24,26 @@ class MemoryBytes(object):
         self.address = address
         self.address_stop = address_stop
 
+    def free(self):
+        """bool: Free this memory location. This is only valid if this memory location has been allocated by us."""
+
+        # Make sure we allocated it
+        if self.address not in self._util.memory._allocated_memory:
+            logger.error("Can't free this memory as we didn't allocate it.")
+            return False
+
+        # Free it implicitly by freeing our script
+        script = self._util.memory._allocated_memory.pop(self.address)
+        script[0].unload()
+        return True
+
     def __repr__(self):
-        return "<MemoryBytes {}>".format(hex(self.address))
+        attrs = ['MemoryBytes', hex(self.address)]
+
+        if self.address_stop is not None:
+            attrs.append(str(self.address_stop - self.address) + ' bytes')
+
+        return "<{}>".format(' '.join(attrs))
 
     @property
     def int8(self):
@@ -184,6 +202,7 @@ class MemoryBytes(object):
             #print('Unsuspend pointer: ' + hex(unbreak))
             self._util.memory._active_breakpoints[self.address] = unbreak
 
+
     @property
     def bytes(self):
         """bytes: Return this as raw bytes."""
@@ -285,6 +304,26 @@ class Memory(object):
         # Keep track of where we've inserted breakpoints
         # key == address of breakpoint, value == memory location to un-breakpoint it
         self._active_breakpoints = {}
+
+        # Keep track of what we've allocated.
+        # key == address of allocation, value = script where we allocated it.
+        # NOTE: It's important to keep the script alive until we're done with the alloc or javascript might gc it.
+        self._allocated_memory = {}
+
+    def alloc(self, size):
+        """Allocate size bytes of memory and get a MemoryBytes object back to use it.
+    
+        Args:
+            size (int): How many bytes to allocate.
+        """
+        
+        assert type(size) is int
+
+        pointer = common.auto_int(self._util.run_script_generic("""var p = Memory.alloc(uint64('{}')); send(p);""".format(hex(size)), raw=True, unload=False)[0][0])
+        script = self._util._scripts.pop(0) # We want to hold on to it here
+
+        self._allocated_memory[pointer] = script
+        return MemoryBytes(self._util, pointer, pointer+size)
 
     def __getitem__(self, item):
 
