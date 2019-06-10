@@ -84,7 +84,7 @@ process = frida_process.Util(action="find", target="ls", file="/bin/ls", resume=
 # Read string from memory at ls + 0x12345
 >>> process.memory['ls:0x12345'].string_utf8
 
-# Set re-write breakpoint (not int3, not hardware) at strmp
+# Set re-write breakpoint (not int3, not hardware) at strcmp
 >>> process.memory[':strcmp'].breakpoint = True
 
 # "Continue" execution from strcmp break
