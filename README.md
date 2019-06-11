@@ -223,3 +223,12 @@ t = process.threads[29638]
 >>> atof('12.123')
 12.123
 ```
+
+### Tracing
+```python
+# Trace calls and rets
+>>> t = process.tracer.instructions(call=True, ret=True)
+
+# Trace all instructions executed
+>>> t = process.tracer.instructions(exec=True)
+```

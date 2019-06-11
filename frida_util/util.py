@@ -25,6 +25,7 @@ from copy import copy
 from . import common, actions, types
 from .memory import Memory
 from .threads import Threads
+from .tracer import Tracer
 
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -42,8 +43,10 @@ class Util(object):
         self._resume_addr = None
         self.__endianness = None
         self.__bits = None
+
         self.memory = Memory(self)
         self.threads = Threads(self)
+        self.tracer = Tracer(self)
 
         self.parse_args(kwargs!={})
 
