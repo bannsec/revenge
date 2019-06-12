@@ -196,8 +196,8 @@ function stalker_follow(tid) {
                     
                     event_dict['tid']         = tid;
                     event_dict['type']        = 'exec';
-                    event_dict['ip']          = event[1];
-                    event_dict['module']      = from_module;
+                    event_dict['from_ip']     = event[1];
+                    event_dict['from_module'] = from_module;
 
                 } else if ( event[0] == 'block' ) {
 
