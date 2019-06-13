@@ -212,7 +212,7 @@ t = process.threads[29638]
 >>> strlen('hello world')
 11
 
-# You can specify the arg types if you need to=
+# You can specify the arg types if you need to
 >>> abs = process.memory[':abs']
 >>> abs(types.Int(-12))
 12
@@ -271,5 +271,5 @@ ret       libc-2.27.so:0x7f4b704572e7   -> libc-2.27.so:0x7f4b70457489
 
 # Or by glob
 >>> process.modules['libc*']
-<Module libc-2.27.so @ 0x7f282f7aa000
+<Module libc-2.27.so @ 0x7f282f7aa000>
 ```
