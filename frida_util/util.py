@@ -26,6 +26,7 @@ from . import common, actions, types
 from .memory import Memory
 from .threads import Threads
 from .tracer import Tracer
+from .modules import Modules
 
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -47,6 +48,7 @@ class Util(object):
         self.memory = Memory(self)
         self.threads = Threads(self)
         self.tracer = Tracer(self)
+        self.modules = Modules(self)
 
         self.parse_args(kwargs!={})
 
@@ -60,7 +62,17 @@ class Util(object):
         atexit.register(self.at_exit)
         self.load_device()
         self.start_session()
-        self.enumerate_modules()
+
+        """
+        # Make sure the requested include module exists
+        # TODO: Move this into UI module once i make it..
+        if self._args.include_module is not None:
+            try:
+                bad_mod = next(module for module in self._args.include_module if module not in self.modules)
+                logger.warn("Your chosen include_module ({}) doesn't match any modules found. Double check the capitalization or spelling.".format(bad_mod))
+            except:
+                pass
+        """
 
         # ELF binaries start up in ptrace, which causes some issues, shim at entrypoint so we can remove ptrace
         if self._spawned is not None and self.file_type == 'ELF':
@@ -130,37 +142,6 @@ class Util(object):
         # TODO: Make this variable
 
         self.device = frida.get_local_device()
-
-    def enumerate_modules(self):
-
-        self.modules = {}
-
-        def modules_match(module, data=None):
-            module = module['payload']
-            module['base'] = int(module['base'], 16)
-            self.modules[module['name']] = module
-
-        print("Enumerating modules\t\t... ", end='', flush=True)
-
-        script = self.session.create_script(self.load_js('enumerate_modules.js'))
-        script.on('message', modules_match)
-        script.load()
-        script.unload()
-
-        cprint("[ DONE ]", "green")
-
-        # Sanity check
-        if self._args.include_module is not None:
-            try:
-                bad_mod = next(module for module in self._args.include_module if module not in self.modules)
-                logger.warn("Your chosen include_module ({}) doesn't match any modules found. Double check the capitalization or spelling.".format(bad_mod))
-            except:
-                pass
-
-        self.print_modules()
-
-    def print_modules(self):
-        logger.debug('\n' + str(self.modules_table))
 
     def pause_at(self, location):
         """Pause at a given point in execution."""
@@ -372,25 +353,20 @@ class Util(object):
 
     def get_module_by_addr(self, addr):
 
-        if type(addr) is str:
-
-            try:
-                addr = int(addr, 0)
-            except:
-                return None
+        addr = common.auto_int(addr)
 
         try:
             return self._module_by_addr_cache[addr]
         except:
             pass
 
-        for name, module in self.modules.items():
-            base = module['base']
-            size = module['size']
+        for module in self.modules:
+            base = module.base
+            size = module.size
 
             if addr >= base and addr <= base+size:
-                self._module_by_addr_cache[addr] = module['name'] # Add to cache
-                return module['name']
+                self._module_by_addr_cache[addr] = module.name # Add to cache
+                return module.name
 
         return None
 
@@ -473,17 +449,6 @@ class Util(object):
     ############
 
     @property
-    def modules_table(self):
-        table = PrettyTable(['name', 'base', 'size', 'path'])
-
-        for name, module in self.modules.items():
-            table.add_row([name, hex(module['base']), hex(module['size']), module['path']])
-
-        table.align['path'] = 'l'
-        
-        return table
-
-    @property
     def device_platform(self):
         """Wrapper to discover the device's platform."""
 
@@ -512,7 +477,7 @@ class Util(object):
     @property
     def entrypoint_rebased(self):
         """Entrypoint as it exists in the current rebased program."""
-        return self.entrypoint + next(module['base'] for name, module in self.modules.items() if name == self.file_name)
+        return self.entrypoint + next(module.base for module in self.modules if module.name == self.file_name)
 
     @property
     def entrypoint(self):

@@ -1,6 +1,4 @@
 
-from frida_util import Colorer
-
 import logging
 logging.basicConfig(level=logging.DEBUG)
 

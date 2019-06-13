@@ -24,10 +24,10 @@ with open(os.path.join(here, 'windows_keys_by_id.json')) as f:
 
 def auto_int(x):
     """Sometimes frida returns ints as a string instead of int. Just auto detect and return as int."""
-    if type(x) is int:
+    if isinstance(x, int):
         return x
 
-    if type(x) is str:
+    if isinstance(x, str):
         return int(x,0)
 
     # Accepting this as OK for now.
