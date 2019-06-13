@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.org/bannsec/frida-util.svg?branch=master)](https://travis-ci.org/bannsec/frida-util)
 [![PyPI Statistics](https://img.shields.io/pypi/dm/frida-util.svg)](https://pypistats.org/packages/frida-util)
+[![Latest Release](https://img.shields.io/pypi/v/frida-util.svg)](https://pypi.python.org/pypi/frida-util/)
 [![Coverage Status](https://coveralls.io/repos/github/bannsec/frida-util/badge.svg?branch=master)](https://coveralls.io/github/bannsec/frida-util?branch=master)
 
 # Overview
