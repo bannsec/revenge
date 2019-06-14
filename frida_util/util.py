@@ -87,7 +87,7 @@ class Util(object):
             # Resume to remove ptrace
             self.device.resume(self._spawned)
 
-            time.sleep(1)
+            time.sleep(0.2)
 
         if self.device_platform == 'linux':
             try:

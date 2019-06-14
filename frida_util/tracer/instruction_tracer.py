@@ -78,6 +78,7 @@ class TraceItem(object):
 
     @type.setter
     def type(self, t):
+        assert isinstance(t, (str, type(None))), "Invalid type for type of {}".format(type(t))
 
         if t is None:
             self.__type = None
