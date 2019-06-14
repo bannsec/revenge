@@ -89,6 +89,12 @@ class Util(object):
 
             time.sleep(1)
 
+        if self.device_platform == 'linux':
+            try:
+                str(self.threads)
+            except IndexError:
+                logger.error("Can't enumerate threads. Please check sysctl kernel.yama.ptrace_scope=0 or run as root.")
+
         if self._args.rw_everything:
             print('RW\'ing memory areas\t\t... ', end='', flush=True)
             self.run_script_generic('rw_everything.js', unload=True)
