@@ -110,7 +110,7 @@ class Trace(object):
         return len(self._trace)
 
     def __str__(self):
-        return str(self._trace)
+        return '\n'.join(str(i) for i in self)
 
     def __repr__(self):
         attr = ['Trace']

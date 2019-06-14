@@ -229,7 +229,7 @@ t = process.threads[29638]
 ```python
 # Trace calls and rets
 >>> t = process.tracer.instructions(call=True, ret=True)
->>> list(map(print, list(t)[0]))
+>>> print(list(t)[0])
 call      libc-2.27.so:0x7f4b704f89de   -> libc-2.27.so:0x7f4b70544740
 ret       libc-2.27.so:0x7f4b7054476f   -> libc-2.27.so:0x7f4b704f89e3
 ret       libc-2.27.so:0x7f4b704f89ed   -> frida-agent-64.so:0x7f4b6df41216
