@@ -8,6 +8,8 @@ import json
 import collections
 from termcolor import cprint, colored
 
+from prettytable import PrettyTable
+
 from .. import types, common
 from ..threads import Thread
 
@@ -200,6 +202,14 @@ class InstructionTracer(object):
 
     def __iter__(self):
         return self.traces.values().__iter__()
+
+    def __str__(self):
+        table = PrettyTable(['tid', 'count'])
+
+        for tid, trace in self.traces.items():
+            table.add_row([str(tid), str(len(trace))])
+
+        return str(table)
 
     @property
     def threads(self):
