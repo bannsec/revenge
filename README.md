@@ -244,9 +244,11 @@ call      libc-2.27.so:0x7f4b70457484   -> libc-2.27.so:0x7f4b70457220
 ret       libc-2.27.so:0x7f4b704572e7   -> libc-2.27.so:0x7f4b70457489
 <clipped>
 
-
 # Trace all instructions executed
 >>> t = process.tracer.instructions(exec=True)
+
+# Trace all instructions executed only in 'ls'
+>>> t = process.tracer.instructions(exec=True, from_module='ls')
 ```
 
 ### Modules
