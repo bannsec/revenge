@@ -561,6 +561,16 @@ class Util(object):
         
         return self.__bits
 
+    @property
+    def arch(self):
+        """str: What architecture? (x64, ia32, others?)"""
+        known_arch = ['x64', 'ia32']
+        arch = self.run_script_generic("""send(Process.arch);""", raw=True, unload=True)[0][0]
+
+        if arch not in known_arch:
+            raise Exception("Unknown arch returned from Frida: {}".format(arch))
+        return arch
+
 def sigint_handler(sig, frame):
     exit()
 

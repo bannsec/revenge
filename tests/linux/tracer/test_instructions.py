@@ -38,6 +38,7 @@ def test_basic_one_trace_thread_int():
     thread = list(basic_one.threads)[0]
 
     t = basic_one.tracer.instructions(exec=True, threads=[thread.id])
+    str(t)
     t2 = list(t)[0]
     time.sleep(0.3)
     assert len(t2) > 0
