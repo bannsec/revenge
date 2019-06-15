@@ -31,6 +31,44 @@ item_compile = {'tid': 16050, 'type': 'compile', 'from_ip': '0x7f1154c799de', 'f
 item_exec = {'tid': 16050, 'type': 'exec', 'from_ip': '0x7f1154c799de', 'from_module': 'libc-2.27.so'}
 trace_items = [item_call, item_ret, item_block, item_compile, item_exec]
 
+def test_basic_one_trace_thread_int():
+
+    basic_one = frida_util.Util(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
+
+    thread = list(basic_one.threads)[0]
+
+    t = basic_one.tracer.instructions(exec=True, threads=[thread.id])
+    t2 = list(t)[0]
+    time.sleep(0.3)
+    assert len(t2) > 0
+    t2.stop()
+
+    with pytest.raises(Exception):
+        basic_one.tracer.instructions(exec=True, threads=[12.12])
+
+
+def test_basic_one_trace_thread():
+
+    basic_one = frida_util.Util(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
+
+    thread = list(basic_one.threads)[0]
+
+    t = basic_one.tracer.instructions(exec=True, threads=[thread])
+    t2 = list(t)[0]
+    time.sleep(0.3)
+    assert len(t2) > 0
+    t2.stop()
+
+    time.sleep(0.3)
+    t = basic_one.tracer.instructions(exec=True, threads=thread)
+    t2 = list(t)[0]
+    basic_one.memory[basic_one.entrypoint_rebased].breakpoint = False
+    time.sleep(0.3)
+    assert len(t2) > 0
+
+    # TODO: Figure out why this final trace stop causes things to hang...
+    #t2.stop()
+
 
 def test_basic_one_trace_add_remove():
 
@@ -282,3 +320,4 @@ def test_basic_one_traceitem():
     repr(t2)
 
     assert isinstance(t2[0], TraceItem)
+

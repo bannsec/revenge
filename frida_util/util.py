@@ -59,7 +59,7 @@ class Util(object):
         if self._args.verbose:
             logger.setLevel(logging.DEBUG)
 
-        atexit.register(self.at_exit)
+        atexit.register(self._at_exit)
         self.load_device()
         self.start_session()
 
@@ -87,7 +87,7 @@ class Util(object):
             # Resume to remove ptrace
             self.device.resume(self._spawned)
 
-            time.sleep(0.2)
+            #time.sleep(0.2)
 
         if self.device_platform == 'linux':
             try:
@@ -171,32 +171,44 @@ class Util(object):
         self.run_script_generic("replace_function.js", replace=replace_vars)
 
 
-    def at_exit(self):
+    def _at_exit(self):
         """Called to clean-up at exit."""
-
-        self.run_script_generic("""Interceptor.detachAll()""", raw=True, unload=True)
-
-        # Unallocate our memory
-        for addr in copy(self.memory._allocated_memory):
-            logger.debug("Unallocating memory: " + hex(addr))
-            self.memory[addr].free()
 
         # Remove breakpoints
         for addr in copy(self.memory._active_breakpoints):
             logger.debug("Removing breakpoint: " + hex(addr))
             self.memory[addr].breakpoint = False
 
-        # Unload our scripts
-        for script, text in self._scripts:
-            logger.debug("Unloading Script: %s", text)
+        try:
 
-            try:
-                script.unload()
-            except frida.InvalidOperationError:
-                # Already unloaded probably
-                pass
+            # Remove any instruction traces
+            for t in self.threads:
+                if t.id in self.tracer._active_instruction_traces:
+                    self.tracer._active_instruction_traces[t.id].stop()
 
-        logger.debug("Done unloading")
+            self.run_script_generic("""Interceptor.detachAll()""", raw=True, unload=True)
+
+            # Unallocate our memory
+            for addr in copy(self.memory._allocated_memory):
+                logger.debug("Unallocating memory: " + hex(addr))
+                self.memory[addr].free()
+
+            # Unload our scripts
+            for script, text in self._scripts:
+                logger.debug("Unloading Script: %s", text)
+
+                try:
+                    script.unload()
+                except frida.InvalidOperationError:
+                    # Already unloaded probably
+                    pass
+
+            logger.debug("Done unloading")
+
+        except (frida.InvalidOperationError, frida.TransportError) as e:
+            # Looks like the program terminated. Possibly finished execution before we finished cleanup.
+            if 'detached' in e.args[0] or 'closed' in e.args[0]:
+                return
 
         # If we spawned it, kill it
         try:

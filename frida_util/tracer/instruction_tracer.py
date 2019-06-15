@@ -9,6 +9,7 @@ import collections
 from termcolor import cprint, colored
 
 from .. import types, common
+from ..threads import Thread
 
 class TraceItem(object):
 
@@ -112,14 +113,10 @@ class Trace(object):
         if self._script is not None:
             # TODO: Why the hell is Frida freezing on attempting to unload the stalker script?
             self._util.run_script_generic("""Stalker.unfollow({})""".format(self._tid), raw=True, unload=True)
-            #self._script[0].unload()
+            self._script[0].unload()
             self._util.tracer._active_instruction_traces.pop(self._tid)
             self._script = None
         
-
-    def __del__(self):
-        self.stop()
-
     def __iter__(self):
         return (x for x in self._trace)
 
@@ -211,13 +208,23 @@ class InstructionTracer(object):
 
     @threads.setter
     def threads(self, threads):
+        assert isinstance(threads, (type(None), list, tuple, Thread)), "Invalid threads type of {}".format(type(threads))
 
         if threads is None:
             threads = list(self._util.threads)
 
+        if not isinstance(threads, (list, tuple)):
+            threads = [threads]
+
         else:
-            error = "Unhandled threads type of {}".format(type(threads))
-            logger.error(error)
-            raise Exception(error)
+            threads_new = []
+            for thread in threads:
+                if isinstance(thread, Thread):
+                    threads_new.append(thread)
+                elif isinstance(thread, int):
+                    threads_new.append(self._util.threads[thread])
+                else:
+                    raise Exception("Unable to resolve requested thread of type {}".format(type(thread)))
+            threads = threads_new
 
         self.__threads = threads
