@@ -183,8 +183,8 @@ class Util(object):
 
             # Remove any instruction traces
             for t in self.threads:
-                if t.id in self.tracer._active_instruction_traces:
-                    self.tracer._active_instruction_traces[t.id].stop()
+                if t.trace is not None:
+                    t.trace.stop()
 
             self.run_script_generic("""Interceptor.detachAll()""", raw=True, unload=True)
 
