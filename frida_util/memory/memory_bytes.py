@@ -102,6 +102,20 @@ class MemoryBytes(object):
         return self.return_type(common.auto_int(ret))
 
     @property
+    def replace(self):
+        """What is this function being replaced by? None if there's no replacement."""
+        return self._process.memory._active_replacements[self.address]
+
+    @replace.setter
+    def replace(self, replace):
+
+        if isinstance(replace, int):
+            pass
+
+        else:
+            logger.error("Invalid replacement type of {}".format(type(replace)))
+
+    @property
     def return_type(self):
         """What's the return type for this? Only valid if this is a function."""
         return self.__return_type
@@ -313,3 +327,27 @@ class MemoryBytes(object):
             return None
 
         return self.address_stop - self.address
+
+    @property
+    def address(self):
+        """Pointer: Address of this MemoryBytes."""
+        return self.__address
+
+    @address.setter
+    def address(self, address):
+        # Standardize to Pointer
+        if type(address) is int:
+            address = types.Pointer(address)
+        self.__address = address
+
+    @property
+    def address_stop(self):
+        """Pointer: Stop address of this MemoryBytes."""
+        return self.__address_stop
+
+    @address_stop.setter
+    def address_stop(self, address):
+        # Standardize to Pointer
+        if type(address) is int:
+            address = types.Pointer(address)
+        self.__address_stop = address

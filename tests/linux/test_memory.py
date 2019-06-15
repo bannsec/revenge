@@ -44,6 +44,13 @@ basic_two_d_addr = 0x201018
 
 util2 = frida_util.Process(action="find", target="basic_two", file=basic_two_path, resume=False, verbose=False)
 
+def test_memory_bytes_address_as_pointer():
+
+    strlen = util.memory[':strlen']
+    mem = util.memory[strlen.address:strlen.address+20]
+    assert isinstance(mem.address, types.Pointer)
+    assert isinstance(mem.address_stop, types.Pointer)
+
 def test_memory_type_to_search():
 
     # TODO: This assumes little endianness of teting machine
