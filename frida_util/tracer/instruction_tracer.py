@@ -139,12 +139,13 @@ class Trace(object):
 
 class InstructionTracer(object):
 
-    def __init__(self, process, threads=None, call=False, ret=False, exec=False, block=False, compile=False):
+    def __init__(self, process, threads=None, from_modules=None, call=False, ret=False, exec=False, block=False, compile=False):
         """
 
         Args:
             process: Base process instantiation
             threads (list, optional): What threads to trace. If None, it will trace all threads.
+            from_modules (list, optional): Restrict trace returns to those that start from one of the listed modules.
             call (bool, optional): Trace calls
             ret (bool, optional): Trace rets
             exec (bool, optional): Trace all instructions
@@ -160,6 +161,7 @@ class InstructionTracer(object):
         self.compile = compile
         self.threads = threads
         self._script = {}
+        self._from_modules = from_modules
 
         # IMPORTANT: It's important to keep a local pointer to this trace. It's
         # possible for trace messages to come in after officially stopping the
@@ -170,17 +172,19 @@ class InstructionTracer(object):
         self._start()
 
     def _on_message(self, m, d):
-        payload = m['payload']
+        try:
+            payload = m['payload']
+        except:
+            print(m)
+            raise
 
         for x in payload:
             self.traces[x['tid']].append(x)
 
     def _start(self):
 
-        # TODO: Implement modules then implement module downselect on trace
-
         replace = {
-            "INCLUDE_MODULE_HERE": json.dumps([]),
+            "FROM_MODULES_HERE": json.dumps([module.name for module in self._from_modules]),
             "STALK_CALL": json.dumps(self.call),
             "STALK_RET": json.dumps(self.ret),
             "STALK_EXEC": json.dumps(self.exec),
@@ -190,7 +194,7 @@ class InstructionTracer(object):
 
         for thread in self.threads:
             replace['THREAD_ID_HERE'] = str(thread.id)
-            self._process.run_script_generic("stalk.js", replace=replace, unload=False, on_message=self._on_message)
+            self._process.run_script_generic("stalk.js", replace=replace, unload=False, on_message=self._on_message, runtime='v8')
             self.traces[thread.id] = Trace(self._process, thread.id, self._process._scripts.pop(0))
             self._process.tracer._active_instruction_traces[thread.id] = self.traces[thread.id]
 
@@ -246,3 +250,35 @@ class InstructionTracer(object):
                 raise Exception(error)
 
         self.__threads = threads
+
+    @property
+    def _from_modules(self):
+        """list,tuple,str,Module,None: What modules to restrict tracing from. Items can be strings (which will resolve) or Module objects."""
+        return self.__from_modules
+
+    @_from_modules.setter
+    def _from_modules(self, modules):
+
+        assert isinstance(modules, (list, tuple, type(None), str, Module)), "Unsupported type for from_modules of {}".format(type(modules))
+        
+        if modules is None:
+            self.__from_modules = []
+            return
+        
+        if not isinstance(modules, (list, tuple)):
+            modules = [modules]
+
+        new_modules = []
+        for module in modules:
+            if isinstance(module, Module):
+                new_modules.append(module)
+            elif isinstance(module, str):
+                new_modules.append(self._process.modules[module])
+            else:
+                error = "Unsupported type for module of {}".format(type(module))
+                logger.error(error)
+                raise Exception(error)
+        
+        self.__from_modules = new_modules
+
+from ..modules import Module

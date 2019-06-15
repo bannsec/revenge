@@ -163,8 +163,8 @@ function stalker_follow(tid) {
                     return;
                 }
 
-                // Optionally only include some
-                if (include.length > 0 && !include.includes(from_module)) {
+                // Optionally only include from some modules
+                if (include_from.length > 0 && !include_from.includes(from_module)) {
                     return
                 }
 
@@ -227,30 +227,12 @@ function stalker_follow(tid) {
             if ( filtered_events.length != 0 ) {
                 send(filtered_events);
             }
-
-            return;
-
-            parseEvents(events, function (event) {
-                event['module'] = Process.getModuleByAddress(event['location']);
-
-                // Ignoring frida-agent libraries
-                if (event['module'].name.substring(0, 11) == "frida-agent") {
-                    return;
-                }
-
-                // Optionally only include some
-                var include = INCLUDE_MODULE_HERE
-                if (include.length > 0 && !include.includes(event['module'].name)) {
-                    return
-                }
-
-                send(event);
-        })}
+        }
     })
 }
 
 var module_map = new ModuleMap();
 var tid = THREAD_ID_HERE;
-var include = INCLUDE_MODULE_HERE
+var include_from = FROM_MODULES_HERE;
 
 stalker_follow(tid);

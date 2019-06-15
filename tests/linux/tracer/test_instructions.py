@@ -31,6 +31,35 @@ item_compile = {'tid': 16050, 'type': 'compile', 'from_ip': '0x7f1154c799de', 'f
 item_exec = {'tid': 16050, 'type': 'exec', 'from_ip': '0x7f1154c799de', 'from_module': 'libc-2.27.so'}
 trace_items = [item_call, item_ret, item_block, item_compile, item_exec]
 
+def test_basic_one_trace_specify_from_modules():
+
+    basic_one = frida_util.Process(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
+    
+    t = basic_one.tracer.instructions(exec=True, from_modules=['basic_one'])
+    t2 = list(t)[0]
+    
+    basic_one.memory[basic_one.entrypoint_rebased].breakpoint = False
+    time.sleep(0.5)
+
+    for i in t2:
+        assert i.from_module == 'basic_one'
+    
+    libc = basic_one.modules['libc*']
+    t._from_modules = 'libc*'
+    assert len(t._from_modules) == 1
+    assert t._from_modules[0] == libc
+
+    t._from_modules = ['libc*']
+    assert len(t._from_modules) == 1
+    assert t._from_modules[0] == libc
+
+    t._from_modules = libc
+    assert len(t._from_modules) == 1
+    assert t._from_modules[0] == libc
+
+    with pytest.raises(Exception):
+        t._from_modules = [1.12]
+
 def test_basic_one_trace_thread_int():
 
     basic_one = frida_util.Process(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
