@@ -17,6 +17,8 @@ class MemoryRange(object):
 
     def __repr__(self):
         value = ["MemoryRange", hex(self.base), '-', hex(self.base+self.size), self.protection]
+        if self.file is not None:
+            value.append(self.file + ":" + hex(self.file_offset))
         return '<' + ' '.join(value) + '>'
 
 
@@ -30,7 +32,7 @@ class MemoryRange(object):
 
     @property
     def file_offset(self):
-        """str: Offset into backing file or None."""
+        """int: Offset into backing file or None."""
         if self._file is None:
             return None
 

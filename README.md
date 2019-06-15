@@ -140,6 +140,9 @@ process = frida_util.Util(action="find", target="ls", file="/bin/ls", resume=Fal
 # Iterate through the memory map
 >>> [map for map in process.memory.maps]
 
+# Grab map entry by ip
+>>> m = process.memory.maps[564031418123]
+
 # Allocate some space
 >>> mem = process.memory.alloc(128)
 

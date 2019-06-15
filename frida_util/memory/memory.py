@@ -158,8 +158,7 @@ class Memory(object):
     @property
     def maps(self):
         """Return a list of memory ranges that are currently allocated."""
-        ranges = self._util.run_script_generic("""send(Process.enumerateRangesSync(''));""", raw=True, unload=True)[0][0]
-        return [MemoryRange(self._util, **range) for range in ranges]
+        return MemoryMap(self._util)
 
     def __str__(self):
         
@@ -180,3 +179,4 @@ class Memory(object):
 from . import MemoryBytes
 from . import MemoryRange
 from . import MemoryFind
+from . import MemoryMap

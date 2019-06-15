@@ -145,7 +145,7 @@ class MemoryFind(object):
     def ranges(self, ranges):
         
         if ranges is None:
-            ranges = self._util.memory.maps
+            ranges = list(self._util.memory.maps)
 
         if type(ranges) is MemoryRange:
             self.__ranges = [ranges]
