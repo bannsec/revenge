@@ -97,12 +97,28 @@ class TraceItem(object):
 class Trace(object):
     """Keeps information about a Trace."""
     
-    def __init__(self, util):
+    def __init__(self, util, tid, script):
         self._util = util
         self._trace = []
+        self._tid = tid
+        self._script = script
 
     def append(self, item):
         self._trace.append(TraceItem(self._util, item))
+
+    def stop(self):
+        """Stop tracing."""
+
+        if self._script is not None:
+            # TODO: Why the hell is Frida freezing on attempting to unload the stalker script?
+            self._util.run_script_generic("""Stalker.unfollow({})""".format(self._tid), raw=True, unload=True)
+            #self._script[0].unload()
+            self._util.tracer._active_instruction_traces.pop(self._tid)
+            self._script = None
+        
+
+    def __del__(self):
+        self.stop()
 
     def __iter__(self):
         return (x for x in self._trace)
@@ -114,7 +130,7 @@ class Trace(object):
         return '\n'.join(str(i) for i in self)
 
     def __repr__(self):
-        attr = ['Trace']
+        attr = ['Trace', 'Thread={}'.format(self._tid)]
         attr += [str(len(self)), 'items']
 
         return "<{}>".format(' '.join(attr))
@@ -145,7 +161,12 @@ class InstructionTracer(object):
         self.compile = compile
         self.threads = threads
         self._script = {}
-        self.traces = collections.defaultdict(lambda: Trace(self._util))
+
+        # IMPORTANT: It's important to keep a local pointer to this trace. It's
+        # possible for trace messages to come in after officially stopping the
+        # trace. Using local dict in this way allows this trace to continue to
+        # get information while still being stopped.
+        self.traces = {}
 
         self._start()
 
@@ -171,17 +192,8 @@ class InstructionTracer(object):
         for thread in self.threads:
             replace['THREAD_ID_HERE'] = str(thread.id)
             self._util.run_script_generic("stalk.js", replace=replace, unload=False, on_message=self._on_message)
-            self._script[thread.id] = self._util._scripts.pop(0)
-
-    def __del__(self):
-
-        for thread in self.threads:
-            self._util.run_script_generic("""Stalker.unfollow({})""".format(thread.id), raw=True, unload=True)
-
-        for tid, script in self._script.items():
-            script[0].unload()
-
-        self._script = None
+            self.traces[thread.id] = Trace(self._util, thread.id, self._util._scripts.pop(0))
+            self._util.tracer._active_instruction_traces[thread.id] = self.traces[thread.id]
 
     def __repr__(self):
         attrs = ["InstructionTracer"]

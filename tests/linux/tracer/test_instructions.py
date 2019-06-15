@@ -23,6 +23,35 @@ bin_location = os.path.join(here, "..", "bins")
 
 basic_one_path = os.path.join(bin_location, "basic_one")
 
+# Trace items
+item_call = {'tid': 16050, 'type': 'call', 'from_ip': '0x7f1154c799de', 'to_ip': '0x7f1154cc5740', 'depth': 0, 'from_module': 'libc-2.27.so', 'to_module': 'libc-2.27.so'}
+item_ret = {'tid': 16050, 'type': 'ret', 'from_ip': '0x7f1154c799de', 'to_ip': '0x7f1154cc5740', 'depth': 0, 'from_module': 'libc-2.27.so', 'to_module': 'libc-2.27.so'}
+item_block = {'tid': 16050, 'type': 'block', 'from_ip': '0x7f1154c799de', 'to_ip': '0x7f1154cc5740', 'from_module': 'libc-2.27.so', 'to_module': 'libc-2.27.so'}
+item_compile = {'tid': 16050, 'type': 'compile', 'from_ip': '0x7f1154c799de', 'from_module': 'libc-2.27.so'}
+item_exec = {'tid': 16050, 'type': 'exec', 'from_ip': '0x7f1154c799de', 'from_module': 'libc-2.27.so'}
+trace_items = [item_call, item_ret, item_block, item_compile, item_exec]
+
+
+def test_basic_one_trace_add_remove():
+
+    basic_one = frida_util.Util(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
+    t = basic_one.tracer.instructions(call=True, ret=True)
+    tid = list(t)[0]._tid
+
+    assert tid in basic_one.tracer._active_instruction_traces
+    assert basic_one.tracer._active_instruction_traces[tid] is list(t)[0]
+    assert basic_one.tracer._active_instruction_traces[tid]._script is not None
+
+    t2 = basic_one.tracer._active_instruction_traces[tid]
+    t2.stop()
+
+    assert tid not in basic_one.tracer._active_instruction_traces
+    assert list(t)[0]._script is None
+
+    # This should just do nothing
+    t2.stop()
+
+
 def test_basic_one_trace_instructions_call_ret():
 
     basic_one = frida_util.Util(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
@@ -34,7 +63,7 @@ def test_basic_one_trace_instructions_call_ret():
     basic_one.memory[basic_one.entrypoint_rebased].breakpoint = False
 
     # Minor sleep
-    time.sleep(0.2)
+    time.sleep(0.5)
 
     trace_copy = copy(list(t)[0])
 
@@ -106,7 +135,7 @@ def test_basic_one_trace_instructions_exec():
     basic_one.memory[basic_one.entrypoint_rebased].breakpoint = False
 
     # Minor sleep
-    time.sleep(0.2)
+    time.sleep(0.5)
 
     trace_copy = copy(list(t)[0])
 
@@ -188,7 +217,7 @@ def test_basic_one_trace_instructions_block():
     basic_one.memory[basic_one.entrypoint_rebased].breakpoint = False
 
     # Minor sleep
-    time.sleep(0.2)
+    time.sleep(0.5)
 
     trace_copy = copy(list(t)[0])
 
@@ -208,19 +237,12 @@ def test_basic_one_trace_instructions_block():
     assert ti.to_ip == module.base + 0x500
 """
 
-def test_basic_one_traceitem():
+def test_basic_one_traceitem_manual_creation():
 
     basic_one = frida_util.Util(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
     module = basic_one.modules['basic_one']
 
-    item_call = {'tid': 16050, 'type': 'call', 'from_ip': '0x7f1154c799de', 'to_ip': '0x7f1154cc5740', 'depth': 0, 'from_module': 'libc-2.27.so', 'to_module': 'libc-2.27.so'}
-    item_ret = {'tid': 16050, 'type': 'ret', 'from_ip': '0x7f1154c799de', 'to_ip': '0x7f1154cc5740', 'depth': 0, 'from_module': 'libc-2.27.so', 'to_module': 'libc-2.27.so'}
-    item_block = {'tid': 16050, 'type': 'block', 'from_ip': '0x7f1154c799de', 'to_ip': '0x7f1154cc5740', 'from_module': 'libc-2.27.so', 'to_module': 'libc-2.27.so'}
-    item_compile = {'tid': 16050, 'type': 'compile', 'from_ip': '0x7f1154c799de', 'from_module': 'libc-2.27.so'}
-    item_exec = {'tid': 16050, 'type': 'exec', 'from_ip': '0x7f1154c799de', 'from_module': 'libc-2.27.so'}
-    items = [item_call, item_ret, item_block, item_compile, item_exec]
-    
-    for i in items:
+    for i in trace_items:
         ti = TraceItem(basic_one, i)
         str(ti)
         repr(ti)
@@ -233,3 +255,30 @@ def test_basic_one_traceitem():
     t = ti.type
     ti.type = 'blerg'
     assert ti.type == t
+
+    str(ti)
+    repr(ti)
+
+def test_basic_one_traceitem():
+
+    basic_one = frida_util.Util(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
+    module = basic_one.modules['basic_one']
+
+    t = basic_one.tracer.instructions()
+    tid = list(t)[0]._tid
+
+    for i in trace_items:
+        i['tid'] = tid
+        t._on_message({'type': 'send', 'payload': [i]}, None)
+
+    repr(t)
+    t2 = list(t)[0]
+    
+    for i in list(t2):
+        assert isinstance(i, TraceItem)
+
+    len(t2)
+    str(t2)
+    repr(t2)
+
+    assert isinstance(t2[0], TraceItem)
