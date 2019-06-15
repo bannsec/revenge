@@ -1,6 +1,6 @@
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.WARN)
 
 logger = logging.getLogger(__name__)
 
@@ -8,6 +8,8 @@ import os
 import pytest
 import frida_util
 types = frida_util.types
+
+import random
 
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "bins")
@@ -18,6 +20,16 @@ bin_location = os.path.join(here, "bins")
 
 basic_one_path = os.path.join(bin_location, "basic_one")
 process = frida_util.Util(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
+
+def test_modules_by_int():
+
+    libc = process.modules['libc*']
+    
+    for _ in range(10):
+        r = random.randint(libc.base, libc.base + libc.size)
+        assert process.modules[r] == libc
+
+    assert process.modules[123] == None
 
 def test_modules_basic():
 

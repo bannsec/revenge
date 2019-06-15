@@ -34,8 +34,16 @@ class Modules(object):
 
     def __getitem__(self, item):
 
+        # Resolve module by it's name
         if isinstance(item, str):
             return next(mod for mod in self if fnmatch(mod.name, item))
+
+        # Resolve module by the address
+        if isinstance(item, int):
+            for mod in self:
+                if item >= mod.base and item <= mod.base + mod.size:
+                    return mod
+            return None
 
         raise NotImplementedError
 

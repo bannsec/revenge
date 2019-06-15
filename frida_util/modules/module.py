@@ -19,6 +19,9 @@ class Module(object):
         attrs = ['Module', self.name, '@', hex(self.base)]
         return "<{}>".format(' '.join(attrs))
 
+    def __eq__(self, other):
+        return self.name == other.name and self.base == other.base and self.path == other.path and self.size == other.size
+
     @property
     def name(self):
         """str: Module name."""

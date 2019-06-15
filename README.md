@@ -274,4 +274,8 @@ ret       libc-2.27.so:0x7f4b704572e7   -> libc-2.27.so:0x7f4b70457489
 # Or by glob
 >>> process.modules['libc*']
 <Module libc-2.27.so @ 0x7f282f7aa000>
+
+# Or resolve address into corresponding module
+>>> process.modules[0x7f282f7ab123]
+<Module libc-2.27.so @ 0x7f282f7aa000>
 ```
