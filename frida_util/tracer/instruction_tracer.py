@@ -235,6 +235,14 @@ class InstructionTracer(object):
                     threads_new.append(self._util.threads[thread])
                 else:
                     raise Exception("Unable to resolve requested thread of type {}".format(type(thread)))
+
             threads = threads_new
+
+        # Make sure the threads aren't already being traced
+        for thread in threads:
+            if thread.id in self._util.tracer._active_instruction_traces:
+                error = "Cannot have more than one trace on the same thread at a time. Stop the existing trace with: process.threads[{}].trace.stop()".format(thread.id)
+                logger.error(error)
+                raise Exception(error)
 
         self.__threads = threads

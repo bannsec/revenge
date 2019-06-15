@@ -41,10 +41,18 @@ def test_basic_one_trace_thread_int():
     t2 = list(t)[0]
     time.sleep(0.3)
     assert len(t2) > 0
-    t2.stop()
 
     with pytest.raises(Exception):
         basic_one.tracer.instructions(exec=True, threads=[12.12])
+
+    # Testing exception for attempting to create another trace on a thread that is already being traced
+    with pytest.raises(Exception):
+        basic_one.tracer.instructions(exec=True)
+
+    t2.stop()
+
+    # This should not raise an exception now
+    t = basic_one.tracer.instructions(exec=True)
 
 
 def test_basic_one_trace_thread():
