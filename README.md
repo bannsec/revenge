@@ -227,6 +227,13 @@ t = process.threads[29638]
 >>> atof.return_type = types.Double # Way to be confusing libc...
 >>> atof('12.123')
 12.123
+
+# Replace function 'alarm' to do nothing and simply return 1
+>>> alarm = process.memory[':alarm']
+>>> alarm.replace = 1
+
+# Un-replace alarm, reverting it to normal functionality
+>>> alarm.replace = None
 ```
 
 ### Tracing

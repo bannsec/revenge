@@ -180,6 +180,10 @@ class Process(object):
 
         try:
 
+            # Remove function replacements
+            for addr in self.memory._active_replacements:
+                self.memory[addr].replace = None
+
             # Remove any instruction traces
             for t in self.threads:
                 if t.trace is not None:

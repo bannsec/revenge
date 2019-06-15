@@ -42,6 +42,9 @@ class MemoryBytes(object):
         if self.size is not None:
             attrs.append(str(self.size) + ' bytes')
 
+        if self.replace is not None:
+            attrs.append("Replaced")
+
         return "<{}>".format(' '.join(attrs))
 
     def __call__(self, *args):
@@ -104,13 +107,46 @@ class MemoryBytes(object):
     @property
     def replace(self):
         """What is this function being replaced by? None if there's no replacement."""
-        return self._process.memory._active_replacements[self.address]
+        try:
+            return self._process.memory._active_replacements[self.address][0]
+        except:
+            return None
 
     @replace.setter
     def replace(self, replace):
 
-        if isinstance(replace, int):
-            pass
+        # TODO: This should remove the replacement
+        if replace is None:
+            if self.address in self._process.memory._active_replacements:
+                self._process.memory._active_replacements[self.address][1][0].unload()
+
+        #
+        # Replace function with simple return value
+        #
+
+        elif isinstance(replace, int):
+
+            replace_address = self.address.js
+
+            # If it's not already a defined type
+            if type(replace) is int:
+                replace = self.return_type(replace)
+                replace_val = replace.js
+                replace_type = self.return_type.type
+
+            else:
+                replace_val = replace.js
+                replace_type = replace.type
+
+            replace_vars = {
+                "FUNCTION_RETURN_VALUE": replace_val,
+                "FUNCTION_RETURN_TYPE": replace_type,
+                "FUNCTION_ADDRESS": replace_address,
+            }
+
+            self._process.run_script_generic("replace_function.js", replace=replace_vars, unload=False)
+            script = self._process._scripts.pop(0)
+            self._process.memory._active_replacements[self.address] = (replace, script)
 
         else:
             logger.error("Invalid replacement type of {}".format(type(replace)))

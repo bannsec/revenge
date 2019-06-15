@@ -32,7 +32,7 @@ class Memory(object):
         # NOTE: It's important to keep the script alive until we're done with the alloc or javascript might gc it.
         self._allocated_memory = {}
 
-        # key == address of replaced function, value = what it's being replaced with
+        # key == address of replaced function, value = tuple: what it's being replaced with, script so we can unload later
         self._active_replacements = {}
 
     def alloc(self, size):
