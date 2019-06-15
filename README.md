@@ -19,7 +19,7 @@ The goal is for this to be mostly platform independent. Since the backend is pyt
 
 # Examples
 
-## Windows Messages
+## Windows Messages (Temporarily broken)
 Specifically watching Windows Messages handling
 
 ```bash
@@ -30,7 +30,7 @@ frida-util -I notepad.exe windows_messages notepad.exe
 frida-util -I notepad.exe -rw windows_messages notepad.exe -wm WM_CHAR WM_KEYDOWN
 ```
 
-## Stalking
+## Stalking (Temporarily broken)
 Use Frida stalk to trace through things
 
 ```
@@ -38,7 +38,7 @@ Use Frida stalk to trace through things
 frida-util stalk notepad.exe --include-function notepad.exe:0x3a50 -I notepad.exe
 ```
 
-## Find
+## Find (Temporarily broken)
 Find things in memory.
 
 ```
@@ -58,7 +58,7 @@ Type 'copyright', 'credits' or 'license' for more information
 IPython 7.5.0 -- An enhanced Interactive Python. Type '?' for help.
 
 In [1]: process
-Out[1]: <frida_util.util.Util at 0x7fa036bc14e0>
+Out[1]: <frida_util.process.Process at 0x7fa036bc14e0>
 ```
 
 ## General Options
@@ -77,7 +77,7 @@ import frida_util
 
 # Any flag you pass command-line can be passed into the constructor
 # Start up /bin/ls
-process = frida_util.Util(action="find", target="ls", file="/bin/ls", resume=False, verbose=False)
+process = frida_util.Process(action="find", target="ls", file="/bin/ls", resume=False, verbose=False)
 ```
 
 ### Memory

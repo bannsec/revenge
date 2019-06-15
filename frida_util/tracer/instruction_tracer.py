@@ -15,8 +15,8 @@ from ..threads import Thread
 
 class TraceItem(object):
 
-    def __init__(self, util, item):
-        self._util = util
+    def __init__(self, process, item):
+        self._process = process
         self._item = item
         self.from_ip = None
         self.from_module = None
@@ -100,23 +100,23 @@ class TraceItem(object):
 class Trace(object):
     """Keeps information about a Trace."""
     
-    def __init__(self, util, tid, script):
-        self._util = util
+    def __init__(self, process, tid, script):
+        self._process = process
         self._trace = []
         self._tid = tid
         self._script = script
 
     def append(self, item):
-        self._trace.append(TraceItem(self._util, item))
+        self._trace.append(TraceItem(self._process, item))
 
     def stop(self):
         """Stop tracing."""
 
         if self._script is not None:
             # TODO: Why the hell is Frida freezing on attempting to unload the stalker script?
-            self._util.run_script_generic("""Stalker.unfollow({})""".format(self._tid), raw=True, unload=True)
+            self._process.run_script_generic("""Stalker.unfollow({})""".format(self._tid), raw=True, unload=True)
             self._script[0].unload()
-            self._util.tracer._active_instruction_traces.pop(self._tid)
+            self._process.tracer._active_instruction_traces.pop(self._tid)
             self._script = None
         
     def __iter__(self):
@@ -139,11 +139,11 @@ class Trace(object):
 
 class InstructionTracer(object):
 
-    def __init__(self, util, threads=None, call=False, ret=False, exec=False, block=False, compile=False):
+    def __init__(self, process, threads=None, call=False, ret=False, exec=False, block=False, compile=False):
         """
 
         Args:
-            util: Base util instantiation
+            process: Base process instantiation
             threads (list, optional): What threads to trace. If None, it will trace all threads.
             call (bool, optional): Trace calls
             ret (bool, optional): Trace rets
@@ -152,7 +152,7 @@ class InstructionTracer(object):
             compile (bool, optional): Trace on Frida instruction compile
         """
 
-        self._util = util
+        self._process = process
         self.call= call
         self.ret = ret
         self.exec = exec
@@ -190,9 +190,9 @@ class InstructionTracer(object):
 
         for thread in self.threads:
             replace['THREAD_ID_HERE'] = str(thread.id)
-            self._util.run_script_generic("stalk.js", replace=replace, unload=False, on_message=self._on_message)
-            self.traces[thread.id] = Trace(self._util, thread.id, self._util._scripts.pop(0))
-            self._util.tracer._active_instruction_traces[thread.id] = self.traces[thread.id]
+            self._process.run_script_generic("stalk.js", replace=replace, unload=False, on_message=self._on_message)
+            self.traces[thread.id] = Trace(self._process, thread.id, self._process._scripts.pop(0))
+            self._process.tracer._active_instruction_traces[thread.id] = self.traces[thread.id]
 
     def __repr__(self):
         attrs = ["InstructionTracer"]
@@ -221,7 +221,7 @@ class InstructionTracer(object):
         assert isinstance(threads, (type(None), list, tuple, Thread)), "Invalid threads type of {}".format(type(threads))
 
         if threads is None:
-            threads = list(self._util.threads)
+            threads = list(self._process.threads)
 
         if not isinstance(threads, (list, tuple)):
             threads = [threads]
@@ -232,7 +232,7 @@ class InstructionTracer(object):
                 if isinstance(thread, Thread):
                     threads_new.append(thread)
                 elif isinstance(thread, int):
-                    threads_new.append(self._util.threads[thread])
+                    threads_new.append(self._process.threads[thread])
                 else:
                     raise Exception("Unable to resolve requested thread of type {}".format(type(thread)))
 
@@ -240,7 +240,7 @@ class InstructionTracer(object):
 
         # Make sure the threads aren't already being traced
         for thread in threads:
-            if thread.id in self._util.tracer._active_instruction_traces:
+            if thread.id in self._process.tracer._active_instruction_traces:
                 error = "Cannot have more than one trace on the same thread at a time. Stop the existing trace with: process.threads[{}].trace.stop()".format(thread.id)
                 logger.error(error)
                 raise Exception(error)

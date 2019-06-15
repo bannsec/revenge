@@ -17,7 +17,7 @@ bin_location = os.path.join(here, "bins")
 #
 
 basic_one_path = os.path.join(bin_location, "basic_one")
-basic_one = frida_util.Util(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
+basic_one = frida_util.Process(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
 
 def test_memory_map_basic():
 

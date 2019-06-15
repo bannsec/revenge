@@ -34,7 +34,7 @@ basic_one_ui64_addr = 0x201028
 basic_one_string_addr = 0x724
 basic_open_func_addr = 0x64A
 
-util = frida_util.Util(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
+util = frida_util.Process(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
 
 basic_two_path = os.path.join(bin_location, "basic_two")
 basic_two_func_addr = 0x64A
@@ -42,7 +42,7 @@ basic_two_i32_addr = 0x201020
 basic_two_f_addr = 0x201010
 basic_two_d_addr = 0x201018
 
-util2 = frida_util.Util(action="find", target="basic_two", file=basic_two_path, resume=False, verbose=False)
+util2 = frida_util.Process(action="find", target="basic_two", file=basic_two_path, resume=False, verbose=False)
 
 def test_memory_type_to_search():
 

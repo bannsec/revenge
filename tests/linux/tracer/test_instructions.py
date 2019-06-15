@@ -33,7 +33,7 @@ trace_items = [item_call, item_ret, item_block, item_compile, item_exec]
 
 def test_basic_one_trace_thread_int():
 
-    basic_one = frida_util.Util(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
+    basic_one = frida_util.Process(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
 
     thread = list(basic_one.threads)[0]
 
@@ -58,7 +58,7 @@ def test_basic_one_trace_thread_int():
 
 def test_basic_one_trace_thread():
 
-    basic_one = frida_util.Util(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
+    basic_one = frida_util.Process(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
 
     thread = list(basic_one.threads)[0]
 
@@ -81,7 +81,7 @@ def test_basic_one_trace_thread():
 
 def test_basic_one_trace_add_remove():
 
-    basic_one = frida_util.Util(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
+    basic_one = frida_util.Process(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
     t = basic_one.tracer.instructions(call=True, ret=True)
     tid = list(t)[0]._tid
 
@@ -101,7 +101,7 @@ def test_basic_one_trace_add_remove():
 
 def test_basic_one_trace_instructions_call_ret():
 
-    basic_one = frida_util.Util(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
+    basic_one = frida_util.Process(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
     t = basic_one.tracer.instructions(call=True, ret=True)
 
     module = basic_one.modules['basic_one']
@@ -110,6 +110,7 @@ def test_basic_one_trace_instructions_call_ret():
     basic_one.memory[basic_one.entrypoint_rebased].breakpoint = False
 
     # Minor sleep
+    # TODO: Race condition here...
     time.sleep(0.5)
 
     trace_copy = copy(list(t)[0])
@@ -173,7 +174,7 @@ def test_basic_one_trace_instructions_call_ret():
 
 def test_basic_one_trace_instructions_exec():
 
-    basic_one = frida_util.Util(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
+    basic_one = frida_util.Process(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
     t = basic_one.tracer.instructions(exec=True)
 
     module = basic_one.modules['basic_one']
@@ -255,7 +256,7 @@ def test_basic_one_trace_instructions_exec():
 
 def test_basic_one_trace_instructions_block():
 
-    basic_one = frida_util.Util(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
+    basic_one = frida_util.Process(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
     t = basic_one.tracer.instructions(block=True)
 
     module = basic_one.modules['basic_one']
@@ -286,7 +287,7 @@ def test_basic_one_trace_instructions_block():
 
 def test_basic_one_traceitem_manual_creation():
 
-    basic_one = frida_util.Util(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
+    basic_one = frida_util.Process(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
     module = basic_one.modules['basic_one']
 
     for i in trace_items:
@@ -308,7 +309,7 @@ def test_basic_one_traceitem_manual_creation():
 
 def test_basic_one_traceitem():
 
-    basic_one = frida_util.Util(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
+    basic_one = frida_util.Process(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
     module = basic_one.modules['basic_one']
 
     t = basic_one.tracer.instructions()

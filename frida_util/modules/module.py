@@ -8,8 +8,8 @@ from .. import common, types
 
 class Module(object):
 
-    def __init__(self, util, name, base, size, path):
-        self._util = util
+    def __init__(self, process, name, base, size, path):
+        self._process = process
         self.name = name
         self.base = base
         self.size = size

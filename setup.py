@@ -36,7 +36,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'frida-util = frida_util.util:main',
+            'frida-util = frida_util.process:main',
         ],
     },
     include_package_data = True,

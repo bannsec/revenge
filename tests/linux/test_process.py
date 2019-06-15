@@ -27,10 +27,10 @@ basic_one_ui64_addr = 0x201028
 basic_one_string_addr = 0x724
 basic_open_func_addr = 0x64A
 
-basic_one = frida_util.Util(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
+basic_one = frida_util.Process(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
 
 basic_one_ia32_path = os.path.join(bin_location, "basic_one_ia32")
-basic_one_ia32 = frida_util.Util(action="find", target="basic_one_ia32", file=basic_one_ia32_path, resume=False, verbose=False)
+basic_one_ia32 = frida_util.Process(action="find", target="basic_one_ia32", file=basic_one_ia32_path, resume=False, verbose=False)
 
 def test_process_arch():
 

@@ -13,14 +13,14 @@ class MemoryFind(object):
     """Find something in memory.
 
     Args:
-        util: Base util instantiation
+        process: Base process instantiation
         thing: Some instantiated type to search for from types module
         ranges(list, optional): List of MemoryRange objects to limit the search
             to. By default, search everything.
     """
 
-    def __init__(self, util, thing, ranges=None):
-        self._util = util
+    def __init__(self, process, thing, ranges=None):
+        self._process = process
         self.thing = thing
         self.ranges = ranges
 
@@ -49,8 +49,8 @@ class MemoryFind(object):
                 "SEARCH_SPACE_HERE": json.dumps(self._ranges_js),
                 }
 
-        self._util.run_script_generic("find_in_memory.js", replace=replace, unload=False, on_message=self._on_message)
-        self._script = self._util._scripts.pop(0)
+        self._process.run_script_generic("find_in_memory.js", replace=replace, unload=False, on_message=self._on_message)
+        self._script = self._process._scripts.pop(0)
 
     def _on_message(self, m,d):
         """Catch messages from our search."""
@@ -110,7 +110,7 @@ class MemoryFind(object):
     @property
     def search_string(self):
         """The search string for this thing."""
-        return self._util.memory._type_to_search_string(self.thing)
+        return self._process.memory._type_to_search_string(self.thing)
 
     @property
     def thing(self):
@@ -145,7 +145,7 @@ class MemoryFind(object):
     def ranges(self, ranges):
         
         if ranges is None:
-            ranges = list(self._util.memory.maps)
+            ranges = list(self._process.memory.maps)
 
         if type(ranges) is MemoryRange:
             self.__ranges = [ranges]

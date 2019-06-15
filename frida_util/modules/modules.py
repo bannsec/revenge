@@ -9,8 +9,8 @@ from fnmatch import fnmatch
 
 class Modules(object):
 
-    def __init__(self, util):
-        self._util = util
+    def __init__(self, process):
+        self._process = process
 
     def __iter__(self):
         return self.modules.__iter__()
@@ -50,7 +50,7 @@ class Modules(object):
     @property
     def modules(self):
         """list: Return list of modules."""
-        mods = self._util.run_script_generic("""send(Process.enumerateModulesSync());""", raw=True, unload=True)[0][0]
-        return [Module(self._util, name=mod['name'], base=mod['base'], size=mod['size'], path=mod['path']) for mod in mods]
+        mods = self._process.run_script_generic("""send(Process.enumerateModulesSync());""", raw=True, unload=True)[0][0]
+        return [Module(self._process, name=mod['name'], base=mod['base'], size=mod['size'], path=mod['path']) for mod in mods]
 
 from .module import Module

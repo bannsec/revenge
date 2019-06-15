@@ -8,8 +8,8 @@ from .. import common, types
 
 class MemoryRange(object):
 
-    def __init__(self, util, base, size, protection, file=None):
-        self._util = util
+    def __init__(self, process, base, size, protection, file=None):
+        self._process = process
         self.base = base
         self.size = size
         self.protection = protection

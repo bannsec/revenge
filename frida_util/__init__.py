@@ -7,4 +7,4 @@ import sys
 if sys.version_info[0] < 3:
     logger.error('This script is supposed to be run with python3.')
 
-from .util import Util
+from .process import Process

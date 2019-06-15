@@ -10,8 +10,8 @@ from . import common
 
 class Thread(object):
 
-    def __init__(self, util, info):
-        self._util = util
+    def __init__(self, process, info):
+        self._process = process
         self._info = info
 
     def __repr__(self):
@@ -54,19 +54,19 @@ class Thread(object):
 
     @property
     def module(self):
-        return self._util.get_module_by_addr(self.pc)
+        return self._process.get_module_by_addr(self.pc)
     
     @property
     def trace(self):
         """Trace or None: Returns Trace object if this thread is currently being traced, otherwise None."""
-        if self.id in self._util.tracer._active_instruction_traces:
-            return self._util.tracer._active_instruction_traces[self.id]
+        if self.id in self._process.tracer._active_instruction_traces:
+            return self._process.tracer._active_instruction_traces[self.id]
 
 
 class Threads(object):
 
-    def __init__(self, util):
-        self._util = util
+    def __init__(self, process):
+        self._process = process
 
     def __len__(self):
         return len(self.threads)
@@ -98,5 +98,5 @@ class Threads(object):
 
     @property
     def threads(self):
-        threads = self._util.run_script_generic("""send(Process.enumerateThreadsSync());""", raw=True, unload=True)[0][0]
-        return [Thread(self._util, thread) for thread in threads]
+        threads = self._process.run_script_generic("""send(Process.enumerateThreadsSync());""", raw=True, unload=True)[0][0]
+        return [Thread(self._process, thread) for thread in threads]

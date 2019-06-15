@@ -20,8 +20,8 @@ class Memory(object):
         - memory[0x12345:0x12666] -> Returns byte array from memory
     """
 
-    def __init__(self, util):
-        self._util = util
+    def __init__(self, process):
+        self._process = process
 
         # Keep track of where we've inserted breakpoints
         # key == address of breakpoint, value == memory location to un-breakpoint it
@@ -41,11 +41,11 @@ class Memory(object):
         
         assert type(size) is int
 
-        pointer = common.auto_int(self._util.run_script_generic("""var p = Memory.alloc(uint64('{}')); send(p);""".format(hex(size)), raw=True, unload=False)[0][0])
-        script = self._util._scripts.pop(0) # We want to hold on to it here
+        pointer = common.auto_int(self._process.run_script_generic("""var p = Memory.alloc(uint64('{}')); send(p);""".format(hex(size)), raw=True, unload=False)[0][0])
+        script = self._process._scripts.pop(0) # We want to hold on to it here
 
         self._allocated_memory[pointer] = script
-        return MemoryBytes(self._util, pointer, pointer+size)
+        return MemoryBytes(self._process, pointer, pointer+size)
 
     def alloc_string(self, s, encoding='latin-1'):
         """Short-hand to run alloc of appropriate size, then write in the string.
@@ -88,7 +88,7 @@ class Memory(object):
 
     def find(self, *args, **kwargs):
         """Search for thing in memory. Must be one of the defined types."""
-        return MemoryFind(self._util, *args, **kwargs)
+        return MemoryFind(self._process, *args, **kwargs)
 
     def _type_to_search_string(self, thing):
         """Converts the given object into something relevant that can be fed into a memory search query."""
@@ -97,7 +97,7 @@ class Memory(object):
             logger.error("Please use valid type.")
             return None
 
-        endian_str = "<" if self._util.endianness == 'little' else '>'
+        endian_str = "<" if self._process.endianness == 'little' else '>'
 
         if isinstance(thing, types.StringUTF8):
             # Normal string
@@ -140,10 +140,10 @@ class Memory(object):
 
         if type(item) == str:
             # Assume it's something we need to resolve
-            item = self._util._resolve_location_string(item)
+            item = self._process._resolve_location_string(item)
 
         if isinstance(item, int):
-            return MemoryBytes(self._util, item)
+            return MemoryBytes(self._process, item)
 
         elif type(item) == slice:
 
@@ -151,14 +151,14 @@ class Memory(object):
                 logger.error("Memory slices must have start and stop and not contain a step option.")
                 return
 
-            return MemoryBytes(self._util, item.start, item.stop)
+            return MemoryBytes(self._process, item.start, item.stop)
 
         logger.error("Unhandled memory type of {}".format(type(item)))
 
     @property
     def maps(self):
         """Return a list of memory ranges that are currently allocated."""
-        return MemoryMap(self._util)
+        return MemoryMap(self._process)
 
     def __str__(self):
         

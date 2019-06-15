@@ -18,7 +18,6 @@ import time
 import atexit
 import signal
 import json
-import psutil
 import pprint
 from copy import copy
 
@@ -30,7 +29,7 @@ from .modules import Modules
 
 here = os.path.dirname(os.path.abspath(__file__))
 
-class Util(object):
+class Process(object):
 
     def __init__(self, *args, **kwargs):
         # Just variable to ensure we don't garbage collect
@@ -577,8 +576,8 @@ def sigint_handler(sig, frame):
 def main():
     signal.signal(signal.SIGINT, sigint_handler)
 
-    global util
-    util = Util()
+    global process
+    process = Process()
 
     while True:
         time.sleep(1)

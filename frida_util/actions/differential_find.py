@@ -12,12 +12,12 @@ class ActionDiffFind:
     """Handle finding things in memory differentially."""
 
 
-    def __init__(self, util, *args, **kwargs):
+    def __init__(self, process, *args, **kwargs):
         """
         Args:
-            util: Parent util instantiation
+            process: Parent process instantiation
         """
-        self._util = util
+        self._process = process
         self._args = args
         self._kwargs = kwargs
         self.memory_locations = {}
@@ -88,7 +88,7 @@ class ActionDiffFind:
         kwargs = copy(self._kwargs)
 
         kwargs['number'] = n
-        find = ActionFind(self._util, **kwargs)
+        find = ActionFind(self._process, **kwargs)
         find.run()
 
         self.memory_locations_new = copy(find.discovered_locations)
@@ -113,10 +113,10 @@ class ActionDiffFind:
 
         for find_pattern, pattern_type in find_patterns.items():
 
-            find_js = self._util.load_js('find_in_memory.js')
+            find_js = self._process.load_js('find_in_memory.js')
             find_js = find_js.replace("SCAN_PATTERN_HERE", find_pattern)
 
-            script = self._util.session.create_script(find_js)
+            script = self._process.session.create_script(find_js)
             script.on('message', find_cb)
 
             logger.debug("Starting Memory find ... ")

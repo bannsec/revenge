@@ -10,12 +10,12 @@ import json
 class ActionWindowsMessages:
     """Handle stalking Windows Messages."""
 
-    def __init__(self, util, include_module=None, windows_message=None, *args, **kwargs):
+    def __init__(self, process, include_module=None, windows_message=None, *args, **kwargs):
         """
         Args:
-            util: Parent util instantiation
+            process: Parent process instantiation
         """
-        self._util = util
+        self._process = process
         self.include_module = include_module or []
         self.windows_message = windows_message
         self._scripts = []
@@ -32,8 +32,8 @@ class ActionWindowsMessages:
             # REMINDER: The JavaScript is filtering out dups. We will only be getting each handler once.
 
             handler_ip = int(message['payload'], 16)
-            handler_module = self._util.get_module_by_addr(handler_ip)
-            handler_offset = handler_ip - self._util.modules[handler_module]['base']
+            handler_module = self._process.get_module_by_addr(handler_ip)
+            handler_offset = handler_ip - self._process.modules[handler_module]['base']
 
             self._known_windows_message_handlers.append(handler_ip)
 
@@ -42,13 +42,13 @@ class ActionWindowsMessages:
                 print("{: <32}".format("Found Message Handler") + colored(handler_module, 'cyan') + ":" + colorama.Style.BRIGHT + colored(hex(handler_offset), "cyan"))
                 self._action_windows_messages_intercept(handler_module, handler_offset)
 
-        if self._util.device_platform != 'windows':
+        if self._process.device_platform != 'windows':
             logger.error('This doesn\'t appear to be a Windows device...')
             exit(1)
 
-        windows_js = self._util.load_js('windows_stalk_message_handlers.js')
+        windows_js = self._process.load_js('windows_stalk_message_handlers.js')
 
-        script = self._util.session.create_script(windows_js)
+        script = self._process.session.create_script(windows_js)
         script.on('message', windows_cb)
 
         logger.debug("Starting Windows Message monitor ... ")
@@ -90,7 +90,7 @@ class ActionWindowsMessages:
                 ))
 
 
-        js = self._util.load_js('windows_intercept_message_handler.js')
+        js = self._process.load_js('windows_intercept_message_handler.js')
 
         js = js.replace("OFFSET_HERE", hex(offset))
         js = js.replace("MODULE_HERE", module)
@@ -103,7 +103,7 @@ class ActionWindowsMessages:
 
         js = js.replace('CONSTRAINTS_HERE', constraints)
 
-        script = self._util.session.create_script(js, runtime='v8')
+        script = self._process.session.create_script(js, runtime='v8')
         script.on('message', window_message_cb)
         script.load()
 
