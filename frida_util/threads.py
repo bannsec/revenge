@@ -15,12 +15,10 @@ class Thread(object):
         self._info = info
 
     def __repr__(self):
-        return "<Thread {tid} @ {pc} {state} ({module})>".format(
-                tid=hex(self.id),
-                pc=hex(self.pc),
-                state=self.state,
-                module=self.module,
-                )
+        attrs = ['Thread', hex(self.id), '@', hex(self.pc), self.state, self.module]
+        if self.trace is not None:
+            attrs.append('tracing')
+        return "<{}>".format(' '.join(attrs))
 
     def __getattr__(self, elm):
         return common.auto_int(self._info['context'][elm])
@@ -32,6 +30,7 @@ class Thread(object):
         table.add_row(['TID', str(self.id)])
         table.add_row(["State", self.state])
         table.add_row(["Module", self.module])
+        table.add_row(["Tracing?", "Yes" if self.trace is not None else "No"])
 
         for reg in self._info['context']:
             table.add_row([reg, hex(getattr(self, reg))])
@@ -56,6 +55,12 @@ class Thread(object):
     @property
     def module(self):
         return self._util.get_module_by_addr(self.pc)
+    
+    @property
+    def trace(self):
+        """Trace or None: Returns Trace object if this thread is currently being traced, otherwise None."""
+        if self.id in self._util.tracer._active_instruction_traces:
+            return self._util.tracer._active_instruction_traces[self.id]
 
 
 class Threads(object):
@@ -73,10 +78,10 @@ class Threads(object):
         return "<{} {}>".format(len(self), "Thread" if len(self) == 1 else "Threads")
 
     def __str__(self):
-        table = PrettyTable(['id', 'state', 'pc', 'module'])
+        table = PrettyTable(['id', 'state', 'pc', 'module', 'Trace'])
 
         for thread in self:
-            table.add_row([str(thread.id), thread.state, hex(thread.pc), thread.module])
+            table.add_row([str(thread.id), thread.state, hex(thread.pc), thread.module, 'Yes' if thread.trace is not None else 'No'])
 
         return str(table)
 

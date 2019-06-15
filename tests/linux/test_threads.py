@@ -19,6 +19,24 @@ basic_threads_after_create = 0x7df
 
 util = frida_util.Util(action="find", target="basic_threads", file=basic_threads_path, resume=False, verbose=False)
 
+def test_thread_tracing_indicator():
+
+    process = frida_util.Util(action="find", target="basic_threads", file=basic_threads_path, resume=False, verbose=False)
+    th = list(process.threads)[0]
+
+    assert th.trace is None
+
+    t = process.tracer.instructions(exec=True)
+    t2 = list(t)[0]
+
+    assert th.trace is t2
+    assert "tracing" in repr(th)
+
+    th.trace.stop()
+    assert th.trace is None
+    assert "tracing" not in repr(th)
+
+
 def test_thread_enum():
 
     # Should only be one thread to start with

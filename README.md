@@ -161,11 +161,11 @@ process = frida_util.Util(action="find", target="ls", file="/bin/ls", resume=Fal
 # List threads
 >>> print(process.threads)
 """
-+-------+---------+----------------+--------------+
-|   id  |  state  |       pc       |    module    |
-+-------+---------+----------------+--------------+
-| 29638 | waiting | 0x7feeb83439d0 | libc-2.27.so |
-+-------+---------+----------------+--------------+
++-------+---------+----------------+--------------+-------+
+|   id  |  state  |       pc       |    module    | Trace |
++-------+---------+----------------+--------------+-------+
+| 81921 | waiting | 0x7f2d9b2759d0 | libc-2.27.so |   No  |
++-------+---------+----------------+--------------+-------+
 """
 
 >>> list(process.threads)
@@ -175,34 +175,35 @@ process = frida_util.Util(action="find", target="ls", file="/bin/ls", resume=Fal
 t = process.threads[29638]
 
 >>> t
-<Thread 0x73c6 @ 0x7feeb83439d0 waiting (libc-2.27.so)>
+<Thread 0x73c6 @ 0x7feeb83439d0 waiting (libc-2.27.so) tracing>
 
 >>> print(t)
 """
-+--------+--------------------+
-| TID    | 29638              |
-| State  | waiting            |
-| Module | libc-2.27.so       |
-| pc     | 0x7feeb83439d0     |
-| sp     | 0x7ffcd66cf4a0     |
-| rax    | 0xfffffffffffffdfc |
-| rcx    | 0x7feeb83439d0     |
-| rdx    | 0x0                |
-| rbx    | 0x7ffcd66cf4d0     |
-| rsp    | 0x7ffcd66cf4a0     |
-| rbp    | 0x7ffcd66cf4e0     |
-| rsi    | 0x7ffcd66cf4e0     |
-| rdi    | 0x7ffcd66cf4d0     |
-| r8     | 0x0                |
-| r9     | 0x0                |
-| r10    | 0x7feeb8946750     |
-| r11    | 0x293              |
-| r12    | 0x2                |
-| r13    | 0x7feeb899e8a0     |
-| r14    | 0x3                |
-| r15    | 0x7feeb43ed040     |
-| rip    | 0x7feeb83439d0     |
-+--------+--------------------+
++----------+--------------------+
+| TID      | 81921              |
+| State    | waiting            |
+| Module   | libc-2.27.so       |
+| Tracing? | Yes                |
+| pc       | 0x7f2d9b2759d0     |
+| sp       | 0x7ffc0e1eef40     |
+| rax      | 0xfffffffffffffdfc |
+| rcx      | 0x7f2d9b2759d0     |
+| rdx      | 0x0                |
+| rbx      | 0x7ffc0e1eef70     |
+| rsp      | 0x7ffc0e1eef40     |
+| rbp      | 0x7ffc0e1eef80     |
+| rsi      | 0x7ffc0e1eef80     |
+| rdi      | 0x7ffc0e1eef70     |
+| r8       | 0x0                |
+| r9       | 0x0                |
+| r10      | 0x7f2d9b83c1a0     |
+| r11      | 0x293              |
+| r12      | 0x2                |
+| r13      | 0x7f2d98327200     |
+| r14      | 0x3                |
+| r15      | 0x7f2d9b891a10     |
+| rip      | 0x7f2d9b2759d0     |
++----------+--------------------+
 """
 ```
 
