@@ -44,6 +44,49 @@ basic_two_d_addr = 0x201018
 
 util2 = frida_util.Process(action="find", target="basic_two", file=basic_two_path, resume=False, verbose=False)
 
+
+basic_looper_path = os.path.join(bin_location, "basic_looper")
+basic_looper = frida_util.Process(action="find", target="basic_looper", file=basic_looper_path, resume=False, verbose=False)
+
+def test_memory_bytes_function_replace():
+
+    # This var constantly gets updated with the output of the function
+    global_var = basic_looper.memory['basic_looper:0x201014']
+    func = basic_looper.memory['basic_looper:0x64A']
+
+    assert global_var.int64 == 0
+    assert func.replace is None
+    
+    # Start the looper!
+    basic_looper.memory[basic_looper.entrypoint_rebased].breakpoint = False
+    time.sleep(0.2)
+
+    # Base value from func is 1
+    assert global_var.int64 == 1
+    func.replace = 1337
+    repr(func)
+    assert func.replace == 1337
+    time.sleep(0.2)
+
+    assert global_var.int64 == 1337
+    func.replace = types.Int64(31337)
+    assert func.replace == 31337
+    time.sleep(0.2)
+
+    assert global_var.int64 == 31337
+    # Replace with something not supported
+    func.replace = lambda x:1
+    assert func.replace == 31337
+
+    func.replace = None
+    assert func.replace is None
+    time.sleep(0.2)
+
+    assert global_var.int64 == 1
+    func.replace = None # Shouldn't affect anything
+
+
+
 def test_memory_bytes_address_as_pointer():
 
     strlen = util.memory[':strlen']

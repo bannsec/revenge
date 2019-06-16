@@ -104,6 +104,14 @@ class MemoryBytes(object):
         
         return self.return_type(common.auto_int(ret))
 
+    def _remove_replace(self):
+        """Reverts any replacement of this function."""
+
+        if self.address in self._process.memory._active_replacements:
+            self._process.memory._active_replacements[self.address][1][0].unload()
+            self._process.memory._active_replacements.pop(self.address)
+
+
     @property
     def replace(self):
         """What is this function being replaced by? None if there's no replacement."""
@@ -115,16 +123,15 @@ class MemoryBytes(object):
     @replace.setter
     def replace(self, replace):
 
-        # TODO: This should remove the replacement
         if replace is None:
-            if self.address in self._process.memory._active_replacements:
-                self._process.memory._active_replacements[self.address][1][0].unload()
+            self._remove_replace()
 
         #
         # Replace function with simple return value
         #
 
         elif isinstance(replace, int):
+            self._remove_replace()
 
             replace_address = self.address.js
 
