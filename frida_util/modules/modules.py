@@ -4,6 +4,7 @@ logging.basicConfig(level=logging.WARN)
 
 logger = logging.getLogger(__name__)
 
+import collections
 from prettytable import PrettyTable
 from fnmatch import fnmatch
 
@@ -11,6 +12,12 @@ class Modules(object):
 
     def __init__(self, process):
         self._process = process
+
+        # key == module name, value == dict of symbol->address
+        self._symbol_to_address = {}
+
+        # key == module name, value == dict of address->symbol
+        self._address_to_symbol = {}
 
     def __iter__(self):
         return self.modules.__iter__()

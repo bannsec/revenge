@@ -4,6 +4,9 @@ logging.basicConfig(level=logging.WARN)
 
 logger = logging.getLogger(__name__)
 
+import io
+from elftools.elf.elffile import ELFFile
+
 from .. import common, types
 
 class Module(object):
@@ -13,7 +16,81 @@ class Module(object):
         self.name = name
         self.base = base
         self.size = size
-        self.path = path
+
+        self.path = path # Must go last
+
+    def _load_symbols(self):
+        """Reads in the file for this module and attempts to extract the symbols."""
+
+        # For now, only loading main binary symbols
+        if self.name == self._process.file_name:
+        
+            if self._process.file_type == 'ELF':
+                self._load_symbols_elf()
+
+            # TODO: Windows
+            # TODO: Mac
+
+        # If we didn't resolve anything, make sure we noted we tried
+        if self.name not in self._process.modules._symbol_to_address:
+            self._process.modules._symbol_to_address[self.name] = {}
+            self._process.modules._address_to_symbol[self.name] = {}
+
+    def _load_symbols_elf(self):
+        # TODO: Assuming that this process will work on any system running ELF...
+
+        fopen = self._process.memory[':fopen']
+        fseek = self._process.memory[':fseek']
+        ftell = self._process.memory[':ftell']
+        fread = self._process.memory[':fread']
+        fclose = self._process.memory[':fclose']
+        malloc = self._process.memory[':malloc']
+        free = self._process.memory[':free']
+
+        fp = fopen(self.path, 'r')
+
+        # If we couldn't open it, fail gracefully
+        if fp == 0:
+            logger.debug("Couldn't load symbols for file: " + self.path)
+            return
+
+        fseek(fp, 0, 2)
+        size = ftell(fp)
+        fseek(fp, 0, 0)
+        
+        malloc_ptr = malloc(size)
+        mem = self._process.memory[malloc_ptr:malloc_ptr+size]
+        fread(malloc_ptr, size, 1, fp)
+
+        elf_io = io.BytesIO(mem.bytes)
+        free(malloc_ptr)
+        fclose(fp)
+
+        e = ELFFile(elf_io)
+        symtab = e.get_section_by_name('.symtab')
+
+        # Sometimes the binary won't have a symbol table
+        if symtab is not None:
+
+            # Clear out old symbols if needed
+            self._process.modules._symbol_to_address[self.name] = {}
+            self._process.modules._address_to_symbol[self.name] = {}
+            
+            # Pull out symbols
+            for sym in symtab.iter_symbols():
+                if sym.name == '':
+                    continue
+
+                address = sym['st_value']
+
+                if self.elf.type_str == 'DYN':
+                    address = address + self.base
+
+                self._process.modules._symbol_to_address[self.name][sym.name] = types.Pointer(address)
+                self._process.modules._address_to_symbol[self.name][address] = sym.name
+
+        else:
+            logger.debug("No symtab found for {}".format(self.path))
 
     def __repr__(self):
         attrs = ['Module', self.name, '@', hex(self.base)]
@@ -64,6 +141,10 @@ class Module(object):
             raise Exception(error)
 
         self.__path = path
+
+        # Load up the symbols for this file if we haven't already
+        if self.name not in self._process.modules._symbol_to_address:
+            self._load_symbols()
         
     @property
     def size(self):
