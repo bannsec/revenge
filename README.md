@@ -77,7 +77,7 @@ import frida_util
 
 # Any flag you pass command-line can be passed into the constructor
 # Start up /bin/ls
-process = frida_util.Process(action="find", target="ls", file="/bin/ls", resume=False, verbose=False)
+process = frida_util.Process("/bin/ls", resume=False, verbose=False)
 ```
 
 ### Memory

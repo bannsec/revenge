@@ -6,7 +6,6 @@ logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
 import frida
-import argparse
 import colorama
 colorama.init()
 
@@ -21,7 +20,7 @@ import json
 import pprint
 from copy import copy
 
-from . import common, actions, types
+from . import common, types
 from .memory import Memory
 from .threads import Threads
 from .tracer import Tracer
@@ -31,7 +30,15 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 class Process(object):
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, target, resume=False, verbose=False):
+        """
+
+        Args:
+            target (str, int): File name or pid to attach to.
+            resume (bool, optional): Resume the binary if need be after loading?
+            verbose (bool, optional): Enable verbose logging
+        """
+
         # Just variable to ensure we don't garbage collect
         self._scripts = []
         # Cache common module addrs
@@ -43,38 +50,21 @@ class Process(object):
         self._resume_addr = None
         self.__endianness = None
         self.__bits = None
+        self._spawn_target = None
+        self.verbose = verbose
+        self.target = target
 
         self.memory = Memory(self)
         self.threads = Threads(self)
         self.tracer = Tracer(self)
         self.modules = Modules(self)
 
-        self.parse_args(kwargs!={})
-
-        # Generic passthrough of arguments
-        for key, val in kwargs.items():
-            setattr(self._args, key, val)
-
-        if self._args.verbose:
-            logger.setLevel(logging.DEBUG)
-
         atexit.register(self._at_exit)
         self.load_device()
         self.start_session()
 
-        """
-        # Make sure the requested include module exists
-        # TODO: Move this into UI module once i make it..
-        if self._args.include_module is not None:
-            try:
-                bad_mod = next(module for module in self._args.include_module if module not in self.modules)
-                logger.warn("Your chosen include_module ({}) doesn't match any modules found. Double check the capitalization or spelling.".format(bad_mod))
-            except:
-                pass
-        """
-
         # ELF binaries start up in ptrace, which causes some issues, shim at entrypoint so we can remove ptrace
-        if self._spawned is not None and self.file_type == 'ELF':
+        if self._spawned_pid is not None and self.file_type == 'ELF':
 
             # Set breakpoint at entry
             self.memory[self.entrypoint_rebased].breakpoint = True
@@ -84,7 +74,7 @@ class Process(object):
                 self.memory[c].breakpoint = True
 
             # Resume to remove ptrace
-            self.device.resume(self._spawned)
+            self.device.resume(self._spawned_pid)
 
             #time.sleep(0.2)
 
@@ -94,52 +84,15 @@ class Process(object):
             except IndexError:
                 logger.error("Can't enumerate threads. Please check sysctl kernel.yama.ptrace_scope=0 or run as root.")
 
-        if self._args.rw_everything:
-            print('RW\'ing memory areas\t\t... ', end='', flush=True)
-            self.run_script_generic('rw_everything.js', unload=True)
-            cprint('[ DONE ]', 'green')
-
-        # Replace any functions needed
-        for f in self._args.replace_function:
-            self.replace_function(f)
-
-        # Setup any requested pauses
-        for location in self._args.pause_at:
-            self.pause_at(location)
-
-        if self._args.action == 'stalk':
-            # Issue where stalk elf doesn't enumerate threads...
-            self.action_stalker = actions.ActionStalker(self, **vars(self._args))
-            self.action_stalker.run()
-
-        elif self._args.action == 'windows_messages':
-            self.action_windows_messages = actions.ActionWindowsMessages(self, **vars(self._args))
-            self.action_windows_messages.run()
-
-        elif self._args.action == 'find':
-            self.action_find = actions.ActionFind(self, **vars(self._args))
-            self.action_find.run()
-            print({hex(x):y for x,y in self.action_find.discovered_locations.items()})
-
-        elif self._args.action == 'diff_find':
-            self.action_diff = actions.ActionDiffFind(self, **vars(self._args))
-            self.action_diff.run()
-        
-        time.sleep(1)
         # Resume file if need be
-        if self._args.resume:
+        if resume:
 
             # If we are using a resume variable
             if self.memory[self.entrypoint_rebased].breakpoint:
                 self.memory[self.entrypoint_rebased].breakpoint = False
             
             else:
-                self.device.resume(self._spawned)
-
-        if self._args.action == 'ipython':
-            process = self
-            import IPython
-            IPython.embed()
+                self.device.resume(self._spawned_pid)
 
 
     def load_device(self):
@@ -215,14 +168,14 @@ class Process(object):
 
         # If we spawned it, kill it
         try:
-            if self._spawned is not None:
-                return self.device.kill(self._spawned)
+            if self._spawned_pid is not None:
+                return self.device.kill(self._spawned_pid)
 
         except (frida.PermissionDeniedError, frida.ProcessNotFoundError) as e:
             # This can indicate the process is already dead.
             try:
-                next(x for x in self.device.enumerate_processes() if x.pid == self._spawned)
-                logger.error("Device kill permission error, with process apparently %d still alive.", self._spawned)
+                next(x for x in self.device.enumerate_processes() if x.pid == self._spawned_pid)
+                logger.error("Device kill permission error, with process apparently %d still alive.", self._spawned_pid)
                 raise e
             except StopIteration:
                 return
@@ -253,106 +206,21 @@ class Process(object):
         """Generic on message handler."""
         print("Caught message", message, data)
 
-    def parse_args(self, defaults=False):
-        """
-
-        Args:
-            defaults (bool, optional): Just use argparse to set up default values.
-        """
-
-        parser = argparse.ArgumentParser(
-            description='CLI wrapper around Frida Stalker.'
-            )
-
-        parser.add_argument('--tid', type=int, default=None,
-                help="Thread to stalk. (Default: all threads.)")
-        parser.add_argument('--include-module', "-I", type=str, default=None, metavar='module', nargs='+',
-                help="Module to include for stalking (default: All modules).")
-        parser.add_argument('--include-function', "-i", type=str, default=None, metavar='module:offset',
-                help="Function to include for stalking (default: All functions).")
-        parser.add_argument('--replace-function', "-rf", type=str, default=[], metavar='<module:offset|symbol>?<return_val>', nargs='+',
-                help="Replace given function by simply returning the given value instead.")
-        parser.add_argument('--pause-at', type=str, default=[], metavar='<module:offset|symbol>', nargs='+',
-                help="Pause execution at address.")
-        parser.add_argument('--verbose', "-v", action='store_true', default=False,
-                help="Output more verbose information (defualt: False)")
-
-        stalk_group = parser.add_argument_group('stalk options')
-        stalk_group.add_argument('--call', action='store_true', default=False,
-                help="Stalk calls")
-        stalk_group.add_argument('--ret', action='store_true', default=False,
-                help="Stalk rets")
-        stalk_group.add_argument('--exec', action='store_true', default=False,
-                help="Stalks every single instruction.")
-        stalk_group.add_argument('--block', action='store_true', default=False,
-                help="Stalks every code block.")
-        stalk_group.add_argument('--compile', action='store_true', default=False,
-                help="Stalks every time Frida needs to compile.")
-        stalk_group.add_argument('--rw-everything', '-rw', default=False, action='store_true',
-                help="Change all r-- memory areas into rw-. This can sometimes help segfault issues (default: off)")
-
-        windows_group = parser.add_argument_group('windows options')
-        windows_group.add_argument('--windows-message', '-wm', default=None, type=str, nargs='+', metavar='Message',
-                help="Down select to these specific windows messages (i.e.: WM_KEYUP, WM_KEYDOWN).")
-
-        find_group = parser.add_argument_group('find options')
-        find_group.add_argument('--string', type=str, default=None,
-                help="Search for string in program memory.")
-        find_group.add_argument('--uint8', type=int, default=None,
-                help="Search for unsigned 8bit int in program memory.")
-        find_group.add_argument('--int8', type=int, default=None,
-                help="Search for signed 8bit int in program memory.")
-        find_group.add_argument('--uint16', type=int, default=None,
-                help="Search for unsigned 16bit int in program memory.")
-        find_group.add_argument('--int16', type=int, default=None,
-                help="Search for signed 16bit int in program memory.")
-        find_group.add_argument('--uint32', type=int, default=None,
-                help="Search for unsigned 32bit int in program memory.")
-        find_group.add_argument('--int32', type=int, default=None,
-                help="Search for signed 32bit int in program memory.")
-        find_group.add_argument('--uint64', type=int, default=None,
-                help="Search for unsigned 64bit int in program memory.")
-        find_group.add_argument('--int64', type=int, default=None,
-                help="Search for signed 64bit int in program memory.")
-        find_group.add_argument('--number', type=int, default=None,
-                help="Search for number of any size in program memory.")
-
-        spawn_group = parser.add_argument_group('spawn options')
-        spawn_group.add_argument('--file', '-f', type=str, metavar=('FILE','ARGS'), default=None, nargs='+',
-                help="Spawn file.")
-        spawn_group.add_argument('--resume', default=False, action='store_true',
-                help="Resume binary after spawning it (default: false).")
-
-        parser.add_argument('action', choices=('stalk', 'windows_messages', 'find', 'diff_find', 'ipython'),
-                help="What type of stalking.")
-
-        parser.add_argument('target', type=self.target_type, 
-                help="Target to attach to.")
-
-        if defaults != False:
-            self._args = parser.parse_args(['stalk','PLACEHOLDER'])
-        else:
-            self._args = parser.parse_args()
-
-        # Clean up windows messages
-        if self._args.windows_message is not None:
-            self._args.windows_message = [common.windows_messages_by_name[x] for x in self._args.windows_message]
-
 
     def start_session(self):
 
-        self._spawned = None
+        self._spawned_pid = None
 
-        if self._args.file is not None:
+        if self._spawn_target is not None:
             print("Spawning file\t\t\t... ", end='', flush=True)
-            self._spawned = self.device.spawn(self._args.file)
+            self._spawned_pid = self.device.spawn(self._spawn_target)
             cprint("[ DONE ]", "green")
 
         print('Attaching to the session\t... ', end='', flush=True)
 
         try:
             # Default attach to what we just spawned
-            self.session = frida.attach(self._spawned or self._args.target)
+            self.session = frida.attach(self._spawned_pid or self._args.target)
         except frida.ProcessNotFoundError:
             logger.error('Could not find that target process to attach to!')
             exit(1)
@@ -457,16 +325,6 @@ class Process(object):
             return types.Pointer(location)
 
         return self.modules.lookup_symbol(location)
-
-        module, offset, symbol = common.parse_location_string(location)
-
-        replace_vars = {
-                "FUNCTION_SYMBOL_HERE": symbol,
-                "FUNCTION_MODULE_HERE": module,
-                "FUNCTION_OFFSET_HERE": offset,
-                }
-
-        return common.auto_int(self.run_script_generic("resolve_location_address.js", replace=replace_vars, unload=True)[0][0])
 
     ############
     # Property #
@@ -586,8 +444,38 @@ class Process(object):
             raise Exception("Unknown arch returned from Frida: {}".format(arch))
         return arch
 
+    @property
+    def verbose(self):
+        """bool: Output extra debugging information."""
+        return self.__verbose
+
+    @verbose.setter
+    def verbose(self, verbose):
+        if verbose:
+            logger.setLevel(logging.DEBUG)
+        self.__verbose = verbose
+
+    @property
+    def target(self):
+        """str, int: Target for this session."""
+        return self.__target
+
+    @target.setter
+    def target(self, target):
+        if isinstance(target, str):
+            full_path = os.path.abspath(target)
+            self.__file_name = os.path.basename(full_path)
+
+            if os.path.isfile(full_path):
+                self._spawn_target = full_path
+
+        self.__target = target
+
+
 def sigint_handler(sig, frame):
     exit()
+
+signal.signal(signal.SIGINT, sigint_handler)
 
 def main():
     signal.signal(signal.SIGINT, sigint_handler)

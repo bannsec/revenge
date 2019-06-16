@@ -23,7 +23,7 @@ bin_location = os.path.join(here, "bins")
 #
 
 basic_one_path = os.path.join(bin_location, "basic_one")
-util = frida_util.Process(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
+util = frida_util.Process(basic_one_path, resume=False, verbose=False)
 basic_one_module = util.modules['basic_one']
 basic_one_i8_addr = basic_one_module.symbols['i8']
 basic_one_ui8_addr = basic_one_module.symbols['ui8']
@@ -43,11 +43,11 @@ basic_two_i32_addr = 0x201020
 basic_two_f_addr = 0x201010
 basic_two_d_addr = 0x201018
 
-util2 = frida_util.Process(action="find", target="basic_two", file=basic_two_path, resume=False, verbose=False)
+util2 = frida_util.Process(basic_two_path, resume=False, verbose=False)
 
 
 basic_looper_path = os.path.join(bin_location, "basic_looper")
-basic_looper = frida_util.Process(action="find", target="basic_looper", file=basic_looper_path, resume=False, verbose=False)
+basic_looper = frida_util.Process(basic_looper_path, resume=False, verbose=False)
 
 def test_memory_bytes_function_replace():
 

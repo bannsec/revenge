@@ -30,7 +30,7 @@ basic_one_ui64_addr = 0x201028
 basic_one_string_addr = 0x724
 basic_open_func_addr = 0x64A
 
-process = frida_util.Process(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
+process = frida_util.Process(basic_one_path, resume=False, verbose=False)
 
 def test_memory_find_ranges():
 
