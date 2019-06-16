@@ -62,7 +62,21 @@ class MemoryRange(object):
     def protection(self, protection):
         assert type(protection) is str
         assert len(protection) == 3
-        self.__protection = protection.lower()
+        protection = protection.lower()
+
+        # If we're setting for the first time, assume it's correct
+        if not hasattr(self, '_MemoryRange__protection'):
+            self.__protection = protection
+
+        # Set protection if it's not already this
+        elif protection != self.protection:
+            self._process.run_script_generic("""Memory.protect({}, {}, '{}')""".format(
+                self.base.js,
+                hex(self.size),
+                protection,
+                ), raw=True, unload=True)
+
+            self.__protection = protection
 
     @property
     def size(self):

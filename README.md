@@ -157,6 +157,10 @@ process = frida_util.Process(action="find", target="ls", file="/bin/ls", resume=
 <MemoryFind found 1 completed>
 >>> [hex(x) for x in f]
 ['0x7f9c1f3ede9a']
+
+# Change permissions on a map
+>>> mem = process.memory.maps[0x12345]
+>>> mem.protection = 'rwx'
 ```
 
 ### Threads
@@ -290,4 +294,9 @@ ret       libc-2.27.so:0x7f4b704572e7   -> libc-2.27.so:0x7f4b70457489
 # Or resolve address into corresponding module
 >>> process.modules[0x7f282f7ab123]
 <Module libc-2.27.so @ 0x7f282f7aa000>
+```
+### File Format Parsing In Memory
+```python
+# Grab elf parser for the given module (WIP)
+elf = process.modules['ls'].elf
 ```

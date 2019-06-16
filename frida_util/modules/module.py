@@ -73,3 +73,11 @@ class Module(object):
     @size.setter
     def size(self, size):
         self.__size = common.auto_int(size)
+
+    @property
+    def elf(self):
+        """Returns ELF object, if applicable, otherwise None."""
+        if self._process.file_type == 'ELF':
+            return ELF(self._process, self)
+
+from ..parsers import ELF

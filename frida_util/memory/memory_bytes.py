@@ -394,3 +394,4 @@ class MemoryBytes(object):
         if type(address) is int:
             address = types.Pointer(address)
         self.__address_stop = address
+

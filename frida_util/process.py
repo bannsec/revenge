@@ -498,7 +498,16 @@ class Process(object):
     @property
     def entrypoint_rebased(self):
         """Entrypoint as it exists in the current rebased program."""
-        return self.entrypoint + next(module.base for module in self.modules if module.name == self.file_name)
+        mod = self.modules[self.file_name]
+
+        if self.file_type == 'ELF':
+            if mod.elf.type_str == 'DYN':
+                return types.Pointer(self.entrypoint + mod.base)
+
+        # TODO: Windows?
+        # TODO: Mac?
+
+        return self.entrypoint
 
     @property
     def entrypoint(self):
