@@ -6,6 +6,7 @@ logger = logging.getLogger(__name__)
 
 import io
 from elftools.elf.elffile import ELFFile
+from termcolor import cprint, colored
 
 from .. import common, types
 
@@ -34,10 +35,10 @@ class Module(object):
         # If we didn't resolve anything, make sure we noted we tried
         if self.name not in self._process.modules._symbol_to_address:
             self._process.modules._symbol_to_address[self.name] = {}
-            self._process.modules._address_to_symbol[self.name] = {}
 
     def _load_symbols_elf(self):
         # TODO: Assuming that this process will work on any system running ELF...
+        print("Loading symbols for {} ... ".format(self.name), end='', flush=True)
 
         fopen = self._process.memory[':fopen']
         fseek = self._process.memory[':fseek']
@@ -52,6 +53,7 @@ class Module(object):
         # If we couldn't open it, fail gracefully
         if fp == 0:
             logger.debug("Couldn't load symbols for file: " + self.path)
+            cprint("[ Couldn't open ]", "yellow")
             return
 
         fseek(fp, 0, 2)
@@ -74,7 +76,6 @@ class Module(object):
 
             # Clear out old symbols if needed
             self._process.modules._symbol_to_address[self.name] = {}
-            self._process.modules._address_to_symbol[self.name] = {}
             
             # Pull out symbols
             for sym in symtab.iter_symbols():
@@ -87,10 +88,12 @@ class Module(object):
                     address = address + self.base
 
                 self._process.modules._symbol_to_address[self.name][sym.name] = types.Pointer(address)
-                self._process.modules._address_to_symbol[self.name][address] = sym.name
+                self._process.modules._address_to_symbol[address] = sym.name
 
         else:
             logger.debug("No symtab found for {}".format(self.path))
+
+        cprint("[ DONE ]", "green")
 
     def __repr__(self):
         attrs = ['Module', self.name, '@', hex(self.base)]
@@ -160,5 +163,10 @@ class Module(object):
         """Returns ELF object, if applicable, otherwise None."""
         if self._process.file_type == 'ELF':
             return ELF(self._process, self)
+
+    @property
+    def symbols(self):
+        """dict: symbol name -> address for this binary."""
+        return self._process.modules._symbol_to_address[self.name]
 
 from ..parsers import ELF

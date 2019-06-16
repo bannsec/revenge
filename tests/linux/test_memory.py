@@ -23,18 +23,19 @@ bin_location = os.path.join(here, "bins")
 #
 
 basic_one_path = os.path.join(bin_location, "basic_one")
-basic_one_i8_addr = 0x201010
-basic_one_ui8_addr = 0x201011
-basic_one_i16_addr = 0x201012
-basic_one_ui16_addr = 0x201014
-basic_one_i32_addr = 0x201018
-basic_one_ui32_addr = 0x20101C
-basic_one_i64_addr = 0x201020
-basic_one_ui64_addr = 0x201028
-basic_one_string_addr = 0x724
-basic_open_func_addr = 0x64A
-
 util = frida_util.Process(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
+basic_one_module = util.modules['basic_one']
+basic_one_i8_addr = basic_one_module.symbols['i8']
+basic_one_ui8_addr = basic_one_module.symbols['ui8']
+basic_one_i16_addr = basic_one_module.symbols['i16']
+basic_one_ui16_addr = basic_one_module.symbols['ui16']
+basic_one_i32_addr = basic_one_module.symbols['i32']
+basic_one_ui32_addr = basic_one_module.symbols['ui32']
+basic_one_i64_addr = basic_one_module.symbols['i64']
+basic_one_ui64_addr = basic_one_module.symbols['ui64']
+basic_one_string_addr = 0x724
+basic_open_func_addr = basic_one_module.symbols['func']
+
 
 basic_two_path = os.path.join(bin_location, "basic_two")
 basic_two_func_addr = 0x64A
@@ -260,29 +261,31 @@ def test_memory_read_float_double():
 
 def test_memory_read_int():
 
-    assert util.memory['basic_one:{}'.format(hex(basic_one_i8_addr))].int8 == -13
-    assert isinstance(util.memory['basic_one:{}'.format(hex(basic_one_i8_addr))].int8, types.Int8)
+    #assert util.memory['basic_one:{}'.format(hex(basic_one_i8_addr))].int8 == -13
+    assert util.memory[basic_one_i8_addr].int8 == -13
+    #assert isinstance(util.memory['basic_one:{}'.format(hex(basic_one_i8_addr))].int8, types.Int8)
+    assert isinstance(util.memory[basic_one_i8_addr].int8, types.Int8)
 
-    assert util.memory['basic_one:{}'.format(hex(basic_one_ui8_addr))].uint8 == 13
-    assert isinstance(util.memory['basic_one:{}'.format(hex(basic_one_ui8_addr))].uint8, types.UInt8)
+    assert util.memory[basic_one_ui8_addr].uint8 == 13
+    assert isinstance(util.memory[basic_one_ui8_addr].uint8, types.UInt8)
 
-    assert util.memory['basic_one:{}'.format(hex(basic_one_i16_addr))].int16 == -1337
-    assert isinstance(util.memory['basic_one:{}'.format(hex(basic_one_i16_addr))].int16, types.Int16)
+    assert util.memory[basic_one_i16_addr].int16 == -1337
+    assert isinstance(util.memory[basic_one_i16_addr].int16, types.Int16)
 
-    assert util.memory['basic_one:{}'.format(hex(basic_one_ui16_addr))].uint16 == 1337
-    assert isinstance(util.memory['basic_one:{}'.format(hex(basic_one_ui16_addr))].uint16, types.UInt16)
+    assert util.memory[basic_one_ui16_addr].uint16 == 1337
+    assert isinstance(util.memory[basic_one_ui16_addr].uint16, types.UInt16)
 
-    assert util.memory['basic_one:{}'.format(hex(basic_one_i32_addr))].int32 == -1337
-    assert isinstance(util.memory['basic_one:{}'.format(hex(basic_one_i32_addr))].int32, types.Int32)
+    assert util.memory[basic_one_i32_addr].int32 == -1337
+    assert isinstance(util.memory[basic_one_i32_addr].int32, types.Int32)
 
-    assert util.memory['basic_one:{}'.format(hex(basic_one_ui32_addr))].uint32 == 1337
-    assert isinstance(util.memory['basic_one:{}'.format(hex(basic_one_ui32_addr))].uint32, types.UInt32)
+    assert util.memory[basic_one_ui32_addr].uint32 == 1337
+    assert isinstance(util.memory[basic_one_ui32_addr].uint32, types.UInt32)
 
-    assert util.memory['basic_one:{}'.format(hex(basic_one_i64_addr))].int64 == -1337
-    assert isinstance(util.memory['basic_one:{}'.format(hex(basic_one_i64_addr))].int64, types.Int64)
+    assert util.memory[basic_one_i64_addr].int64 == -1337
+    assert isinstance(util.memory[basic_one_i64_addr].int64, types.Int64)
 
-    assert util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].uint64 == 1337
-    assert isinstance(util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))].uint64, types.UInt64)
+    assert util.memory[basic_one_ui64_addr].uint64 == 1337
+    assert isinstance(util.memory[basic_one_ui64_addr].uint64, types.UInt64)
 
 def test_memory_read_write_str_byte():
 
@@ -348,7 +351,7 @@ def test_memory_read_write_str_byte():
 
 def test_memory_write():
 
-    ui64 = util.memory['basic_one:{}'.format(hex(basic_one_ui64_addr))]
+    ui64 = util.memory[basic_one_ui64_addr]
 
     x = -random.randint(1, 2**7-1)
     ui64.int8 = x

@@ -16,7 +16,7 @@ class Modules(object):
         # key == module name, value == dict of symbol->address
         self._symbol_to_address = {}
 
-        # key == module name, value == dict of address->symbol
+        # key == address, value == symbol
         self._address_to_symbol = {}
 
     def __iter__(self):

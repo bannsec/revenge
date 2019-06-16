@@ -298,5 +298,11 @@ ret       libc-2.27.so:0x7f4b704572e7   -> libc-2.27.so:0x7f4b70457489
 ### File Format Parsing In Memory
 ```python
 # Grab elf parser for the given module (WIP)
-elf = process.modules['ls'].elf
+>>> elf = process.modules['ls'].elf
+```
+
+### Symbols
+```python
+# Grab symbol address for main function in my_bin
+>>> main = process.modules['my_bin'].symbols['main']
 ```

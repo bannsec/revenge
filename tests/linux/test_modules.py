@@ -21,6 +21,21 @@ bin_location = os.path.join(here, "bins")
 basic_one_path = os.path.join(bin_location, "basic_one")
 process = frida_util.Process(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
 
+def test_modules_symbols():
+
+    basic_one_mod = process.modules['basic_one']
+    assert basic_one_mod.symbols['func'] - basic_one_mod.base == 0x64A
+    assert basic_one_mod.symbols['i8'] - basic_one_mod.base == 0x201010
+    assert basic_one_mod.symbols['ui8'] - basic_one_mod.base == 0x201011
+    assert basic_one_mod.symbols['i16'] - basic_one_mod.base == 0x201012
+    assert basic_one_mod.symbols['ui16'] - basic_one_mod.base == 0x201014
+    assert basic_one_mod.symbols['i32'] - basic_one_mod.base == 0x201018
+    assert basic_one_mod.symbols['ui32'] - basic_one_mod.base == 0x20101C
+    assert basic_one_mod.symbols['i64'] - basic_one_mod.base == 0x201020
+    assert basic_one_mod.symbols['ui64'] - basic_one_mod.base == 0x201028
+    assert isinstance(basic_one_mod.symbols['ui64'], types.Pointer)
+
+
 def test_modules_by_int():
 
     libc = process.modules['libc*']
