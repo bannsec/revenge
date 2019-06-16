@@ -44,23 +44,15 @@ class TraceItem(object):
             self.depth = common.auto_int(item['depth'])
 
     def __str__(self):
-        """
-            print("{type: <10}{tid: <10}{module_from}:{module_from_offset} -> {module_to}:{module_to_offset} {depth}".format(
-                type = type,
-                tid = hex(tid),
-                module_from = module_from,
-                module_from_offset = hex(module_from_offset),
-                module_to = module_to,
-                module_to_offset = hex(module_to_offset),
-                depth=depth
-                ))
-        """
         s =  colored("{: <10}".format(self.type), attrs=['bold'])
-        s += "{: <55}".format(colored(self.from_module,"magenta") + ":" + colored(hex(self.from_ip), 'magenta', attrs=['bold']))
+        from_ip = self.from_symbol or hex(self.from_ip)
+
+        s += "{: <55}".format(colored(self.from_module,"magenta") + ":" + colored(from_ip, 'magenta', attrs=['bold']))
 
         if self.to_ip is not None:
+            to_ip = self.to_symbol or hex(self.to_ip)
             s += "-> "
-            s += "{: <55}".format(colored(self.to_module, "magenta") + ":" + colored(hex(self.to_ip), "magenta", attrs=["bold"]))
+            s += "{: <55}".format(colored(self.to_module, "magenta") + ":" + colored(to_ip, "magenta", attrs=["bold"]))
 
         if self.depth is not None:
             s += str(self.depth)
@@ -96,6 +88,22 @@ class TraceItem(object):
 
         self.__type = t
 
+    @property
+    def from_symbol(self):
+        """Attempts to resolve from_ip into a symbol. If it can, it returns the symbol name. Otherwise it returns None."""
+        try:
+            return self._process.modules._address_to_symbol[self.from_ip]
+        except KeyError:
+            return None
+
+    @property
+    def to_symbol(self):
+        """Attempts to resolve to_ip into a symbol. If it can, it returns the symbol name. Otherwise it returns None."""
+        try:
+            return self._process.modules._address_to_symbol[self.to_ip]
+        except KeyError:
+            return None
+
 
 class Trace(object):
     """Keeps information about a Trace."""
@@ -118,6 +126,18 @@ class Trace(object):
             self._script[0].unload()
             self._process.tracer._active_instruction_traces.pop(self._tid)
             self._script = None
+
+    def wait_for(self, address):
+        """Don't return until the given address is hit in the trace."""
+        address = self._process._resolve_location_string(address)
+
+        # TODO: Optimize this so I don't keep checking the same IPs over and over
+        while True:
+            try:
+                next(x for x in self._trace if x.from_ip == address)
+                break
+            except StopIteration:
+                continue
         
     def __iter__(self):
         return (x for x in self._trace)

@@ -8,6 +8,8 @@ import collections
 from prettytable import PrettyTable
 from fnmatch import fnmatch
 
+from .. import common, types
+
 class Modules(object):
 
     def __init__(self, process):
@@ -18,6 +20,27 @@ class Modules(object):
 
         # key == address, value == symbol
         self._address_to_symbol = {}
+
+    def lookup_symbol(self, symbol):
+        """Generically resolve a symbol.
+        
+        Examples:
+            resolve_symbol(":strlen") -> returns address of strlen resolved globally.
+            resolve_symbol("a.out:main") -> returns address of main resolved to a.out.
+            resolve_symbol(0x12345) -> returns symbol at that address.
+        
+        """
+        #assert type(location) is str, "Invalid call to resolve_location_string with type {}".format(type(location))
+
+        module, offset, symbol = common.parse_location_string(symbol)
+
+        replace_vars = {
+                "FUNCTION_SYMBOL_HERE": symbol,
+                "FUNCTION_MODULE_HERE": module,
+                "FUNCTION_OFFSET_HERE": offset,
+                }
+
+        return types.Pointer(common.auto_int(self._process.run_script_generic("resolve_location_address.js", replace=replace_vars, unload=True)[0][0]))
 
     def __iter__(self):
         return self.modules.__iter__()

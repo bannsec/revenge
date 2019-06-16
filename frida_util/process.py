@@ -451,8 +451,12 @@ class Process(object):
         return msg, data
 
     def _resolve_location_string(self, location):
-        """Take location string s and resolve it into an integer address."""
-        assert type(location) is str, "Invalid call to resolve_location_string with type {}".format(type(location))
+        """Take location string and resolve it into an integer address."""
+        #assert type(location) is str, "Invalid call to resolve_location_string with type {}".format(type(location))
+        if isinstance(location, int):
+            return types.Pointer(location)
+
+        return self.modules.lookup_symbol(location)
 
         module, offset, symbol = common.parse_location_string(location)
 
@@ -463,7 +467,6 @@ class Process(object):
                 }
 
         return common.auto_int(self.run_script_generic("resolve_location_address.js", replace=replace_vars, unload=True)[0][0])
-
 
     ############
     # Property #

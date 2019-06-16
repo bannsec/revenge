@@ -39,7 +39,7 @@ def test_basic_one_trace_specify_from_modules():
     t2 = list(t)[0]
     
     basic_one.memory[basic_one.entrypoint_rebased].breakpoint = False
-    time.sleep(0.5)
+    t2.wait_for('basic_one:0x692') # final ret
 
     for i in t2:
         assert i.from_module == 'basic_one'
@@ -69,8 +69,8 @@ def test_basic_one_trace_thread_int():
     t = basic_one.tracer.instructions(exec=True, threads=[thread.id])
     str(t)
     t2 = list(t)[0]
-    time.sleep(0.3)
-    assert len(t2) > 0
+    while len(t2) < 15:
+        time.sleep(0.1)
 
     with pytest.raises(Exception):
         basic_one.tracer.instructions(exec=True, threads=[12.12])
@@ -93,7 +93,8 @@ def test_basic_one_trace_thread():
 
     t = basic_one.tracer.instructions(exec=True, threads=[thread])
     t2 = list(t)[0]
-    time.sleep(0.3)
+    while len(t2) < 15:
+        time.sleep(0.1)
     assert len(t2) > 0
     t2.stop()
 
@@ -101,7 +102,7 @@ def test_basic_one_trace_thread():
     t = basic_one.tracer.instructions(exec=True, threads=thread)
     t2 = list(t)[0]
     basic_one.memory[basic_one.entrypoint_rebased].breakpoint = False
-    time.sleep(0.3)
+    t2.wait_for('basic_one:0x692') # final ret
     assert len(t2) > 0
 
     # TODO: Figure out why this final trace stop causes things to hang...
@@ -132,15 +133,13 @@ def test_basic_one_trace_instructions_call_ret():
 
     basic_one = frida_util.Process(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
     t = basic_one.tracer.instructions(call=True, ret=True)
+    t2 = list(t)[0]
 
     module = basic_one.modules['basic_one']
 
     # Start it
     basic_one.memory[basic_one.entrypoint_rebased].breakpoint = False
-
-    # Minor sleep
-    # TODO: Race condition here...
-    time.sleep(0.5)
+    t2.wait_for('basic_one:0x692') # final ret
 
     trace_copy = copy(list(t)[0])
 
@@ -205,16 +204,19 @@ def test_basic_one_trace_instructions_exec():
 
     basic_one = frida_util.Process(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
     t = basic_one.tracer.instructions(exec=True)
+    t2 = list(t)[0]
 
     module = basic_one.modules['basic_one']
 
     # Start it
     basic_one.memory[basic_one.entrypoint_rebased].breakpoint = False
-
-    # Minor sleep
-    time.sleep(0.5)
+    t2.wait_for('basic_one:0x692') # final ret
 
     trace_copy = copy(list(t)[0])
+
+    # Some symbol resolution
+    assert 'func' in str(trace_copy)
+    assert 'main' in str(trace_copy)
 
     #
     # Start trace validation
@@ -287,14 +289,14 @@ def test_basic_one_trace_instructions_block():
 
     basic_one = frida_util.Process(action="find", target="basic_one", file=basic_one_path, resume=False, verbose=False)
     t = basic_one.tracer.instructions(block=True)
+    t2 = list(t)[0]
 
     module = basic_one.modules['basic_one']
 
     # Start it
     basic_one.memory[basic_one.entrypoint_rebased].breakpoint = False
 
-    # Minor sleep
-    time.sleep(0.5)
+    t2.wait_for('basic_one:0x692') # final ret
 
     trace_copy = copy(list(t)[0])
 
