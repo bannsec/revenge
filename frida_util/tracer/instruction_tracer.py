@@ -58,7 +58,6 @@ class TraceItem(object):
             s += str(self.depth)
 
         return s.strip()
-        
 
     def __repr__(self):
         attrs = ["TraceItem"]
@@ -91,7 +90,9 @@ class TraceItem(object):
     @property
     def from_symbol(self):
         """Attempts to resolve from_ip into a symbol. If it can, it returns the symbol name. Otherwise it returns None."""
+        return self._process.modules.lookup_symbol(self.from_ip)
         try:
+            #return self._process.modules._address_to_symbol[self.from_ip]
             return self._process.modules._address_to_symbol[self.from_ip]
         except KeyError:
             return None

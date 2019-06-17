@@ -6,6 +6,7 @@ logger = logging.getLogger(__name__)
 
 import os
 import json
+import io
 
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -52,4 +53,40 @@ def parse_location_string(s):
 
     return module, offset, symbol
 
+def load_file_remote(process, file_path):
+    """Attempt to load the file with file_path remotely, returning it in full as a BytesIO object."""
 
+    if process.device_platform == 'linux':
+
+
+        fopen = process.memory[':fopen']
+        fseek = process.memory[':fseek']
+        ftell = process.memory[':ftell']
+        fread = process.memory[':fread']
+        fclose = process.memory[':fclose']
+        malloc = process.memory[':malloc']
+        free = process.memory[':free']
+
+        fp = fopen(file_path, 'r')
+
+        # If we couldn't open it, fail gracefully
+        if fp == 0:
+            logger.debug("Couldn't load file: " + file_path)
+            return
+
+        fseek(fp, 0, 2)
+        size = ftell(fp)
+        fseek(fp, 0, 0)
+        
+        malloc_ptr = malloc(size)
+        mem = process.memory[malloc_ptr:malloc_ptr+size]
+        fread(malloc_ptr, size, 1, fp)
+
+        elf_io = io.BytesIO(mem.bytes)
+        free(malloc_ptr)
+        fclose(fp)
+
+        return elf_io
+
+    else:
+        logger.error("No remote file load support yet for: " + process.device_platform)

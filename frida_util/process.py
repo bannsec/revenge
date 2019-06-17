@@ -30,13 +30,15 @@ here = os.path.dirname(os.path.abspath(__file__))
 
 class Process(object):
 
-    def __init__(self, target, resume=False, verbose=False):
+    def __init__(self, target, resume=False, verbose=False, load_symbols=None):
         """
 
         Args:
             target (str, int): File name or pid to attach to.
             resume (bool, optional): Resume the binary if need be after loading?
             verbose (bool, optional): Enable verbose logging
+            load_symbols (list, optional): Only load symbols from those modules
+                in the list. Saves some startup time. Can use glob ('libc*')
         """
 
         # Just variable to ensure we don't garbage collect
@@ -53,6 +55,10 @@ class Process(object):
         self._spawn_target = None
         self.verbose = verbose
         self.target = target
+
+        if not isinstance(load_symbols, (list, type)):
+            load_symbols = [load_symbols]
+        self._load_symbols = load_symbols
 
         self.memory = Memory(self)
         self.threads = Threads(self)
@@ -220,7 +226,7 @@ class Process(object):
 
         try:
             # Default attach to what we just spawned
-            self.session = frida.attach(self._spawned_pid or self._args.target)
+            self.session = frida.attach(self._spawned_pid or self.target)
         except frida.ProcessNotFoundError:
             logger.error('Could not find that target process to attach to!')
             exit(1)

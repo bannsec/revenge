@@ -30,7 +30,13 @@ class Modules(object):
             resolve_symbol(0x12345) -> returns symbol at that address.
         
         """
-        #assert type(location) is str, "Invalid call to resolve_location_string with type {}".format(type(location))
+
+        # Resolve address to symbol
+        if isinstance(symbol, int):
+            try:
+                return self._address_to_symbol[symbol]
+            except KeyError:
+                return None
 
         module, offset, symbol = common.parse_location_string(symbol)
 

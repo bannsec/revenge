@@ -17,11 +17,11 @@ bin_location = os.path.join(here, "bins")
 basic_threads_path = os.path.join(bin_location, "basic_threads")
 basic_threads_after_create = 0x7df
 
-util = frida_util.Process(basic_threads_path, resume=False, verbose=False)
+util = frida_util.Process(basic_threads_path, resume=False, verbose=False, load_symbols='basic_threads')
 
 def test_thread_tracing_indicator():
 
-    process = frida_util.Process(basic_threads_path, resume=False, verbose=False)
+    process = frida_util.Process(basic_threads_path, resume=False, verbose=False, load_symbols='basic_threads')
     th = list(process.threads)[0]
 
     assert th.trace is None

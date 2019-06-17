@@ -4,9 +4,10 @@ logging.basicConfig(level=logging.WARN)
 
 logger = logging.getLogger(__name__)
 
-import io
 from elftools.elf.elffile import ELFFile
 from termcolor import cprint, colored
+import itertools
+from fnmatch import fnmatch
 
 from .. import common, types
 
@@ -23,8 +24,7 @@ class Module(object):
     def _load_symbols(self):
         """Reads in the file for this module and attempts to extract the symbols."""
 
-        # For now, only loading main binary symbols
-        if self.name == self._process.file_name:
+        if self._process._load_symbols is None or any(True for x in self._process._load_symbols if fnmatch(self.name, x)):
         
             if self._process.file_type == 'ELF':
                 self._load_symbols_elf()
@@ -39,59 +39,52 @@ class Module(object):
     def _load_symbols_elf(self):
         # TODO: Assuming that this process will work on any system running ELF...
         print("Loading symbols for {} ... ".format(self.name), end='', flush=True)
+        
+        elf_io = common.load_file_remote(self._process, self.path)
 
-        fopen = self._process.memory[':fopen']
-        fseek = self._process.memory[':fseek']
-        ftell = self._process.memory[':ftell']
-        fread = self._process.memory[':fread']
-        fclose = self._process.memory[':fclose']
-        malloc = self._process.memory[':malloc']
-        free = self._process.memory[':free']
-
-        fp = fopen(self.path, 'r')
-
-        # If we couldn't open it, fail gracefully
-        if fp == 0:
-            logger.debug("Couldn't load symbols for file: " + self.path)
-            cprint("[ Couldn't open ]", "yellow")
+        if elf_io is None:
+            cprint("[ Failed to load ]", "yellow")
             return
 
-        fseek(fp, 0, 2)
-        size = ftell(fp)
-        fseek(fp, 0, 0)
-        
-        malloc_ptr = malloc(size)
-        mem = self._process.memory[malloc_ptr:malloc_ptr+size]
-        fread(malloc_ptr, size, 1, fp)
-
-        elf_io = io.BytesIO(mem.bytes)
-        free(malloc_ptr)
-        fclose(fp)
-
         e = ELFFile(elf_io)
+
+        # Clear out old symbols if needed
+        self._process.modules._symbol_to_address[self.name] = {}
+
+        #
+        # Load up any symbols from the file
+        #
+
         symtab = e.get_section_by_name('.symtab')
+        dynsym = e.get_section_by_name('.dynsym')
+
+        symbols = []
 
         # Sometimes the binary won't have a symbol table
         if symtab is not None:
+            symbols.append(symtab.iter_symbols())
 
-            # Clear out old symbols if needed
-            self._process.modules._symbol_to_address[self.name] = {}
-            
-            # Pull out symbols
-            for sym in symtab.iter_symbols():
-                if sym.name == '':
-                    continue
+        if dynsym is not None:
+            symbols.append(dynsym.iter_symbols())
 
-                address = sym['st_value']
+        # Pull out symbols
+        for sym in itertools.chain(*symbols):
+            if sym.name == '':
+                continue
 
-                if self.elf.type_str == 'DYN':
-                    address = address + self.base
+            address = sym['st_value']
 
-                self._process.modules._symbol_to_address[self.name][sym.name] = types.Pointer(address)
-                self._process.modules._address_to_symbol[address] = sym.name
+            if self.elf.type_str == 'DYN':
+                address = address + self.base
 
-        else:
-            logger.debug("No symtab found for {}".format(self.path))
+            self._process.modules._symbol_to_address[self.name][sym.name] = types.Pointer(address)
+            self._process.modules._address_to_symbol[address] = sym.name
+
+        """
+        if self.name.startswith('libc'):
+            import IPython
+            IPython.embed()
+        """
 
         cprint("[ DONE ]", "green")
 

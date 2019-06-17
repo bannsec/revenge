@@ -1,4 +1,3 @@
-
 //////
 // Borrowed from https://codeshare.frida.re/@mrmacete/stalker-event-parser/
 /////
@@ -156,23 +155,27 @@ function stalker_follow(tid) {
                 // Module filtering
                 //
 
-                var from_module = module_map.getName(ptr(event[1]));
+                var from_module = module_map.findName(ptr(event[1]));
 
-                // Ignore frida agent calls
-                if ( from_module.substring(0, 11) == "frida-agent" ) {
-                    return;
-                }
+                if ( from_module != null ) {
 
-                // Optionally only include from some modules
-                if (include_from.length > 0 && !include_from.includes(from_module)) {
-                    return
+                    // Ignore frida agent calls
+                    if ( from_module.substring(0, 11) == "frida-agent" ) {
+                        return;
+                    }
+
+                    // Optionally only include from some modules
+                    if (include_from.length > 0 && !include_from.includes(from_module)) {
+                        return
+                    }
+
                 }
 
                 var event_dict = {}
 
                 if ( event[0] == 'call' ) {
 
-                    var to_module   = module_map.getName(ptr(event[2]));
+                    var to_module   = module_map.findName(ptr(event[2]));
                     event_dict['tid']         = tid;
                     event_dict['type']        = 'call';
                     event_dict['from_ip']     = event[1];
@@ -183,7 +186,7 @@ function stalker_follow(tid) {
 
                 } else if ( event[0] == 'ret' ) {
                     
-                    var to_module   = module_map.getName(ptr(event[2]));
+                    var to_module   = module_map.findName(ptr(event[2]));
                     event_dict['tid']         = tid;
                     event_dict['type']        = 'ret';
                     event_dict['from_ip']     = event[1];
@@ -201,7 +204,7 @@ function stalker_follow(tid) {
 
                 } else if ( event[0] == 'block' ) {
 
-                    var to_module   = module_map.getName(ptr(event[2]));
+                    var to_module   = module_map.findName(ptr(event[2]));
                     event_dict['tid']         = tid;
                     event_dict['type']        = 'block';
                     event_dict['from_ip']     = event[1];
@@ -211,7 +214,7 @@ function stalker_follow(tid) {
                     
                 } else if ( event[0] == 'compile' ) {
 
-                    var to_module   = module_map.getName(ptr(event[2]));
+                    var to_module   = module_map.findName(ptr(event[2]));
                     event_dict['tid']         = tid;
                     event_dict['type']        = 'compile';
                     event_dict['from_ip']     = event[1];
