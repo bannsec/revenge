@@ -6,38 +6,67 @@ logger = logging.getLogger(__name__)
 
 # Keeping str types as properties in case they change what they call things later
 
-class Basic:
+class Basic: 
+    def __add__(self, other):
+        if type(self) is type(other) or type(other) is int:
+            return self.__class__(int.__add__(self, other))
+        else:
+            logger.warning("Adding incompatible types {} and {}. Un-casting back to int.".format(type(self), type(other)))
+            return int(self) + int(other)
+
+    def __sub__(self, other):
+        if type(self) is type(other) or type(other) is int:
+            return self.__class__(int.__sub__(self, other))
+        else:
+            logger.warning("Subtracting incompatible types {} and {}. Un-casting back to int.".format(type(self), type(other)))
+            return int(self) - int(other)
+
     @property
     def js(self):
         """String that can be fed into js."""
         return str(self)
 
-class Int8(int, Basic):
+class FloatBasic: 
+    def __add__(self, other):
+        if type(self) is type(other) or type(other) is int:
+            return self.__class__(float.__add__(self, other))
+        else:
+            logger.warning("Adding incompatible types {} and {}. Un-casting back to float.".format(type(self), type(other)))
+            return float(self) + float(other)
+
+    def __sub__(self, other):
+        if type(self) is type(other) or type(other) is int:
+            return self.__class__(float.__sub__(self, other))
+        else:
+            logger.warning("Subtracting incompatible types {} and {}. Un-casting back to float.".format(type(self), type(other)))
+            return float(self) - float(other)
+
+class Int8(Basic, int):
     type = "int8"
 
-class UInt8(int, Basic):
+class UInt8(Basic, int):
     type = "uint8"
 
-class Int16(int, Basic):
+class Int16(Basic, int):
     type = "int16"
 
-class UInt16(int, Basic):
+class UInt16(Basic, int):
     type = "uint16"
 
-class Int32(int, Basic):
+class Int32(Basic, int):
     type = "int32"
 
-class UInt32(int, Basic):
+class UInt32(Basic, int):
     type = "uint32"
 
-class Int64(int, Basic):
+class Int64(Basic, int):
     type = "int64"
 
     @property
     def js(self):
         return "int64('{}')".format(hex(self))
 
-class UInt64(int, Basic):
+class UInt64(Basic, int):
     type = "uint64"
 
     @property
@@ -68,7 +97,7 @@ class Long(Int64):
 class ULong(UInt64):
     type = "ulong"
 
-class Float(float):
+class Float(FloatBasic, float):
     type = "float"
 
     @property

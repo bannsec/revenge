@@ -34,8 +34,16 @@ def test_js_attr():
 def test_types_attr():
     
     for t in types.all_types:
+        if t in [types.StringUTF8, types.StringUTF16]:
+            continue
+
         i = random.randint(1,0xff)
         x = t(i)
+        assert type(x + 3) == type(x)
 
         # Not sure exactly what to do with this rn
         print("Type: " + x.type)
+
+    for t in [types.StringUTF8, types.StringUTF16]:
+        x = t("something here")
+
