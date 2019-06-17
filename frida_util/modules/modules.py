@@ -40,6 +40,14 @@ class Modules(object):
 
         module, offset, symbol = common.parse_location_string(symbol)
 
+        # First try to resolve with local symbol table
+        try:
+            return self._symbol_to_address[module][symbol]
+        except KeyError:
+            pass
+        
+        # Fall back to asking Frida to resolve it
+
         replace_vars = {
                 "FUNCTION_SYMBOL_HERE": symbol,
                 "FUNCTION_MODULE_HERE": module,

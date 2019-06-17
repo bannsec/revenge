@@ -49,6 +49,10 @@ util2 = frida_util.Process(basic_two_path, resume=False, verbose=False, load_sym
 basic_looper_path = os.path.join(bin_location, "basic_looper")
 basic_looper = frida_util.Process(basic_looper_path, resume=False, verbose=False, load_symbols='basic_one')
 
+def test_memory_local_symbol_resolve():
+    assert util.memory['basic_one:i8'].address == basic_one_i8_addr
+    assert util.memory['basic_one:i8'].address == util.modules['basic_one'].base + 0x201010
+
 def test_memory_bytes_function_replace():
 
     # This var constantly gets updated with the output of the function
