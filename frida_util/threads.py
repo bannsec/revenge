@@ -13,6 +13,7 @@ class Thread(object):
     def __init__(self, process, info):
         self._process = process
         self._info = info
+        self.context = Context(self._process, **self._info['context'])
 
     def __repr__(self):
         attrs = ['Thread', hex(self.id), '@', hex(self.pc), self.state, self.module]
@@ -32,12 +33,15 @@ class Thread(object):
         table.add_row(["Module", self.module])
         table.add_row(["Tracing?", "Yes" if self.trace is not None else "No"])
 
+        """
         for reg in self._info['context']:
             table.add_row([reg, hex(getattr(self, reg))])
         
+        """
         table.header = False
         table.align = "l"
-        return str(table)
+
+        return str(table) + '\n' + str(self.context)
 
 
     @property
@@ -100,3 +104,5 @@ class Threads(object):
     def threads(self):
         threads = self._process.run_script_generic("""send(Process.enumerateThreadsSync());""", raw=True, unload=True)[0][0]
         return [Thread(self._process, thread) for thread in threads]
+
+from frida_util.tracer.contexts import Context
