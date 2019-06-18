@@ -161,6 +161,22 @@ process = frida_util.Process("/bin/ls", resume=False, verbose=False)
 # Change permissions on a map
 >>> mem = process.memory.maps[0x12345]
 >>> mem.protection = 'rwx'
+
+# Disassemble from memory
+>>> print(process.memory['a.out:main'].instruction_block)
+0x804843a: lea        ecx, [esp + 4]
+0x804843e: and        esp, 0xfffffff0
+0x8048441: push       dword ptr [ecx - 4]
+0x8048444: push       ebp
+0x8048445: mov        ebp, esp
+0x8048447: push       ebx
+0x8048448: push       ecx
+0x8048449: sub        esp, 0x10
+0x804844c: call       0x8048360
+
+# Or just analyze one instruction at a time
+>>> process.memory['a.out:main'].instruction
+<AssemblyInstruction 0x804843a lea ecx, [esp + 4]>
 ```
 
 ### Threads

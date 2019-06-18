@@ -394,4 +394,15 @@ class MemoryBytes(object):
         if type(address) is int:
             address = types.Pointer(address)
         self.__address_stop = address
+    
+    @property
+    def instruction(self):
+        """AssemblyInstruction: Returns an assembly instruction parsed from what is in memory at this location."""
+        return AssemblyInstruction(self._process, self.address)
 
+    @property
+    def instruction_block(self):
+        """AssemblyBlock: Returns an AssemblyBlock starting at this instruction."""
+        return AssemblyBlock(self._process, self.address)
+
+from ..tracer.assembly_instruction import AssemblyInstruction, AssemblyBlock
