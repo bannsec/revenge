@@ -24,6 +24,7 @@ class Module(object):
     def _load_symbols(self):
         """Reads in the file for this module and attempts to extract the symbols."""
 
+        # Either we're loading everything or what we're looking at right now __should__ be loaded
         if self._process._load_symbols is None or any(True for x in self._process._load_symbols if fnmatch(self.name, x)):
         
             if self._process.file_type == 'ELF':

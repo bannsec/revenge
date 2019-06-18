@@ -42,6 +42,10 @@ class AssemblyBlock(object):
             s.append(str(i))
         return '\n'.join(s)
 
+    def __repr__(self):
+        attrs = ['AssemblyBlock', str(len(self.instructions)), 'instructions']
+        return '<' + ' '.join(attrs) + '>'
+
 
 class AssemblyInstruction(object):
     """Represents an assembly instruction."""

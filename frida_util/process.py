@@ -56,7 +56,7 @@ class Process(object):
         self.verbose = verbose
         self.target = target
 
-        if not isinstance(load_symbols, (list, type)):
+        if not isinstance(load_symbols, (list, type, type(None))):
             load_symbols = [load_symbols]
         self._load_symbols = load_symbols
 
