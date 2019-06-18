@@ -5,6 +5,7 @@ logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
 from termcolor import cprint, colored
+import re
 
 from prettytable import PrettyTable
 
@@ -31,6 +32,9 @@ class AssemblyBlock(object):
                     return
             
             address = self.instructions[-1].address_next
+
+    def __getitem__(self, item):
+        return self.instructions[item]
 
     def __str__(self):
         s = []
@@ -69,12 +73,26 @@ class AssemblyInstruction(object):
         return "{address} {mnemonic: <20}{args}".format(
                     address=colored(hex(self.address), attrs=['bold']) + ":",
                     mnemonic=colored(self.mnemonic, "cyan"),
-                    args=colored(self.args_str, "cyan", attrs=['bold']),
+                    args=colored(self.args_str_resolved, "cyan", attrs=['bold']),
                 )
 
     def __repr__(self):
         attrs = ['AssemblyInstruction', hex(self.address), self.mnemonic, self.args_str]
         return '<' + ' '.join(attrs) + '>'
+
+    @property
+    def args_str_resolved(self):
+        """str: Attempt to resolve addresses in the args str into symbols."""
+        s = self.args_str
+        
+        things = re.findall('0x[0-9a-f]+', s)
+        
+        for thing in things:
+            sym = self._process.modules.lookup_symbol(int(thing,16))
+            if sym is not None:
+                s = s.replace(thing, sym)
+
+        return s
 
     @property
     def groups(self):
