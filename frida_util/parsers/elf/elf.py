@@ -148,7 +148,12 @@ class ELF(object):
     @property
     def type(self):
         """int: Type of this binary."""
-        return self._process.memory[self.module.base+0x10].uint16
+
+        try:
+            return self.__type
+        except AttributeError:
+            self.__type = self._process.memory[self.module.base+0x10].uint16
+            return self.__type
 
     @property
     def type_str(self):

@@ -53,6 +53,23 @@ def parse_location_string(s):
 
     return module, offset, symbol
 
+def load_file(process, file_path):
+    """Attempt to load the file with file_path. Use local loading if connection is local, and remote otherwise."""
+
+    if process.device.type == 'local':
+        return load_file_local(process, file_path)
+    else:
+        return load_file_remote(process, file_path)
+
+def load_file_local(process, file_path):
+
+    if not os.path.isfile(file_path):
+        logger.debug("Couldn't load file: " + file_path)
+        return
+
+    return open(file_path, "rb")
+
+
 def load_file_remote(process, file_path):
     """Attempt to load the file with file_path remotely, returning it in full as a BytesIO object."""
 

@@ -20,7 +20,7 @@ import json
 import pprint
 from copy import copy
 
-from . import common, types
+from . import common, types, config
 from .memory import Memory
 from .threads import Threads
 from .tracer import Tracer
