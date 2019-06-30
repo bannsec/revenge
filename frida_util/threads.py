@@ -58,7 +58,7 @@ class Thread(object):
 
     @property
     def module(self):
-        return self._process.get_module_by_addr(self.pc)
+        return self._process.get_module_by_addr(self.pc) or "Unknown"
     
     @property
     def trace(self):

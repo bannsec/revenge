@@ -12,6 +12,7 @@ import os
 import io
 import json
 from fnmatch import fnmatch
+import pefile
 
 from .. import common, types, config
 
@@ -60,7 +61,8 @@ class Module(object):
         """
 
         for sym, address in cache.items():
-            if self.elf.type_str == 'DYN':
+            if self._process.file_type is "PE" or \
+                    (self.elf is not None and self.elf.type_str == 'DYN'):
                 address = address + self.base
 
             self._process.modules._symbol_to_address[self.name][sym] = types.Pointer(address)
@@ -101,6 +103,9 @@ class Module(object):
         
             if self._process.file_type == 'ELF':
                 self._load_symbols_elf(file_io)
+            
+            elif self._process.file_type == "PE":
+                self._load_symbols_pe(file_io)
 
             # TODO: Windows
             # TODO: Mac
@@ -108,6 +113,31 @@ class Module(object):
         # If we didn't resolve anything, make sure we noted we tried
         if self.name not in self._process.modules._symbol_to_address:
             self._process.modules._symbol_to_address[self.name] = {}
+
+    def _load_symbols_pe(self, pe_io):
+        # TODO: Assuming that this process will work on any system running ELF...
+        print("Loading symbols for {} ... ".format(self.name), end='', flush=True)
+
+        pe = pefile.PE(data=pe_io.read())
+        cache = {}
+
+        # Some PEs don't export anything.
+        if hasattr(pe, "DIRECTORY_ENTRY_EXPORT"):
+            for sym in pe.DIRECTORY_ENTRY_EXPORT.symbols:
+                if sym.name in [b'', None]:
+                    continue
+
+                name = sym.name.decode()
+
+                rel_address = sym.address
+                address = rel_address + self.base
+
+                self._process.modules._symbol_to_address[self.name][name] = types.Pointer(address)
+                self._process.modules._address_to_symbol[address] = name
+                cache[name] = rel_address
+
+        self._save_symbols_cache(pe_io, cache)
+        cprint("[ DONE ]", "green")
 
     def _load_symbols_elf(self, elf_io):
         # TODO: Assuming that this process will work on any system running ELF...

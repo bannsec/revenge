@@ -332,6 +332,10 @@ class Process(object):
 
         return self.modules.lookup_symbol(location)
 
+    def __repr__(self):
+        attrs = ['Process', self.file_name + ":" + str(self.pid)]
+        return '<' + ' '.join(attrs) + '>'
+
     ############
     # Property #
     ############
@@ -418,6 +422,8 @@ class Process(object):
         if self.__file_type is None:
             if self.run_script_generic("""send('bytes', Process.getModuleByName('{}').base.readByteArray(4))""".format(self.file_name), raw=True, unload=True)[1][0] == b'\x7fELF':
                 self.__file_type = 'ELF'
+            elif self.run_script_generic("""send('bytes', Process.getModuleByName('{}').base.readByteArray(2))""".format(self.file_name), raw=True, unload=True)[1][0] == b'MZ':
+                self.__file_type = "PE"
             else:
                 self.__file_type = 'Unknown'
 
