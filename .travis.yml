@@ -1,20 +1,73 @@
-language: python
+language: generic
 sudo: required
 services:
     - docker
 python:
     - 3.6
+matrix:
+    include:
+
+        #
+        # Linux
+        #
+        - os: linux
+          name: "Linux"
+          env:
+              - DOCKERFILE=Dockerfile
+          dist: trusty
+          android:
+              components:
+                  - tools
+          before_install:
+              - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+              - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+              - sudo apt-get update
+              - sudo apt-get -y install docker-ce
+          install:
+              - docker build -t bannsec/frida-util -f $DOCKERFILE .
+          script:
+              - docker run -it --rm --privileged --network host --cap-add ALL -e TRAVIS_BRANCH=$TRAVIS_BRANCH -e COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN bannsec/frida-util bash -c 'cd /opt/frida-util && ./test_linux.sh && if [ ! -z "$COVERALLS_REPO_TOKEN" ]; then coveralls; fi'
+
+        #
+        # Android
+        #
+        - os: linux
+          name: "Android: system-images;android-27;default;x86_64"
+          language: android
+          env:
+              - DOCKERFILE=Dockerfile
+              - ANDROID_HOME=/usr/local/android-sdk
+              - QEMU_AUDIO_DRV=none
+              - TOOLS=${ANDROID_HOME}/tools
+          dist: trusty
+          android:
+              components:
+                  - tools
+          before_install:
+              - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+              - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+              - sudo apt-get update
+              - sudo apt-get -y install docker-ce
+              - export PATH=${ANDROID_HOME}:${ANDROID_HOME}/emulator:${TOOLS}:${TOOLS}/bin:${ANDROID_HOME}/platform-tools:${PATH}
+              - touch /home/travis/.android/repositories.cfg
+              - echo y | sdkmanager --update >/dev/null
+              - echo y | sdkmanager "platform-tools" >/dev/null
+              - echo y | sdkmanager "tools" >/dev/null
+              - echo y | sdkmanager "build-tools;28.0.3" >/dev/null
+              - echo y | sdkmanager "platforms;android-27" >/dev/null
+              - echo y | sdkmanager --channel=4 "emulator" >/dev/null
+              - echo y | sdkmanager "extras;android;m2repository"  >/dev/null
+              - echo y | sdkmanager "system-images;android-27;default;x86_64" >/dev/null
+              - echo no | avdmanager create avd --force --name test --package 'system-images;android-27;default;x86_64'
+              - emulator -avd test -no-window -no-accel -no-snapshot -camera-back none -camera-front none -selinux permissive -verbose -qemu -m 2048 &
+              - android-wait-for-emulator >/dev/null
+          install:
+              - docker build -t bannsec/frida-util -f $DOCKERFILE .
+          script:
+              - docker run -it --rm --privileged --network host --cap-add ALL -e TRAVIS_BRANCH=$TRAVIS_BRANCH -e COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN bannsec/frida-util bash -c 'cd /opt/frida-util && ./test_android.sh'
+                #- docker run -it --rm --privileged --network host --cap-add ALL -e TRAVIS_BRANCH=$TRAVIS_BRANCH -e COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN bannsec/frida-util bash -c 'cd /opt/frida-util && ./test.sh && if [ ! -z "$COVERALLS_REPO_TOKEN" ]; then coveralls; fi'
 env:
-    matrix:
-        - DOCKERFILE=Dockerfile
     global:
         secure: DSXns4hOc8LSs6vsId086QB1iE8uaFb8ggQVLjy93kFD0zTwpHWHi1uxVoxHdT8pTv4DpGWAfUT+Ltxtji2dbmWhGxuQ9TSDRxnsdDlRCx00KsN7CvxkjPeTIgQmSTvhvMBBWUIJrCmF9x9G3L5aN4lxvLiY92d7gTjn7DbyPwyfFE51LvfRPyu+1/chKks/+QVj5CYGV5etEEZ69pLJvoYdm60VdBLxwzwfKsYbVtssoGthCXbCx+UrH1zLit+aLt5De61QsIXcIRpWcHL5hBJEillHJO62XzE923Gw7xZHi8EY8bjOaiCVpq0xnI6Tntvt/qaAE11xPE1A2pFKMcIjlnRIKaUA3IwazB7mzJwf33SXfPEipDECza/E4Piuw313iBwNq6A9yWF+AOVsQi7W4OiWcgNP4rJ5PKQYC4SUPLA9MXlh3HzFQy1zi8x7pC4HrgZKoWs7YjJ7G1lrfz3arADMGDyZwxV/A0NoJ30CrYwhiT0V5FGwp78040ap3n3bYs6KP4NMMBBVgl2Xy3vnFZxOX3yIDA/kc0bMqgExx1BRp95mIiv4ykTDF4DDra1PGOMoCSDEEvU4W9nRm6LLdHjtd4W2KFp8dVWqpOs9YMfJStDmVOu9kiII1cf9bUE+UD+iGYeXKcrQRARYfkiCAYLDXxOhglkaZl+hr1M=
-before_install:
-    - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-    - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-    - sudo apt-get update
-    - sudo apt-get -y install docker-ce
-install:
-    - docker build -t bannsec/frida-util -f $DOCKERFILE .
-script:
-    - docker run -it --rm --privileged --cap-add ALL -e TRAVIS_BRANCH=$TRAVIS_BRANCH -e COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN bannsec/frida-util bash -c 'cd /opt/frida-util && ./test.sh && if [ ! -z "$COVERALLS_REPO_TOKEN" ]; then coveralls; fi'
+
+# https://travis-ci.org/ankidroid/Anki-Android/jobs/516486608/config
