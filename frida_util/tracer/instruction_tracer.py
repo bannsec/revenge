@@ -109,14 +109,19 @@ class TraceItem(object):
 class Trace(object):
     """Keeps information about a Trace."""
     
-    def __init__(self, process, tid, script):
+    def __init__(self, process, tid, script, callback=None):
         self._process = process
         self._trace = []
         self._tid = tid
         self._script = script
+        self._callback = callback
 
     def append(self, item):
-        self._trace.append(TraceItem(self._process, item))
+        ti = TraceItem(self._process, item)
+        self._trace.append(ti)
+
+        if self._callback is not None:
+            self._callback(self._tid, ti)
 
     def stop(self):
         """Stop tracing."""
@@ -160,7 +165,8 @@ class Trace(object):
 
 class InstructionTracer(object):
 
-    def __init__(self, process, threads=None, from_modules=None, call=False, ret=False, exec=False, block=False, compile=False):
+    def __init__(self, process, threads=None, from_modules=None, call=False,
+            ret=False, exec=False, block=False, compile=False, callback=None):
         """
 
         Args:
@@ -172,7 +178,17 @@ class InstructionTracer(object):
             exec (bool, optional): Trace all instructions
             block (bool, optional): Trace blocks
             compile (bool, optional): Trace on Frida instruction compile
+            callback (callable, optional): Callable to call with list of new
+                instructions as they come in. First arg will be the thread id.
         """
+
+        assert callable(callback) or callback is None, "Invalid type for callback of {}".format(type(callback))
+
+        # Santiy check
+        if not any((call, ret, exec, block, compile)):
+            error = "You didn't select any action to trace!"
+            logger.error(error)
+            raise Exception(error)
 
         self._process = process
         self.call= call
@@ -183,6 +199,7 @@ class InstructionTracer(object):
         self.threads = threads
         self._script = {}
         self._from_modules = from_modules
+        self.callback = callback
 
         # IMPORTANT: It's important to keep a local pointer to this trace. It's
         # possible for trace messages to come in after officially stopping the
@@ -216,7 +233,7 @@ class InstructionTracer(object):
         for thread in self.threads:
             replace['THREAD_ID_HERE'] = str(thread.id)
             self._process.run_script_generic("stalk.js", replace=replace, unload=False, on_message=self._on_message, runtime='v8')
-            self.traces[thread.id] = Trace(self._process, thread.id, self._process._scripts.pop(0))
+            self.traces[thread.id] = Trace(self._process, thread.id, self._process._scripts.pop(0), callback=self.callback)
             self._process.tracer._active_instruction_traces[thread.id] = self.traces[thread.id]
 
     def __repr__(self):

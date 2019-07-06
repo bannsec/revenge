@@ -140,14 +140,12 @@ def main():
         action_find = actions.ActionFind(process, **vars(args))
         action_find.run()
         print({hex(x):y for x,y in action_find.discovered_locations.items()})
+        
+    elif args.action == 'stalk':
+        action_stalker = actions.ActionStalker(process, **vars(args))
+        action_stalker.run()
 
     """
-
-    if self._args.action == 'stalk':
-        # Issue where stalk elf doesn't enumerate threads...
-        self.action_stalker = actions.ActionStalker(self, **vars(self._args))
-        self.action_stalker.run()
-
     elif self._args.action == 'windows_messages':
         self.action_windows_messages = actions.ActionWindowsMessages(self, **vars(self._args))
         self.action_windows_messages.run()

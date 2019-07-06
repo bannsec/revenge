@@ -30,7 +30,7 @@ frida-util -I notepad.exe windows_messages notepad.exe
 frida-util -I notepad.exe -rw windows_messages notepad.exe -wm WM_CHAR WM_KEYDOWN
 ```
 
-## Stalking (Temporarily broken)
+## Stalking
 Use Frida stalk to trace through things
 
 ```
