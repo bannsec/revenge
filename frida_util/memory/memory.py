@@ -35,6 +35,7 @@ class Memory(object):
         # key == address of replaced function, value = tuple: what it's being replaced with, script so we can unload later
         self._active_replacements = {}
 
+
     def alloc(self, size):
         """Allocate size bytes of memory and get a MemoryBytes object back to use it.
     

@@ -100,6 +100,11 @@ class Process(object):
             else:
                 self.device.resume(self._spawned_pid)
 
+        # It appears the first time maps gets run, something in the Frida actually changes... Not sure what.
+        # Running this here to prime the pump as it were.. Maybe some day figure out wtf is going on.
+        # REMINDER: This bug didn't always hit. So pytest may say it's fine when it isn't.
+        self.memory.maps
+
 
     def load_device(self):
         # For now, assuming local

@@ -4,6 +4,7 @@ import logging
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
+import sys
 
 import colorama
 colorama.init()
@@ -15,6 +16,8 @@ import frida_util
 common = frida_util.common
 types = frida_util.types
 Process = frida_util.Process
+
+from . import actions
 
 def parse_args():
 
@@ -133,6 +136,11 @@ def main():
         import IPython
         IPython.embed()
 
+    elif args.action == 'find':
+        action_find = actions.ActionFind(process, **vars(args))
+        action_find.run()
+        print({hex(x):y for x,y in action_find.discovered_locations.items()})
+
     """
 
     if self._args.action == 'stalk':
@@ -144,10 +152,6 @@ def main():
         self.action_windows_messages = actions.ActionWindowsMessages(self, **vars(self._args))
         self.action_windows_messages.run()
 
-    elif self._args.action == 'find':
-        self.action_find = actions.ActionFind(self, **vars(self._args))
-        self.action_find.run()
-        print({hex(x):y for x,y in self.action_find.discovered_locations.items()})
 
     elif self._args.action == 'diff_find':
         self.action_diff = actions.ActionDiffFind(self, **vars(self._args))

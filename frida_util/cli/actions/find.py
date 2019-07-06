@@ -4,12 +4,11 @@ logger = logging.getLogger(__name__)
 
 import colorama
 from termcolor import cprint, colored
-from .. import common
+from ... import common, types
 
 import binascii
 import time
 import struct
-import threading
 
 class ActionFind:
     """Handle finding things in memory."""
@@ -34,8 +33,6 @@ class ActionFind:
         self.int64 = number if number else int64
         self.number = number
 
-        self._lock = threading.Lock()
-
         # Couple sanity checks
         if self._process.bits < 64:
             self.uint64 = None
@@ -50,40 +47,21 @@ class ActionFind:
     def run(self):
         # Sync
         self.action_find()
-        #print({hex(x):y for x,y in self.discovered_locations.items()})
+
+    def record_results(self, results, the_type):
+        for r in results:
+            self.discovered_locations[r] = the_type
 
     def action_find(self):
 
-        def find_cb(message, data):
-            #print(message)
-            found = message['payload']
-            
-            if found is not None:
-                assert type(found) is list, 'Unexpected found type of {}'.format(type(found))
-                for f in found:
-                    self.discovered_locations[int(f['address'],16)] = pattern_type
-
-            self._lock.release()
-
-        find_patterns = {}
-        endian_str = "<" if self._process.endianness == 'little' else '>'
-
-        #
-        # Create search patterns
-        #
-
         if self.string is not None:
+            r = self._process.memory.find(types.StringUTF16(self.string))
+            r.sleep_until_completed()
+            self.record_results(r, 'StringUTF16')
 
-            # Normal string
-            hexed = binascii.hexlify(self.string.encode()).decode()
-            #find_patterns.append({'type': 'utf-8', 'search': hexed})
-            find_patterns[hexed] = 'utf-8'
-
-            # Wide Char String (Windows/UTF16)
-            wchar = binascii.hexlify(self.string.encode('utf-16')[2:]).decode()
-
-            #find_patterns.append({'type': 'utf-16', 'search': wchar})
-            find_patterns[wchar] = 'utf-16'
+            r = self._process.memory.find(types.StringUTF8(self.string))
+            r.sleep_until_completed()
+            self.record_results(r, 'StringUTF8')
 
         # Ignoring exceptions when we're blanket searching for some 'number'
         if self.uint8 is not None:
@@ -142,26 +120,3 @@ class ActionFind:
                 if self.number is None:
                     raise e
 
-        #
-        # Actually do search
-        #
-
-        # Using lock since i need to async query memory for long running searches
-        self._lock.acquire()
-
-        for find_pattern, pattern_type in find_patterns.items():
-
-            find_js = self._process.load_js('find_in_memory.js')
-            find_js = find_js.replace("SCAN_PATTERN_HERE", find_pattern)
-
-            script = self._process.session.create_script(find_js)
-            script.on('message', find_cb)
-
-            logger.debug("Starting Memory find ... {}".format(find_pattern))
-            #print("Finding: " + repr(find_pattern))
-            script.load()
-
-            # Wait until we're good to do the next one
-            self._lock.acquire()
-        
-        self._lock.release()
