@@ -184,3 +184,5 @@ from . import MemoryBytes
 from . import MemoryRange
 from . import MemoryFind
 from . import MemoryMap
+
+Memory.find.__doc__ = MemoryFind.__init__.__doc__

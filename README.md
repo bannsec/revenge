@@ -66,7 +66,7 @@ Out[1]: <frida_util.process.Process at 0x7fa036bc14e0>
 Replacing functions dynamically during execution
 ```
 # Replace function located at offset 0x64a in a.out binary, returning value 0x123
-frida-util stalk a.out -f ./a.out --resume -rf "a.out:0x64a?0x123"
+frida-util stalk ./a.out --resume -rf "a.out:0x64a?0x123"
 
 # Disable alarm and ptrace functions
 frida-util stalk test2 -f ./test2 --resume -rf ":alarm?1" ":ptrace?1"

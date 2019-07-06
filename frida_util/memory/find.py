@@ -10,16 +10,16 @@ from .. import common, types
 import time
 
 class MemoryFind(object):
-    """Find something in memory.
-
-    Args:
-        process: Base process instantiation
-        thing: Some instantiated type to search for from types module
-        ranges(list, optional): List of MemoryRange objects to limit the search
-            to. By default, search everything.
-    """
 
     def __init__(self, process, thing, ranges=None):
+        """Find something in memory.
+
+        Args:
+            process: Base process instantiation
+            thing: Some instantiated type to search for from types module
+            ranges(list, optional): List of MemoryRange objects to limit the search
+                to. By default, search everything.
+        """
         self._process = process
         self.thing = thing
         self.ranges = ranges
