@@ -66,57 +66,73 @@ class ActionFind:
         # Ignoring exceptions when we're blanket searching for some 'number'
         if self.uint8 is not None:
             try:
-                find_patterns[binascii.hexlify(struct.pack(endian_str + "B", self.uint8)).decode()] = 'uint8'
-            except Exception as e:
+                r = self._process.memory.find(types.UInt8(self.uint8))
+                r.sleep_until_completed()
+                self.record_results(r, 'UInt8')
+            except struct.error:
                 if self.number is None:
-                    raise e
+                    raise
 
         if self.int8 is not None:
             try:
-                find_patterns[binascii.hexlify(struct.pack(endian_str + "b", self.int8)).decode()] = 'int8'
-            except Exception as e:
+                r = self._process.memory.find(types.Int8(self.int8))
+                r.sleep_until_completed()
+                self.record_results(r, 'Int8')
+            except struct.error:
                 if self.number is None:
-                    raise e
+                    raise
 
         if self.uint16 is not None:
             try:
-                find_patterns[binascii.hexlify(struct.pack(endian_str + "H", self.uint16)).decode()] = 'uint16'
-            except Exception as e:
+                r = self._process.memory.find(types.UInt16(self.uint16))
+                r.sleep_until_completed()
+                self.record_results(r, 'UInt16')
+            except struct.error:
                 if self.number is None:
-                    raise e
+                    raise
 
         if self.int16 is not None:
             try:
-                find_patterns[binascii.hexlify(struct.pack(endian_str + "h", self.int16)).decode()] = 'int16'
-            except Exception as e:
+                r = self._process.memory.find(types.Int16(self.int16))
+                r.sleep_until_completed()
+                self.record_results(r, 'Int16')
+            except struct.error:
                 if self.number is None:
-                    raise e
+                    raise
 
         if self.uint32 is not None:
             try:
-                find_patterns[binascii.hexlify(struct.pack(endian_str + "I", self.uint32)).decode()] = 'uint32'
-            except Exception as e:
+                r = self._process.memory.find(types.UInt32(self.uint32))
+                r.sleep_until_completed()
+                self.record_results(r, 'UInt32')
+            except struct.error:
                 if self.number is None:
-                    raise e
+                    raise
 
         if self.int32 is not None:
             try:
-                find_patterns[binascii.hexlify(struct.pack(endian_str + "i", self.int32)).decode()] = 'int32'
-            except Exception as e:
+                r = self._process.memory.find(types.Int32(self.int32))
+                r.sleep_until_completed()
+                self.record_results(r, 'Int32')
+            except struct.error:
                 if self.number is None:
-                    raise e
+                    raise
 
         if self.uint64 is not None:
             try:
-                find_patterns[binascii.hexlify(struct.pack(endian_str + "Q", self.uint64)).decode()] = 'uint64'
-            except Exception as e:
+                r = self._process.memory.find(types.UInt64(self.uint64))
+                r.sleep_until_completed()
+                self.record_results(r, 'UInt64')
+            except struct.error:
                 if self.number is None:
-                    raise e
+                    raise
 
         if self.int64 is not None:
             try:
-                find_patterns[binascii.hexlify(struct.pack(endian_str + "q", self.int64)).decode()] = 'int64'
-            except Exception as e:
+                r = self._process.memory.find(types.Int64(self.int64))
+                r.sleep_until_completed()
+                self.record_results(r, 'Int64')
+            except struct.error:
                 if self.number is None:
-                    raise e
+                    raise
 
