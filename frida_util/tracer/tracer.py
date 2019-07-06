@@ -17,3 +17,6 @@ class Tracer(object):
         return InstructionTracer(self._process, *args, **kwargs)
 
 from . import InstructionTracer
+
+# Fixup doc strings
+Tracer.instructions.__doc__ = InstructionTracer.__init__.__doc__
