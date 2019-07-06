@@ -54,6 +54,7 @@ class Process(object):
         self.__bits = None
         self._spawn_target = None
         self.verbose = verbose
+        self.device = frida.get_local_device()
         self.target = target
 
         if not isinstance(load_symbols, (list, type, type(None))):
@@ -66,7 +67,6 @@ class Process(object):
         self.modules = Modules(self)
 
         atexit.register(self._at_exit)
-        self.load_device()
         self.start_session()
 
         # ELF binaries start up in ptrace, which causes some issues, shim at entrypoint so we can remove ptrace
@@ -100,12 +100,6 @@ class Process(object):
             else:
                 self.device.resume(self._spawned_pid)
 
-
-    def load_device(self):
-        # For now, assuming local
-        # TODO: Make this variable
-
-        self.device = frida.get_local_device()
 
     def pause_at(self, location):
         """Pause at a given point in execution."""
@@ -460,12 +454,22 @@ class Process(object):
 
     @target.setter
     def target(self, target):
+        # Check if this is a pid
+        try:
+            p = next(x for x in self.device.enumerate_processes() if x.pid == common.auto_int(target))
+            target = p.pid
+            self.__file_name = p.name
+
+        except (StopIteration, ValueError):
+            pass
+
         if isinstance(target, str):
             full_path = os.path.abspath(target)
             self.__file_name = os.path.basename(full_path)
 
             if os.path.isfile(full_path):
                 self._spawn_target = full_path
+            
 
         self.__target = target
 

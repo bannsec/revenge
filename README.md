@@ -38,12 +38,13 @@ Use Frida stalk to trace through things
 frida-util stalk notepad.exe --include-function notepad.exe:0x3a50 -I notepad.exe
 ```
 
-## Find (Temporarily broken)
+## Find
 Find things in memory.
 
 ```
 # Find where your string 'hello world' is in notepad (will check for char and wchar versions)
 frida-util find notepad.exe --string "Hello world"
+{'0x55d78c422250': 'StringUTF8', '0x55d78c453820': 'StringUTF8'}
 ```
 
 ## IPython
