@@ -63,39 +63,20 @@ class ActionFind:
             r.sleep_until_completed()
             self.record_results(r, 'StringUTF8')
 
-        # Ignoring exceptions when we're blanket searching for some 'number'
-        if self.uint8 is not None:
+        if self.uint64 is not None:
             try:
-                r = self._process.memory.find(types.UInt8(self.uint8))
+                r = self._process.memory.find(types.UInt64(self.uint64))
                 r.sleep_until_completed()
-                self.record_results(r, 'UInt8')
+                self.record_results(r, 'UInt64')
             except struct.error:
                 if self.number is None:
                     raise
 
-        if self.int8 is not None:
+        if self.int64 is not None:
             try:
-                r = self._process.memory.find(types.Int8(self.int8))
+                r = self._process.memory.find(types.Int64(self.int64))
                 r.sleep_until_completed()
-                self.record_results(r, 'Int8')
-            except struct.error:
-                if self.number is None:
-                    raise
-
-        if self.uint16 is not None:
-            try:
-                r = self._process.memory.find(types.UInt16(self.uint16))
-                r.sleep_until_completed()
-                self.record_results(r, 'UInt16')
-            except struct.error:
-                if self.number is None:
-                    raise
-
-        if self.int16 is not None:
-            try:
-                r = self._process.memory.find(types.Int16(self.int16))
-                r.sleep_until_completed()
-                self.record_results(r, 'Int16')
+                self.record_results(r, 'Int64')
             except struct.error:
                 if self.number is None:
                     raise
@@ -118,20 +99,39 @@ class ActionFind:
                 if self.number is None:
                     raise
 
-        if self.uint64 is not None:
+        if self.uint16 is not None:
             try:
-                r = self._process.memory.find(types.UInt64(self.uint64))
+                r = self._process.memory.find(types.UInt16(self.uint16))
                 r.sleep_until_completed()
-                self.record_results(r, 'UInt64')
+                self.record_results(r, 'UInt16')
             except struct.error:
                 if self.number is None:
                     raise
 
-        if self.int64 is not None:
+        if self.int16 is not None:
             try:
-                r = self._process.memory.find(types.Int64(self.int64))
+                r = self._process.memory.find(types.Int16(self.int16))
                 r.sleep_until_completed()
-                self.record_results(r, 'Int64')
+                self.record_results(r, 'Int16')
+            except struct.error:
+                if self.number is None:
+                    raise
+
+        # Ignoring exceptions when we're blanket searching for some 'number'
+        if self.uint8 is not None:
+            try:
+                r = self._process.memory.find(types.UInt8(self.uint8))
+                r.sleep_until_completed()
+                self.record_results(r, 'UInt8')
+            except struct.error:
+                if self.number is None:
+                    raise
+
+        if self.int8 is not None:
+            try:
+                r = self._process.memory.find(types.Int8(self.int8))
+                r.sleep_until_completed()
+                self.record_results(r, 'Int8')
             except struct.error:
                 if self.number is None:
                     raise
