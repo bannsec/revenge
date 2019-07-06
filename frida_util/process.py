@@ -113,22 +113,6 @@ class Process(object):
         pause_location = self._resolve_location_string(location)
         self.run_script_generic('pause_at2.js', replace={"FUNCTION_ADDRESS_HERE": hex(pause_location)})
         
-
-    def replace_function(self, f):
-        """Replace a given function to always return a given value. <module:offset|symbol>?<return_val>"""
-        assert type(f) == str, "Unexpected replace function argument type of {}".format(type(f))
-
-        location, return_value = f.split("?")
-        replace_location = self._resolve_location_string(location)
-
-        replace_vars = {
-                "FUNCTION_RETURN_VALUE_HERE": return_value,
-                "FUNCTION_ADDRESS_HERE": hex(replace_location),
-                }
-
-        self.run_script_generic("replace_function.js", replace=replace_vars)
-
-
     def _at_exit(self):
         """Called to clean-up at exit."""
 

@@ -4,11 +4,17 @@ import logging
 logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
+
+import colorama
+colorama.init()
+from termcolor import cprint, colored
+
 import argparse
 import frida_util
 
 common = frida_util.common
 types = frida_util.types
+Process = frida_util.Process
 
 def parse_args():
 
@@ -89,19 +95,41 @@ def parse_args():
 
     return args
 
+def replace_function(process, f):
+    """Replace a given function to always return a given value. <module:offset|symbol>?<return_val>"""
+    assert type(f) == str, "Unexpected replace function argument type of {}".format(type(f))
+
+    location, return_value = f.split("?")
+    replace_location = process._resolve_location_string(location)
+
+    replace_vars = {
+            "FUNCTION_RETURN_VALUE_HERE": return_value,
+            "FUNCTION_ADDRESS_HERE": hex(replace_location),
+            }
+
+    self.run_script_generic("replace_function.js", replace=replace_vars)
+
 def main():
     args = parse_args()
 
-    """
-    if rw_everything:
-        print('RW\'ing memory areas\t\t... ', end='', flush=True)
-        self.run_script_generic('rw_everything.js', unload=True)
+    process = Process(args.target)
+
+    if args.rw_everything:
+        print("RW'ing memory areas\t\t... ", end='', flush=True)
+        process.run_script_generic('rw_everything.js', unload=True)
         cprint('[ DONE ]', 'green')
 
-    # Replace any functions needed
-    for f in self._args.replace_function:
-        self.replace_function(f)
 
+    for f in args.replace_function:
+        location, return_value = f.split("?")
+        mem = process.memory[location]
+        mem.replace = int(return_value, 0)
+
+    if args.action == 'ipython':
+        import IPython
+        IPython.embed()
+
+    """
     # Setup any requested pauses
     for location in self._args.pause_at:
         self.pause_at(location)
@@ -136,13 +164,6 @@ def main():
             logger.warn("Your chosen include_module ({}) doesn't match any modules found. Double check the capitalization or spelling.".format(bad_mod))
         except:
             pass
-    """
-
-    """
-    if self._args.action == 'ipython':
-        process = self
-        import IPython
-        IPython.embed()
     """
 
 if __name__ == '__main__':
