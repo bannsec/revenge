@@ -145,6 +145,12 @@ class MemoryFind(object):
     def ranges(self, ranges):
         
         if ranges is None:
+            # It appears the first time maps gets run, something in the Frida actually changes... Not sure what.
+            # Running this here to prime the pump as it were.. Maybe some day figure out wtf is going on.
+            # REMINDER: This bug didn't always hit. So pytest may say it's fine when it isn't.
+            self._process.memory.maps
+            self._process.memory.maps
+
             ranges = list(self._process.memory.maps)
 
         if type(ranges) is MemoryRange:

@@ -107,6 +107,7 @@ def test_memory_on_message():
     assert 31337 in f
 
     f.completed = False
+    f._script = None
     payload = {'payload': "DONE"}
     f._on_message(payload, None)
     assert f.completed == True

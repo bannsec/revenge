@@ -41,6 +41,7 @@ def test_basic_one_trace_specify_from_modules():
     basic_one.memory[basic_one.entrypoint_rebased].breakpoint = False
     t2.wait_for('basic_one:0x692') # final ret
 
+    print(t2)
     for i in t2:
         assert i.from_module == 'basic_one'
     
