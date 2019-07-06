@@ -112,7 +112,7 @@ def replace_function(process, f):
 def main():
     args = parse_args()
 
-    process = Process(args.target)
+    process = Process(args.target, resume=args.resume, verbose=args.verbose)
 
     if args.rw_everything:
         print("RW'ing memory areas\t\t... ", end='', flush=True)
@@ -125,14 +125,15 @@ def main():
         mem = process.memory[location]
         mem.replace = int(return_value, 0)
 
+    # Setup any requested pauses
+    for location in args.pause_at:
+        process.memory[location].breakpoint = True
+
     if args.action == 'ipython':
         import IPython
         IPython.embed()
 
     """
-    # Setup any requested pauses
-    for location in self._args.pause_at:
-        self.pause_at(location)
 
     if self._args.action == 'stalk':
         # Issue where stalk elf doesn't enumerate threads...
