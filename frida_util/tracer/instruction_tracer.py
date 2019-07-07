@@ -188,7 +188,7 @@ class InstructionTracer(object):
         if not any((call, ret, exec, block, compile)):
             error = "You didn't select any action to trace!"
             logger.error(error)
-            raise Exception(error)
+            #raise Exception(error)
 
         self._process = process
         self.call= call
