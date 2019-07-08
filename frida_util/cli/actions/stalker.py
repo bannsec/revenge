@@ -75,7 +75,9 @@ class ActionStalker:
                 )
 
         # Make sure we're not blocking
-        self._process.memory[self._process.entrypoint_rebased].breakpoint = False
+        for addr in list(self._process.memory._active_breakpoints):
+            self._process.memory[addr].breakpoint = False
 
-        while True:
-            sleep(1)
+        while self._process.alive:
+            sleep(0.1)
+

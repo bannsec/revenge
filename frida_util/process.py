@@ -444,7 +444,8 @@ class Process(object):
     @verbose.setter
     def verbose(self, verbose):
         if verbose:
-            logger.setLevel(logging.DEBUG)
+            logging.getLogger().setLevel(logging.DEBUG)
+            #logger.setLevel(logging.DEBUG)
         self.__verbose = verbose
 
     @property
@@ -472,6 +473,15 @@ class Process(object):
             
 
         self.__target = target
+
+    @property
+    def alive(self):
+        """bool: Is this process still alive?"""
+        try:
+            next(True for x in self.device.enumerate_processes() if x.pid == self.pid)
+            return True
+        except StopIteration:
+            return False
 
 
 def sigint_handler(sig, frame):

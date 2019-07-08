@@ -37,6 +37,8 @@ def parse_args():
             help="Pause execution at address.")
     parser.add_argument('--verbose', "-v", action='store_true', default=False,
             help="Output more verbose information (defualt: False)")
+    parser.add_argument('--rw-everything', '-rw', default=False, action='store_true',
+            help="Change all r-- memory areas into rw-. This can sometimes help segfault issues (default: off)")
 
     stalk_group = parser.add_argument_group('stalk options')
     stalk_group.add_argument('--call', action='store_true', default=False,
@@ -49,8 +51,6 @@ def parse_args():
             help="Stalks every code block.")
     stalk_group.add_argument('--compile', action='store_true', default=False,
             help="Stalks every time Frida needs to compile.")
-    stalk_group.add_argument('--rw-everything', '-rw', default=False, action='store_true',
-            help="Change all r-- memory areas into rw-. This can sometimes help segfault issues (default: off)")
 
     windows_group = parser.add_argument_group('windows options')
     windows_group.add_argument('--windows-message', '-wm', default=None, type=str, nargs='+', metavar='Message',
