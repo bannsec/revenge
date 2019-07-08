@@ -4,6 +4,7 @@ logger = logging.getLogger(__name__)
 
 import frida
 import shlex
+import os
 import subprocess
 
 from .. import BaseDevice
