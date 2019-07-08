@@ -1,7 +1,5 @@
 
 import logging
-logging.basicConfig(level=logging.WARN)
-
 logger = logging.getLogger(__name__)
 
 # Keeping str types as properties in case they change what they call things later

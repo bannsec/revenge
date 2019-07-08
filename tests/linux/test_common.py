@@ -48,6 +48,5 @@ def test_common_load_file():
     # Bad platform
     #
 
-    process.device_platform = 'not_a_real_platform'
-
-    assert frida_util.common.load_file(process, "/bin/ls") is None
+    #process.device_platform = 'not_a_real_platform'
+    #assert frida_util.common.load_file(process, "/bin/ls") is None

@@ -20,17 +20,12 @@ import json
 import pprint
 from copy import copy
 
-from . import common, types, config
-from .memory import Memory
-from .threads import Threads
-from .tracer import Tracer
-from .modules import Modules
-
 here = os.path.dirname(os.path.abspath(__file__))
 
 class Process(object):
 
-    def __init__(self, target, resume=False, verbose=False, load_symbols=None):
+    def __init__(self, target, resume=False, verbose=False, load_symbols=None,
+            device=None):
         """
 
         Args:
@@ -39,6 +34,8 @@ class Process(object):
             verbose (bool, optional): Enable verbose logging
             load_symbols (list, optional): Only load symbols from those modules
                 in the list. Saves some startup time. Can use glob ('libc*')
+            device (frida_util.device_types.*, optional): Define what device
+                to connect to.
         """
 
         # Just variable to ensure we don't garbage collect
@@ -54,7 +51,7 @@ class Process(object):
         self.__bits = None
         self._spawn_target = None
         self.verbose = verbose
-        self.device = frida.get_local_device()
+        self.device = device or device_types.LocalDevice()
         self.target = target
 
         if not isinstance(load_symbols, (list, type, type(None))):
@@ -80,7 +77,7 @@ class Process(object):
                 self.memory[c].breakpoint = True
 
             # Resume to remove ptrace
-            self.device.resume(self._spawned_pid)
+            self.device.device.resume(self._spawned_pid)
 
             #time.sleep(0.2)
 
@@ -98,7 +95,7 @@ class Process(object):
                 self.memory[self.entrypoint_rebased].breakpoint = False
             
             else:
-                self.device.resume(self._spawned_pid)
+                self.device.device.resume(self._spawned_pid)
 
 
     def pause_at(self, location):
@@ -153,12 +150,12 @@ class Process(object):
         # If we spawned it, kill it
         try:
             if self._spawned_pid is not None:
-                return self.device.kill(self._spawned_pid)
+                return self.device.device.kill(self._spawned_pid)
 
         except (frida.PermissionDeniedError, frida.ProcessNotFoundError) as e:
             # This can indicate the process is already dead.
             try:
-                next(x for x in self.device.enumerate_processes() if x.pid == self._spawned_pid)
+                next(x for x in self.device.device.enumerate_processes() if x.pid == self._spawned_pid)
                 logger.error("Device kill permission error, with process apparently %d still alive.", self._spawned_pid)
                 raise e
             except StopIteration:
@@ -199,14 +196,14 @@ class Process(object):
 
         if self._spawn_target is not None:
             print("Spawning file\t\t\t... ", end='', flush=True)
-            self._spawned_pid = self.device.spawn(self._spawn_target)
+            self._spawned_pid = self.device.device.spawn(self._spawn_target)
             cprint("[ DONE ]", "green")
 
         print('Attaching to the session\t... ', end='', flush=True)
 
         try:
             # Default attach to what we just spawned
-            self.session = frida.attach(self._spawned_pid or self.target)
+            self.session = self.device.device.attach(self._spawned_pid or self.target)
         except frida.ProcessNotFoundError:
             logger.error('Could not find that target process to attach to!')
             exit(1)
@@ -398,6 +395,11 @@ class Process(object):
     def file_type(self):
         """Guesses the file type."""
 
+        # TODO: Android processes we attach to can't getModuleByName for their file name...
+        # Maybe use "app_process64" instead... Or resolve the first module and go with that..
+        if isinstance(self.device, device_types.AndroidDevice):
+            return "ELF"
+
         # TODO: Update this with other formats. PE/COFF/MACHO/etc
         if self.__file_type is None:
             if self.run_script_generic("""send('bytes', Process.getModuleByName('{}').base.readByteArray(4))""".format(self.file_name), raw=True, unload=True)[1][0] == b'\x7fELF':
@@ -457,7 +459,7 @@ class Process(object):
     def target(self, target):
         # Check if this is a pid
         try:
-            p = next(x for x in self.device.enumerate_processes() if x.pid == common.auto_int(target))
+            p = next(x for x in self.device.device.enumerate_processes() if x.pid == common.auto_int(target))
             target = p.pid
             self.__file_name = p.name
 
@@ -478,10 +480,38 @@ class Process(object):
     def alive(self):
         """bool: Is this process still alive?"""
         try:
-            next(True for x in self.device.enumerate_processes() if x.pid == self.pid)
+            next(True for x in self.device.device.enumerate_processes() if x.pid == self.pid)
             return True
         except StopIteration:
             return False
+
+    @property
+    def device(self):
+        """Frida device object for this connection."""
+        return self.__device
+
+    @device.setter
+    def device(self, device):
+        assert isinstance(device, device_types.BaseDevice), "Device must be an instantiation of one of the devices defined in frida_utils.device_types."
+        self.__device = device
+        """
+        if isinstance(device, device_types.LocalDevice):
+            self.__device = device.device
+
+        elif isinstance(device, device_types.AndroidDevice):
+            self.__device = device.device
+
+        else:
+            error = "Unexpected/unhandled device type of {}".format(type(device))
+            logger.error(error)
+            raise Exception(error)
+        """
+
+from . import common, types, config, device_types
+from .memory import Memory
+from .threads import Threads
+from .tracer import Tracer
+from .modules import Modules
 
 
 def sigint_handler(sig, frame):

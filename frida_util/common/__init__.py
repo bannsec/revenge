@@ -1,12 +1,14 @@
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
-
 logger = logging.getLogger(__name__)
 
 import os
 import json
 import io
+import requests
+import tempfile
+import bs4
+import lzma
 
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -56,7 +58,7 @@ def parse_location_string(s):
 def load_file(process, file_path):
     """Attempt to load the file with file_path. Use local loading if connection is local, and remote otherwise."""
 
-    if process.device.type == 'local':
+    if process.device.device.type == 'local':
         return load_file_local(process, file_path)
     else:
         return load_file_remote(process, file_path)
@@ -107,3 +109,53 @@ def load_file_remote(process, file_path):
 
     else:
         logger.error("No remote file load support yet for: " + process.device_platform)
+
+def download_frida_server(os, arch):
+    """Download frida server of arch to a temporary file. Returns temporary file location.
+    
+    Examples:
+        download_frida_server('android', 'x86_64')
+        download_frida_server('android', 'arm')
+    """
+
+    os = os.lower()
+    arch = arch.lower()
+    valid_os = ['android', 'ios', 'windows', 'macos']
+    valid_arch = ['arm64', 'x86_64', 'x86', 'arm']
+
+    assert os in valid_os, "Invalid OS selected. Must be in: " + str(valid_os)
+    assert arch in valid_arch, "Invalid arch selected. Must be in: " + str(valid_arch)
+
+    download_url = "https://github.com/frida/frida/releases/latest"
+
+    r = requests.get(download_url)
+    html = bs4.BeautifulSoup(r.text, features="html.parser")
+    download_links = set([x['href'] for x in html("a") if 'download' in x['href']])
+    server_download_links = set([x for x in download_links if "frida-server" in x])
+
+    look_for = "{os}-{arch}.".format(os=os, arch=arch)
+    server_download_link = [x for x in server_download_links if look_for in x]
+
+    if server_download_link == []:
+        error = "Couldn't find a download link for {} {}!".format(os, arch)
+        logger.error(error)
+        raise Exception(error)
+
+    if len(server_download_link) > 1:
+        error = "Found multiple download links for {} {}!".format(os, arch)
+        logger.error(error)
+        raise Exception(error)
+
+    server_download_link = "https://github.com" + server_download_link[0]
+    print("Downloading " + server_download_link, flush=True)
+    r = requests.get(server_download_link)
+    server_bin = lzma.decompress(r.content)
+
+    with tempfile.NamedTemporaryFile(delete=False) as fp:
+        file_name = fp.name
+        fp.write(server_bin)
+
+    logger.debug("Server downloaded to: " + file_name)
+
+    return file_name
+    

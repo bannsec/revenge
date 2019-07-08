@@ -323,3 +323,62 @@ ret       libc-2.27.so:0x7f4b704572e7   -> libc-2.27.so:0x7f4b70457489
 # Grab symbol address for main function in my_bin
 >>> main = process.modules['my_bin'].symbols['main']
 ```
+
+### Android
+Android support is in development. That said, there's some basic support right now. All low-level interactions should be the same as interactions on any other system (see Memory/Threads/etc from above).
+
+```python
+from frida_util import Process, types, common, device_types
+
+# Connect up to the android device (options)
+>>> android = device_types.AndroidDevice(type="usb")
+>>> android = device_types.AndroidDevice(id="emulator-5554")
+<AndroidDevice emulator-5554>
+
+# List processes
+>>> android.device.enumerate_processes()
+"""
+<clip>
+ Process(pid=1502, name="tombstoned"),
+ Process(pid=1503, name="android.hardware.biometrics.fingerprint@2.1-service"),
+ Process(pid=1506, name="iptables-restore"),
+ Process(pid=1507, name="ip6tables-restore"),
+ Process(pid=1604, name="dhcpclient"),
+ Process(pid=1607, name="sh"),
+ Process(pid=1608, name="sleep"),
+ Process(pid=1619, name="ipv6proxy"),
+ Process(pid=1622, name="hostapd"),
+ Process(pid=1624, name="dhcpserver"),
+ Process(pid=1633, name="system_server"),
+ Process(pid=1740, name="com.android.inputmethod.latin"),
+ Process(pid=1748, name="com.android.systemui"),
+ Process(pid=1790, name="webview_zygote32"),
+ Process(pid=1846, name="wpa_supplicant"),
+ Process(pid=1851, name="com.android.phone"),
+<clip>
+"""
+
+# List applications
+>>> android.device.enumerate_applications()
+"""
+<clip>
+ Application(identifier="com.android.dialer", name="Phone", pid=2084),
+ Application(identifier="com.android.gallery3d", name="Gallery"),
+ Application(identifier="com.android.emulator.smoketests", name="Emulator Smoke Tests"),
+ Application(identifier="android.ext.services", name="Android Services Library", pid=2566),
+ Application(identifier="com.android.packageinstaller", name="Package installer"),
+ Application(identifier="com.svox.pico", name="Pico TTS"),
+ Application(identifier="com.android.proxyhandler", name="ProxyHandler"),
+ Application(identifier="com.android.inputmethod.latin", name="Android Keyboard (AOSP)", pid=1740),
+ Application(identifier="org.chromium.webview_shell", name="WebView Shell"),
+ Application(identifier="com.android.managedprovisioning", name="Work profile setup"),
+<clip>
+"""
+
+# Launch application and retrieve corresponding frida_util.Process instance
+>>> p = android.spawn("com.android.email", gated=False, load_symbols="*dex")
+<Process <pre-initialized>:4335>
+
+# Run adb command for your connected device
+>>> android.adb("shell ps -ef")
+```
