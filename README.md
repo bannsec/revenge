@@ -383,4 +383,9 @@ from frida_util import Process, types, common, device_types
 
 # Run adb command for your connected device
 >>> android.adb("shell ps -ef")
+
+# Install/Uninstall packages
+>>> android.install("something.apk")
+>>> android.uninstall("com.blerg.something")
+>>> android.uninstall(android.applications['*something*'])
 ```
