@@ -113,6 +113,36 @@ class AndroidDevice(BaseDevice):
 
         return Process(pid, device=self, load_symbols=load_symbols)
 
+    def install(self, package):
+        """Install package onto android device.
+
+        Args:
+            package (str): Path to package to install.
+        """
+
+        package = os.path.abspath(package)
+
+        if not os.path.isfile(package):
+            logger.error("Cannot find apk to install.")
+            return False
+
+        return self.adb("install " + package)
+
+    def uninstall(self, application):
+        """Uninstall the given application.
+        
+        Args:
+            application (str): Application to uninstall
+
+        Example:
+            android.uninstall("com.android.calculator2")
+        """
+
+        if isinstance(application, frida._frida.Application):
+            application = application.identifier
+
+        return self.adb("uninstall " + application)
+
     def __repr__(self):
         attrs = ['AndroidDevice', self.id]
         return '<' + ' '.join(attrs) + '>'

@@ -2,8 +2,15 @@
 import logging
 logger = logging.getLogger(__name__)
 
+import os
+
+here = os.path.dirname(os.path.abspath(__file__))
+bin_location = os.path.join(here, "bins")
+
 from frida_util import Process, types, common, device_types
 android = device_types.AndroidDevice(type="usb")
+
+veryandroidso = os.path.join(bin_location, "ooo.defcon2019.quals.veryandroidoso.apk")
 
 def test_basic_connect():
     assert android.frida_server_running
@@ -25,4 +32,8 @@ def test_applications():
     list(android.applications)
     len(android.applications)
 
-
+def test_install_uninstall_application():
+    android.install(veryandroidso)
+    very = android.applications['*ooo*']
+    p = android.spawn(very, gated=False, load_symbols=[])
+    android.uninstall(very)
