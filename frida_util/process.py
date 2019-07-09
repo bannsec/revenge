@@ -431,12 +431,16 @@ class Process(object):
     @property
     def arch(self):
         """str: What architecture? (x64, ia32, others?)"""
-        known_arch = ['x64', 'ia32']
-        arch = self.run_script_generic("""send(Process.arch);""", raw=True, unload=True)[0][0]
+        try:
+            return self.__arch
+        except:
+            known_arch = ['x64', 'ia32']
+            arch = self.run_script_generic("""send(Process.arch);""", raw=True, unload=True)[0][0]
 
-        if arch not in known_arch:
-            raise Exception("Unknown arch returned from Frida: {}".format(arch))
-        return arch
+            if arch not in known_arch:
+                raise Exception("Unknown arch returned from Frida: {}".format(arch))
+            self.__arch = arch
+            return self.__arch
 
     @property
     def verbose(self):
