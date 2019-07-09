@@ -18,4 +18,11 @@ def test_spawn():
     list(p.modules)
     list(p.memory.maps)
 
+def test_applications():
+    calc = android.applications['*calc*']
+    p = android.spawn(calc, gated=False, load_symbols=[])
+
+    list(android.applications)
+    len(android.applications)
+
 

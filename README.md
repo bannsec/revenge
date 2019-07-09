@@ -359,7 +359,7 @@ from frida_util import Process, types, common, device_types
 """
 
 # List applications
->>> android.device.enumerate_applications()
+>>> list(android.applications)
 """
 <clip>
  Application(identifier="com.android.dialer", name="Phone", pid=2084),
@@ -378,6 +378,8 @@ from frida_util import Process, types, common, device_types
 # Launch application and retrieve corresponding frida_util.Process instance
 >>> p = android.spawn("com.android.email", gated=False, load_symbols="*dex")
 <Process <pre-initialized>:4335>
+>>> calc = android.applications['*calc*']
+>>> p = android.spawn(calc, gated=False, load_symbols="*dex")
 
 # Run adb command for your connected device
 >>> android.adb("shell ps -ef")

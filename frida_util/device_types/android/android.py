@@ -23,14 +23,14 @@ class AndroidDevice(BaseDevice):
         """
         self.id = id
         self.type = type.lower()
-        self.select_device()
+        self._select_device()
 
         # Make sure we can have root
         self.adb("root")
 
         self.start_frida_server()
 
-    def select_device(self):
+    def _select_device(self):
         """Figure out which device we want to use."""
 
         if self.id:
@@ -102,6 +102,9 @@ class AndroidDevice(BaseDevice):
         else:
             self.device.disable_spawn_gating()
 
+        if isinstance(application, frida._frida.Application):
+            application = application.identifier
+
         pid = self.device.spawn(application)
 
         if not gated:
@@ -113,6 +116,10 @@ class AndroidDevice(BaseDevice):
     def __repr__(self):
         attrs = ['AndroidDevice', self.id]
         return '<' + ' '.join(attrs) + '>'
+
+    @property
+    def applications(self):
+        return AndroidApplications(self)
 
     @property
     def frida_server_running(self):
@@ -139,6 +146,8 @@ class AndroidDevice(BaseDevice):
             self.__arch = uname_standard[arch]
             return self.__arch
 
+from .applications import AndroidApplications
 from ... import common
 from .. import uname_standard
 from ...process import Process
+
