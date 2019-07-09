@@ -6,6 +6,7 @@ import frida
 import shlex
 import os
 import subprocess
+from time import sleep
 
 from .. import BaseDevice
 
@@ -54,6 +55,11 @@ class AndroidDevice(BaseDevice):
         error = "Couldn't find the device you requested..."
         logger.error(error)
         raise Exception(error)
+
+    def _wait_for_frida_server(self):
+        """To help avoid race conditions, pause here until the frida server is up and running."""
+        while not self.frida_server_running:
+            sleep(0.1)
 
     def start_frida_server(self):
         if self.frida_server_running:
