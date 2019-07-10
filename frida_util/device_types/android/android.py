@@ -81,13 +81,20 @@ class AndroidDevice(BaseDevice):
         # Clean up after ourselves
         os.unlink(server_bin)
 
-    def adb(self, command):
+    def adb(self, command, interactive=False):
         """Helper wrapper to run the command on your instance."""
 
         if isinstance(command, str):
             command = shlex.split(command)
 
-        return subprocess.check_output(["adb", "-s", self.device.id] + command)
+        if not interactive:
+            return subprocess.check_output(["adb", "-s", self.device.id] + command)
+        return subprocess.call(["adb", "-s", self.device.id] + command)
+
+    def shell(self):
+        """Spawn and interact with a shell on the device."""
+        self.adb("shell", interactive=True)
+
 
     def spawn(self, application, gated=True, load_symbols=None):
         """Spawn the given application.

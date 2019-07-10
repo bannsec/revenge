@@ -388,4 +388,7 @@ from frida_util import Process, types, common, device_types
 >>> android.install("something.apk")
 >>> android.uninstall("com.blerg.something")
 >>> android.uninstall(android.applications['*something*'])
+
+# Interact with shell on device
+>>> android.shell()
 ```
