@@ -66,6 +66,9 @@ class Process(object):
         atexit.register(self._at_exit)
         self.start_session()
 
+        if self.run_script_generic(r"""send(Java.available)""", raw=True, unload=True)[0][0]:
+            self.java = Java(self)
+
         # ELF binaries start up in ptrace, which causes some issues, shim at entrypoint so we can remove ptrace
         if self._spawned_pid is not None and self.file_type == 'ELF':
 
@@ -516,6 +519,7 @@ from .memory import Memory
 from .threads import Threads
 from .tracer import Tracer
 from .modules import Modules
+from .java import Java
 
 
 def sigint_handler(sig, frame):
