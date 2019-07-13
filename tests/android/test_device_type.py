@@ -26,6 +26,9 @@ def test_spawn():
     list(p.modules)
     list(p.memory.maps)
 
+def test_attach():
+    p = android.attach(android.device.get_frontmost_application(), load_symbols=[])
+
 def test_applications():
     calc = android.applications['*calc*']
     p = android.spawn(calc, gated=False, load_symbols=[])
@@ -38,3 +41,6 @@ def test_install_uninstall_application():
     very = android.applications['*ooo*']
     p = android.spawn(very, gated=False, load_symbols=[])
     android.uninstall(very)
+
+def test_repr():
+    repr(android)

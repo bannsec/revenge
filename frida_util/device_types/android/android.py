@@ -30,6 +30,7 @@ class AndroidDevice(BaseDevice):
         self.adb("root")
 
         self.start_frida_server()
+        self.version # Load up version
 
     def _select_device(self):
         """Figure out which device we want to use."""
@@ -126,6 +127,25 @@ class AndroidDevice(BaseDevice):
 
         return Process(pid, device=self, load_symbols=load_symbols)
 
+    def attach(self, application, load_symbols=None):
+        """Attach to the given application.
+
+        Args:
+            application (str): Full application name (i.e.: com.android.calculator2) or pid
+            load_symbols (list): Only load symbols for the given modules. Same
+                usage as frida_util.Process
+
+        Returns:
+            frida_util.Process: Process instantitation for this new process.
+        """
+        
+        if isinstance(application, frida._frida.Application):
+            pid = application.pid
+        else:
+            pid = self.applications[application].pid
+
+        return Process(pid, device=self, load_symbols=load_symbols)
+
     def install(self, package):
         """Install package onto android device.
 
@@ -139,7 +159,8 @@ class AndroidDevice(BaseDevice):
             logger.error("Cannot find apk to install.")
             return False
 
-        return self.adb("install " + package)
+        # Allow replace by default
+        return self.adb("install -r " + package)
 
     def uninstall(self, application):
         """Uninstall the given application.
@@ -157,7 +178,7 @@ class AndroidDevice(BaseDevice):
         return self.adb("uninstall " + application)
 
     def __repr__(self):
-        attrs = ['AndroidDevice', self.id]
+        attrs = ['AndroidDevice', 'v' + self.version, self.id]
         return '<' + ' '.join(attrs) + '>'
 
     @property
@@ -188,6 +209,16 @@ class AndroidDevice(BaseDevice):
 
             self.__arch = uname_standard[arch]
             return self.__arch
+
+    @property
+    def version(self):
+        """str: Returns android version for this device."""
+        try:
+            return self.__version
+        except AttributeError:
+            p = self.attach(self.device.get_frontmost_application(), load_symbols=[])
+            self.__version = p.java.run_script_generic("send(Java.androidVersion)", raw=True, unload=True)[0][0]
+            return self.__version
 
 from .applications import AndroidApplications
 from ... import common

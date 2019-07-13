@@ -270,7 +270,7 @@ class Process(object):
         def on_msg(m, d):
 
             if m['type'] == 'error':
-                logger.error(pprint.pformat(m['description']))
+                logger.error("Script Run Error: " + pprint.pformat(m['description']))
                 return
 
             logger.debug("on_message: {}".format([m,d]))
