@@ -245,7 +245,7 @@ class Process(object):
 
         return None
 
-    def run_script_generic(self, script_name, raw=False, replace=None, unload=False, runtime='duk', on_message=None):
+    def run_script_generic(self, script_name, raw=False, replace=None, unload=False, runtime='duk', on_message=None, timeout=None):
         """Run scripts that don't require anything special.
         
         Args:
@@ -255,6 +255,8 @@ class Process(object):
             unload (bool, optional): Auto unload the script. Set to true if the script is fully synchronous.
             runtime (str, optional): Runtime to use for this script, either 'duk' or 'v8'.
             on_message(callable, optional): Set the on_message handler to this instead.
+            timeout (int, optional): Modify timeout (default is 60 seconds).
+                Note, this will cause the script to run async. 0 == no timeout
 
         Returns:
             tuple: msg, data return from the script
@@ -289,6 +291,11 @@ class Process(object):
 
             for key, value in replace.items():
                 js = js.replace(key, value)
+
+        if timeout is not None:
+            js = "setTimeout(function() {" + js + "}," + str(timeout) + ")"
+            # Forcing unload to false since we don't know if it's done.
+            unload = False
 
         logger.debug("Running script: %s", js)
 

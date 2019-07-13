@@ -11,8 +11,12 @@ class Java:
         # Key = Full path to method that was implemented, Value = str that we implemented with.
         self._implementations = {}
     
-    def run_script_generic(self, script_name, raw=False, *args, **kwargs):
+    def run_script_generic(self, script_name, raw=False, main_thread=False, *args, **kwargs):
         """Run the given Java related Frida calls. Simply wraps them in the perform call...
+
+        Java Specific:
+        Args:
+            main_thread (bool, optional): Run this on the main Java thread.
 
         Calls the Process.run_script_generic as below:
         """
@@ -24,8 +28,13 @@ class Java:
             # others into the corresponding code. Do not remove str call!
             script = str(script_name)
 
+        if main_thread:
+            action = "Java.scheduleOnMainThread"
+        else:
+            action = "Java.perform"
+
         # Wrap up the java call
-        script = "Java.perform(function() {" + script + "});"
+        script = action + "(function() {" + script + "});"
         
         return self._process.run_script_generic(script, raw=True, *args, **kwargs)
 
