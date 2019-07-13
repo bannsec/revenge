@@ -45,7 +45,17 @@ class JavaClass(object):
         if self.prefix != "" and self.name is None:
             unload = kwargs.get('unload', True)
             command = "send(" + str(self) + ")"
-            return self._process.java.run_script_generic(command, raw=True, unload=unload)[0][0]
+            ret = self._process.java.run_script_generic(command, raw=True, unload=unload)
+
+            #
+            # What to return from this
+            #
+
+            if ret[0] != []:
+                return ret[0][0]
+
+            else:
+                return None
 
         if not self.is_method:
             prefix = str(self) + ".$new(" + ",".join(args) + ")"
@@ -62,3 +72,49 @@ class JavaClass(object):
     def is_method(self):
         """bool: Does this object actually describe a method?"""
         return self.prefix != ""
+
+    @property
+    def implementation(self):
+        """str: Returns the over-written implementation for this method, or None if we have not over-written it.
+        
+        Examples:
+            # Make random always return 5 (hey... it could be random?)
+            process.java.classes['java.lang.Math'].random.implementation = "function (x) { return 5; }"
+            assert process.java.classes['java.lang.Math'].random() == 5
+            # Remove your overwrite so Random returns to normal
+            process.java.classes['java.lang.Math'].random.implementation = None
+        """
+        try:
+            return self._process.java._implementations[str(self)]
+        except KeyError:
+            return None
+
+
+    @implementation.setter
+    def implementation(self, implementation):
+        assert isinstance(implementation, (str, type(None))), "Unhandled implementation type of {}. Must be str type.".format(type(implementation))
+
+        #
+        # Regardless of what we're doing, we need to unimplement first.
+        #
+
+        try:
+            script_stuff = self._process.java._implementations.pop(str(self))
+            script_stuff[1].unload()
+
+        except KeyError:
+            # We didn't have an implementation yet. All good.
+            pass
+
+        # If we're only removing, then we're done here.
+        if implementation is None:
+            return
+
+        #
+        # Add new implementation
+        #
+
+        self._process.java.run_script_generic("{jclass}.implementation = {implementation}".format(jclass=str(self), implementation=implementation), raw=True, unload=False, runtime='v8')
+        
+        # Save it off
+        self._process.java._implementations[str(self)] = [implementation] + self._process._scripts.pop(-1)

@@ -7,6 +7,9 @@ class Java:
     def __init__(self, process):
         """Handles performing Java related activities."""
         self._process = process
+        
+        # Key = Full path to method that was implemented, Value = str that we implemented with.
+        self._implementations = {}
     
     def run_script_generic(self, script_name, raw=False, *args, **kwargs):
         """Run the given Java related Frida calls. Simply wraps them in the perform call...

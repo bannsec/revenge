@@ -50,3 +50,18 @@ def test_send_log():
     log.d("test3", "test4")()
 
     # TODO: Hook this test into a logcat monitor to ensure it gets logged
+
+def test_implementation():
+    calc = android.attach("*calc*", load_symbols=[])
+    calc_classes = calc.java.classes
+    Math = calc_classes['java.lang.Math']
+    assert isinstance(Math.random()(), float)
+
+    Math.random.implementation = "function () { return 123; }"
+    assert Math.random()() == 123
+    assert Math.random()() == 123
+    assert Math.random()() == 123
+    Math.random.implementation = None
+
+    assert Math.random()() != 123
+

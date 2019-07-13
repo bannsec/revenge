@@ -387,6 +387,15 @@ from frida_util import Process, types, common, device_types
 >>> log = p.java.classes['android.util.Log']
 >>> log.w("Hello", "world!")()
 
+# Unrandomize random
+>>> Math = p.java.classes['java.lang.Math']
+>>> Math.random.implementation = "function () { return 12; }"
+>>> Math.random()()
+12
+>>> Math.random.implementation = None
+>>> Math.random()()
+0.8056030012322106
+
 # Run adb command for your connected device
 >>> android.adb("shell ps -ef")
 
