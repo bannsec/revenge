@@ -82,6 +82,10 @@ class AndroidDevice(BaseDevice):
         # Clean up after ourselves
         os.unlink(server_bin)
 
+        # Wait for it to start
+        self._select_device()
+        self._wait_for_frida_server()
+
     def adb(self, command, interactive=False):
         """Helper wrapper to run the command on your instance."""
 
@@ -191,7 +195,7 @@ class AndroidDevice(BaseDevice):
         try:
             self.device.enumerate_applications()
             return True
-        except frida.ServerNotRunningError:
+        except (frida.ServerNotRunningError, frida.InvalidOperationError):
             return False
 
     @property
