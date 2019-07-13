@@ -3,6 +3,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 import os
+from time import sleep
 
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "bins")
@@ -41,6 +42,8 @@ def test_applications():
 
 def test_install_uninstall_application():
     android.install(veryandroidso)
+    # Race condition for install vs run
+    sleep(0.5)
     very = android.applications['*ooo*']
     p = android.spawn(very, gated=False, load_symbols=[])
     android.uninstall(very)

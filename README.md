@@ -383,6 +383,10 @@ from frida_util import Process, types, common, device_types
 >>> # Or...
 >>> p = android.attach("*calc*", load_symbols="*dex")
 
+# Send a log to logcat
+>>> log = p.java.classes['android.util.Log']
+>>> log.w("Hello", "world!")()
+
 # Run adb command for your connected device
 >>> android.adb("shell ps -ef")
 

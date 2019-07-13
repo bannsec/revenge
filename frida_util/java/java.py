@@ -17,7 +17,9 @@ class Java:
         if not raw:
             script = self._process.load_js(script_name)
         else:
-            script = script_name
+            # NOTE: This is meant to transparently convert the java_class and
+            # others into the corresponding code. Do not remove str call!
+            script = str(script_name)
 
         # Wrap up the java call
         script = "Java.perform(function() {" + script + "});"
