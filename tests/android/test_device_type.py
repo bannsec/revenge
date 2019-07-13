@@ -26,6 +26,9 @@ def test_spawn():
     list(p.modules)
     list(p.memory.maps)
 
+    # Spawn with splat
+    p = android.spawn("*calc*", gated=False, load_symbols=[])
+
 def test_attach():
     p = android.attach(android.device.get_frontmost_application(), load_symbols=[])
 

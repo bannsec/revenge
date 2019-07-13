@@ -20,19 +20,16 @@ class Java:
             script = script_name
 
         # Wrap up the java call
-        script = "Java.perform(" + script + ");"
+        script = "Java.perform(function() {" + script + "});"
         
         return self._process.run_script_generic(script, raw=True, *args, **kwargs)
 
     @property
-    def android_version(self):
-        """str: Returns android version (if applicable)."""
-        try:
-            return self.__android_version
-        except AttributeError:
-            self.__android_version = self.run_script_generic("send(Java.androidVersion)", raw=True, unload=True)[0][0]
-            return self.__android_version
+    def classes(self):
+        """JavaClasses: Returns java classes object."""
+        return JavaClasses(self._process)
 
+from .classes import JavaClasses
 from ..process import Process
 
 # Fixup docs

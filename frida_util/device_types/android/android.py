@@ -116,9 +116,10 @@ class AndroidDevice(BaseDevice):
         else:
             self.device.disable_spawn_gating()
 
-        if isinstance(application, frida._frida.Application):
-            application = application.identifier
+        if not isinstance(application, frida._frida.Application):
+            application = self.applications[application]
 
+        application = application.identifier
         pid = self.device.spawn(application)
 
         if not gated:
