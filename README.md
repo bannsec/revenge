@@ -380,6 +380,8 @@ from frida_util import Process, types, common, device_types
 <Process <pre-initialized>:4335>
 >>> calc = android.applications['*calc*']
 >>> p = android.spawn(calc, gated=False, load_symbols="*dex")
+>>> # Or...
+>>> p = android.attach("*calc*", load_symbols="*dex")
 
 # Run adb command for your connected device
 >>> android.adb("shell ps -ef")
