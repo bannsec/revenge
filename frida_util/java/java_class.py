@@ -117,4 +117,4 @@ class JavaClass(object):
         self._process.java.run_script_generic("{jclass}.implementation = {implementation}".format(jclass=str(self), implementation=implementation), raw=True, unload=False, runtime='v8')
         
         # Save it off
-        self._process.java._implementations[str(self)] = [implementation] + self._process._scripts.pop(-1)
+        self._process.java._implementations[str(self)] = [implementation] + self._process._scripts.pop(0)

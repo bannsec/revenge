@@ -45,8 +45,12 @@ class MemoryBytes(object):
 
         return "<{}>".format(' '.join(attrs))
 
-    def __call__(self, *args):
-        """Call this memory location as a function."""
+    def __call__(self, *args, **kwargs):
+        """Call this memory location as a function.
+        
+        *args will be parsed and passed to the actual function
+        **kwargs will be passed to Process.run_script_generic
+        """
 
         # Generically use pointers and figure it out later
 
@@ -87,14 +91,26 @@ class MemoryBytes(object):
                 logger.error("Unexpected argument type of {}".format(type(arg)))
                 return None
 
-        js = """var f = new NativeFunction(ptr("{ptr}"), '{ret_type}', {args_types}); send(f({args}))""".format(
+        js = """var f = new NativeFunction(ptr("{ptr}"), '{ret_type}', {args_types});""".format(
                 ptr = hex(self.address),
                 ret_type = self.return_type.type,
                 args_types = json.dumps(args_types),
-                args = ', '.join(args_resolved)
             )
 
-        ret = self._process.run_script_generic(js, raw=True, unload=True)[0][0]
+        # If we are not passing to a context, then sync send it
+        if kwargs.get("context", None) is None:
+            js += "send(f({args}))".format(args = ', '.join(args_resolved))
+        else:
+            # We're passing to a context, let it handle the message back.
+            js += "f({args})".format(args = ', '.join(args_resolved))
+
+        ret = self._process.run_script_generic(js, raw=True, unload=True, **kwargs)
+
+        # If we changed on_message or context, this might be None. That's ok.
+        if ret is None:
+            ret = 0
+        else:
+            ret = ret[0][0]
 
         # Free stuff up
         for alloc in to_free:

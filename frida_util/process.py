@@ -245,22 +245,32 @@ class Process(object):
 
         return None
 
-    def run_script_generic(self, script_name, raw=False, replace=None, unload=False, runtime='duk', on_message=None, timeout=None):
+    def run_script_generic(self, script_name, raw=False, replace=None,
+            unload=False, runtime='duk', on_message=None, timeout=None,
+            context=None):
         """Run scripts that don't require anything special.
         
         Args:
             script_name (str): What script to load from the js directory
-            raw (bool, optional): Should the script_name actually be considered the script contents?
-            replace (dict, optional): Replace key strings from dictionary with value into script.
-            unload (bool, optional): Auto unload the script. Set to true if the script is fully synchronous.
-            runtime (str, optional): Runtime to use for this script, either 'duk' or 'v8'.
-            on_message(callable, optional): Set the on_message handler to this instead.
+            raw (bool, optional): Should the script_name actually be considered
+                the script contents?
+            replace (dict, optional): Replace key strings from dictionary with
+                value into script.
+            unload (bool, optional): Auto unload the script. Set to true if the
+                script is fully synchronous.
+            runtime (str, optional): Runtime to use for this script, either
+                'duk' or 'v8'.
+            on_message(callable, optional): Set the on_message handler to this
+                instead.
             timeout (int, optional): Modify timeout (default is 60 seconds).
                 Note, this will cause the script to run async. 0 == no timeout
+            context (Context, optional): Execute this script under a given
+                context.
 
         Returns:
             tuple: msg, data return from the script
         """
+
 
         msg = []
         data = []
@@ -296,6 +306,11 @@ class Process(object):
             js = "setTimeout(function() {" + js + "}," + str(timeout) + ")"
             # Forcing unload to false since we don't know if it's done.
             unload = False
+
+        # Let context decide when to run this.
+        if context is not None:
+            # Processing is done, let context know.
+            return context.run_script_generic(script_name)
 
         logger.debug("Running script: %s", js)
 
@@ -520,6 +535,19 @@ class Process(object):
             logger.error(error)
             raise Exception(error)
         """
+    
+    @property
+    def BatchContext(self):
+        """Returns a BatchContext class for this process.
+
+        Example:
+            with process.BatchContext() as context:
+                <stuff>
+
+        BatchContext doc:
+        """
+        return lambda *args, **kwargs: BatchContext(self, *args, **kwargs)
+
 
 from . import common, types, config, device_types
 from .memory import Memory
@@ -527,6 +555,10 @@ from .threads import Threads
 from .tracer import Tracer
 from .modules import Modules
 from .java import Java
+from .contexts import BatchContext
+
+# Doc fixups
+Process.BatchContext.__doc__ += BatchContext.__init__.__doc__
 
 
 def sigint_handler(sig, frame):
