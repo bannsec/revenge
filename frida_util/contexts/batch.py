@@ -27,7 +27,7 @@ function flush () {{
 
 function handler (args) {{
     args['list'].forEach( function (item) {{
-        buffer_return(eval(item));
+        buffer_return([item, eval(item)]);
     }})
     
     // Notify parents context that's we're done.
@@ -50,7 +50,7 @@ class BatchContext(object):
             send_buffer_size (int, optional): How big of a buffer to have
                 before sending. (default: 1024)
             return_buffer_size (int, optional): How big of a buffer to have
-                before returning (default: 128)
+                before returning (default: 128) If -1, do not return anything.
             on_message (callable, optional): Callable to be called when we
                 recieve information back. By default, returned information
                 will be dropped.
@@ -211,6 +211,11 @@ class BatchContext(object):
             print(self._num_pending_complete)
             self._flush_recieve()
             sleep(0.1)
+
+        # TODO: There's a race condition here where the Frida js has finished
+        # processing the things we've sent, but has not finished flushing data
+        # back. Sleeping for now, but find a better way...
+        sleep(0.2)
 
         # Done with this script.
         self._unload_script()

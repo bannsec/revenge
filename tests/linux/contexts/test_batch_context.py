@@ -103,7 +103,7 @@ def test_batch_basic():
     with basic_one.BatchContext(send_buffer_size=1, return_buffer_size=1, on_message=on_message_mirror) as context:
         strlen("Hello world!", context=context)
 
-    assert msg == "0xc"
+    assert msg[1] == "0xc"
     assert context._num_pending_complete == 0
     assert context._script is None
 
