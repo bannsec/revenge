@@ -26,23 +26,58 @@ function flush () {{
 }}
 
 function handler (args) {{
+    {handler_pre}
+
     args['list'].forEach( function (item) {{
         buffer_return([item, eval(item)]);
     }})
+
+    {handler_post}
     
     // Notify parents context that's we're done.
     send({{'handler_completed': args['list'].length}})
-    recv(handler);
+    var recv_list = recv('list', handler);
+    //recv_list.wait()
 }}
 
-recv('list', handler);
-recv('flush', flush);
+function sleep(ms) {{
+    return new Promise(resolve => setTimeout(resolve, ms));
+}}
+
+async function sleep_caller(ms) {{
+    await sleep(60000);
+}}
+
+function generic_handler(args) {{
+    if ( args['type'] == "list" ) {{
+        handler(args);
+    }}
+    else if ( args['type'] == "flush" ) {{
+        flush();
+    }}
+}}
+
+var recv_list = recv('list', handler);
+var recv_flush = recv('flush', flush);
+
+// Setting up blocking recv-loop
+// Blocking is sadly needed due to Java implementation...
+
+/*
+var receiver = recv(generic_handler)
+while ( 1 ) {{
+    receiver.wait()
+    receiver = recv(generic_handler)
+}}
+*/
+
 
 """
 
 class BatchContext(object):
     def __init__(self, process, send_buffer_size=None, return_buffer_size=None,
-            on_message=None):
+            on_message=None, run_script_generic=None, handler_pre=None,
+            handler_post=None):
         """Represents a context used to send many commands to a frida thread.
 
         Args:
@@ -50,10 +85,16 @@ class BatchContext(object):
             send_buffer_size (int, optional): How big of a buffer to have
                 before sending. (default: 1024)
             return_buffer_size (int, optional): How big of a buffer to have
-                before returning (default: 128) If -1, do not return anything.
+                before returning (default: 1024) If -1, do not return anything.
             on_message (callable, optional): Callable to be called when we
                 recieve information back. By default, returned information
                 will be dropped.
+            run_script_generic (callable, optional): Which run_script_generic
+                to use for calling? (default: process.run_script_generic)
+            handler_pre (str, optional): Something to optionally run before
+                iterating over the strings provided.
+            handler_post (str, optional): Something to optionally run after
+                iterating over the strings provided.
 
         Example:
             with process.BatchContext():
@@ -69,9 +110,12 @@ class BatchContext(object):
         # Queue of things to send
         self.queue = []
         self.send_buffer_size = send_buffer_size or 1024
-        self.return_buffer_size = return_buffer_size or 128
+        self.return_buffer_size = return_buffer_size or 1024
         self.on_message = on_message
         self._script = None
+        self._proxy_run_script_generic = run_script_generic or self._process.run_script_generic
+        self._handler_pre = handler_pre or ""
+        self._handler_post = handler_post or ""
 
         # How many things do we think the js side is still chewing on rn?
         self._num_pending_complete = 0
@@ -84,6 +128,9 @@ class BatchContext(object):
         
         This should be called from Process.run_script_generic since that will
         take care of the pre-processing for this.
+
+        IF YOU CALL THIS DIRECTLY, IT'S ON YOU TO MAKE SURE THINGS ARE
+        FORMATTED CORRECTLY! USE Process.run_script_generic INSTEAD!
         """
 
         # Process.run_script_generic gets called with this context
@@ -170,10 +217,12 @@ class BatchContext(object):
         self._unload_script()
 
         script = batch_context_script.format(
-            return_buffer_size=self.return_buffer_size
+            return_buffer_size=self.return_buffer_size,
+            handler_pre=self._handler_pre,
+            handler_post=self._handler_post
         )
         
-        self._process.run_script_generic(
+        self._proxy_run_script_generic(
                 script,
                 raw=True,
                 unload=False,
@@ -208,7 +257,6 @@ class BatchContext(object):
 
         # Spin until frida side is done
         while self._num_pending_complete != 0:
-            print(self._num_pending_complete)
             self._flush_recieve()
             sleep(0.1)
 

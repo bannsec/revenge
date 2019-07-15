@@ -406,4 +406,14 @@ from frida_util import Process, types, common, device_types
 
 # Interact with shell on device
 >>> android.shell()
+
+# Batch Context (for performance/brute forcing)
+>>> def on_message(messages):
+        for item, ret in messages:
+            if ret == 1234:
+                print("Found " + item)
+
+>>> with process.BatchContext(on_message=on_message) as context:
+        for i in range(1024):
+            some_call_here(args)(context=context)
 ```

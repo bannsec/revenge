@@ -16,6 +16,24 @@ class JavaClass(object):
         self.name = name
         self.prefix = prefix or ""
 
+    def _parse_call_args(self, args):
+        """Given args list, standardize it so it's ready for use in a call.
+        
+        Returns:
+            list where each item is ready for inclusion.
+        """
+        ret_list = []
+
+        for arg in args:
+            if type(arg) is str:
+                # Quotes and such
+                ret_list.append(repr(arg))
+            else:
+                # This should work for int/float/etc as well as JavaClass
+                ret_list.append(str(arg))
+
+        return ret_list
+
     def __repr__(self):
         attrs = ["JavaClass"]
 
@@ -37,25 +55,32 @@ class JavaClass(object):
             return self.prefix
 
     def __call__(self, *args, **kwargs):
-        # Need quotes
-        # TODO: This will need to be a method to standardize how we pass things.
-        args = [repr(arg) for arg in args]
+
+        args = self._parse_call_args(args)
 
         # This is an actual call shorthand. We've made the line and want to run it.
         if self.prefix != "" and self.name is None:
             unload = kwargs.get('unload', True)
-            command = "send(" + str(self) + ")"
-            ret = self._process.java.run_script_generic(command, raw=True, unload=unload)
+            context = kwargs.get('context', None)
+
+            # Only send this back directly if we're not using a context
+            if context is None:
+                command = "send(" + str(self) + ")"
+            else:
+                command = str(self)
+
+            ret = self._process.java.run_script_generic(command, raw=True, unload=unload, context=context)
 
             #
             # What to return from this
             #
 
-            if ret[0] != []:
-                return ret[0][0]
+            if ret is None or ret[0] == []:
+                return None
 
             else:
-                return None
+                return ret[0][0]
+
 
         if not self.is_method:
             prefix = str(self) + ".$new(" + ",".join(args) + ")"

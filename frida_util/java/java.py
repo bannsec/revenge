@@ -21,6 +21,8 @@ class Java:
         Calls the Process.run_script_generic as below:
         """
 
+        context = kwargs.get("context", None)
+
         if not raw:
             script = self._process.load_js(script_name)
         else:
@@ -28,14 +30,18 @@ class Java:
             # others into the corresponding code. Do not remove str call!
             script = str(script_name)
 
-        if main_thread:
-            action = "Java.scheduleOnMainThread"
-        else:
-            action = "Java.perform"
+        # If we're outside a context, do the full setup
+        if context is None:
+            if main_thread:
+                action = "Java.scheduleOnMainThread"
+            else:
+                action = "Java.perform"
 
-        # Wrap up the java call
-        script = action + "(function() {" + script + "});"
-        
+            # Wrap up the java call
+            script = action + "(function() {" + script + "});"
+
+        #kwargs['timeout'] = None
+
         return self._process.run_script_generic(script, raw=True, *args, **kwargs)
 
     @property
@@ -43,8 +49,26 @@ class Java:
         """JavaClasses: Returns java classes object."""
         return JavaClasses(self._process)
 
+    @property
+    def BatchContext(self):
+        """Returns a BatchContext class for this jvm.
+
+        Example:
+            with process.java.BatchContext() as context:
+                <stuff>
+
+        BatchContext doc:
+        """
+        return lambda **kwargs: BatchContext(self._process,
+                run_script_generic=self.run_script_generic, 
+                handler_pre = "Java.perform(function () {",
+                handler_post = "});",
+                **kwargs)
+
 from .classes import JavaClasses
 from ..process import Process
+from ..contexts.batch import BatchContext
 
 # Fixup docs
 Java.run_script_generic.__doc__ += Process.run_script_generic.__doc__
+Java.BatchContext.__doc__ += BatchContext.__init__.__doc__
