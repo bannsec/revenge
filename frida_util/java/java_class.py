@@ -60,8 +60,8 @@ class JavaClass(object):
 
         # This is an actual call shorthand. We've made the line and want to run it.
         if self.prefix != "" and self.name is None:
-            unload = kwargs.get('unload', True)
-            context = kwargs.get('context', None)
+            unload = kwargs.pop('unload', True)
+            context = kwargs.pop('context', None)
 
             # Only send this back directly if we're not using a context
             if context is None:
@@ -69,7 +69,7 @@ class JavaClass(object):
             else:
                 command = str(self)
 
-            ret = self._process.java.run_script_generic(command, raw=True, unload=unload, context=context)
+            ret = self._process.java.run_script_generic(command, raw=True, unload=unload, context=context, **kwargs)
 
             #
             # What to return from this

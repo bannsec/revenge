@@ -32,13 +32,14 @@ class Java:
 
         # If we're outside a context, do the full setup
         if context is None:
+            action = "Java.perform( function () {"
+            action_end = "});"
+
             if main_thread:
-                action = "Java.scheduleOnMainThread"
-            else:
-                action = "Java.perform"
+                script = "Java.scheduleOnMainThread( function () { " + script + "});"
 
             # Wrap up the java call
-            script = action + "(function() {" + script + "});"
+            script = "Java.perform( function () {" + script + "});"
 
         #kwargs['timeout'] = None
 
