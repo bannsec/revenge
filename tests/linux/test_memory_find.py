@@ -76,6 +76,7 @@ def test_memory_find_del():
 
     f = process.memory.find(types.Int64(1))
     f.sleep_until_completed()
+    time.sleep(0.1)
     f.__del__()
 
     assert f._script is None
