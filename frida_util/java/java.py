@@ -2,6 +2,8 @@
 import logging
 logger = logging.getLogger(__name__)
 
+import collections
+
 class Java:
 
     def __init__(self, process):
@@ -10,6 +12,9 @@ class Java:
         
         # Key = Full path to method that was implemented, Value = str that we implemented with.
         self._implementations = {}
+
+        # Key: class name, vlaue = list of handles to active objects in memory
+        self._active_handles = collections.defaultdict(lambda: list())
     
     def run_script_generic(self, script_name, raw=False, main_thread=False, *args, **kwargs):
         """Run the given Java related Frida calls. Simply wraps them in the perform call...
@@ -45,6 +50,52 @@ class Java:
 
         return self._process.run_script_generic(script, raw=True, *args, **kwargs)
 
+    def find_active_instance(self, klass, invalidate_cache=False):
+        """Look through memory and finds an active instance of the given klass.
+
+        Args:
+            klass (str, JavaClass): The class we want to find already in memory.
+            invalidate_cache (bool, optional): Throw away any current cache.
+                This should normally not be needed.
+
+        Returns:
+            Returns JavaClass instance with approrpiate handle server. This
+            means you can use the object without instantiating it yourself.
+
+        Example:
+            MainActivity = p.java.find_active_class("ooo.defcon2019.quals.veryandroidoso.MainActivity")
+            MainActivity.parse("test")
+        """
+
+        if isinstance(klass, JavaClass):
+            klass_name = klass.name
+            
+        elif isinstance(klass, str):
+            klass_name = klass
+
+        else:
+            logger.error("Invalid klass type of {}".format(type(klass)))
+            return
+
+        # Build new instance
+        klass = self.classes[klass_name]
+
+        if invalidate_cache:
+            self._active_handles[klass_name] = []
+
+        # Attempt to enumerate active handles if we don't know of any.
+        if self._active_handles[klass_name] == []:
+            self._active_handles[klass_name] = self.run_script_generic("var my_list = []; Java.choose('{}', {{onMatch: function (i) {{my_list.push(i); send(i);}}, onComplete: function () {{send('DONE');}}}})".format(klass_name), raw=True, unload=False,onComplete='DONE')[0]
+
+        # If we can't find any instances
+        # TODO: Clean-up script if we don't find anything..
+        if self._active_handles[klass_name] == []:
+            logger.warn("Couldn't find any active instances of {}!".format(klass_name))
+            return
+
+        klass.handle = common.auto_int(self._active_handles[klass_name][0]['$handle'])
+        return klass
+
     @property
     def classes(self):
         """JavaClasses: Returns java classes object."""
@@ -67,8 +118,10 @@ class Java:
                 **kwargs)
 
 from .classes import JavaClasses
+from .java_class import JavaClass
 from ..process import Process
 from ..contexts.batch import BatchContext
+from .. import common
 
 # Fixup docs
 Java.run_script_generic.__doc__ += Process.run_script_generic.__doc__

@@ -416,4 +416,9 @@ from frida_util import Process, types, common, device_types
 >>> with process.BatchContext(on_message=on_message) as context:
         for i in range(1024):
             some_call_here(args)(context=context)
+
+# Attach to running MainActivity instance and run method
+>>> MainActivity = p.java.classes[<main_activity>]
+>>> MainActivity = p.java.find_active_instance(MainActivity)
+>>> MainActivity.some_method()()
 ```

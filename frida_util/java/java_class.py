@@ -3,7 +3,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class JavaClass(object):
-    def __init__(self, process, name=None, prefix=None):
+    def __init__(self, process, name=None, prefix=None, handle=None):
         """Represents a Java class.
 
         Args:
@@ -11,10 +11,13 @@ class JavaClass(object):
             name (str, optional): Full name for this class.
             prefix (str, optional): What needs to be prefixed on to this object
                 This is generally done automatically.
+            handle (int, optional): Handle to where this class is instantiated
+                in memory. Otherwise, it will be instantiated when used.
         """
         self._process = process
         self.name = name
         self.prefix = prefix or ""
+        self.handle = handle
 
     def _parse_call_args(self, args):
         """Given args list, standardize it so it's ready for use in a call.
@@ -40,6 +43,9 @@ class JavaClass(object):
         if self.name is not None:
             attrs.append(self.name)
 
+        if self.handle is not None:
+            attrs.append("Handle=" + str(self.handle))
+
         return "<" + " ".join(attrs) + ">"
 
     def __str__(self):
@@ -47,7 +53,15 @@ class JavaClass(object):
         # This is a direct class/method
         if self.name is not None:
             if not self.is_method:
-                return "Java.use('" + self.name + "')"
+
+                ret = "Java.use('" + self.name + "')"
+
+                # Are we using an already instantiated instance?
+                if self.handle is not None:
+                    ret = "Java.cast(ptr('{}'), ".format(hex(self.handle)) + ret + ")"
+
+                return ret
+
             else:
                 return self.prefix + "." + self.name
         else:
