@@ -36,3 +36,15 @@ def test_process_arch():
 
     assert basic_one.arch == "x64"
     assert basic_one_ia32.arch == "ia32"
+
+def test_process_run_script_generic_async():
+
+    # Grab some memory area
+    x = list(basic_one.memory.maps)[0]
+
+    # Async mem scan
+    out = basic_one.run_script_generic(r"Memory.scan(ptr('{addr}'), 1024, '00', {{onMatch: function (i, size) {{ send(i); }}, onComplete: function () {{send('DONE');}}}});".format(addr=hex(x.base)), unload=True, raw=True, onComplete="DONE")
+
+    # For now, just make sure we got something back
+    assert out[0][0] != []
+

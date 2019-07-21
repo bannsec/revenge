@@ -247,7 +247,7 @@ class Process(object):
 
     def run_script_generic(self, script_name, raw=False, replace=None,
             unload=False, runtime='duk', on_message=None, timeout=None,
-            context=None):
+            context=None, onComplete=None):
         """Run scripts that don't require anything special.
         
         Args:
@@ -266,6 +266,10 @@ class Process(object):
                 Note, this will cause the script to run async. 0 == no timeout
             context (Context, optional): Execute this script under a given
                 context.
+            onComplete (str, optional): If defined, this method will pause
+                until the given onComplete string is returned. Basically
+                allowing run_script_generic to return all things from an async
+                script.
 
         Returns:
             tuple: msg, data return from the script
@@ -275,6 +279,10 @@ class Process(object):
         msg = []
         data = []
 
+        # HACK: Using list for completed to make passing data back from async
+        # function simpler.
+        completed = [] # For use with async scripts
+
         if not on_message is None and not callable(on_message):
             logger.error('on_message handler must be callable.')
             return None
@@ -283,6 +291,11 @@ class Process(object):
 
             if m['type'] == 'error':
                 logger.error("Script Run Error: " + pprint.pformat(m['description']))
+                return
+            
+            # Async is done
+            if onComplete is not None and m['payload'] == onComplete:
+                completed.append(True)
                 return
 
             logger.debug("on_message: {}".format([m,d]))
@@ -315,14 +328,21 @@ class Process(object):
         logger.debug("Running script: %s", js)
 
         script = self.session.create_script(js, runtime=runtime)
+
         script.on('message', on_message)
         script.load()
+
+        # If we're async, wait until we're done
+        # This needs to happen before unlink so we ensure we get all messages
+        while onComplete is not None and completed == []:
+            time.sleep(0.01)
         
         if unload:
             script.unload()
         else:
             # Inserting instead of appending since earlier scripts need to be unloaded later
             self._scripts.insert(0, [script, js])
+
 
         return msg, data
 
