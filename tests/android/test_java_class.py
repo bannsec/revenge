@@ -12,15 +12,13 @@ from frida_util import Process, types, common, device_types
 android = device_types.AndroidDevice(type="usb")
 android._wait_for_frida_server()
 
-# OOO{fab43416484944beba}
 veryandroidso = os.path.join(bin_location, "ooo.defcon2019.quals.veryandroidoso.apk")
-android.install(veryandroidso)
 
-android.spawn("ooo.defcon2019.quals.veryandroidoso", gated=False, load_symbols=[])
 calc = android.spawn("*calc*", gated=False, load_symbols=[])
 
 def test_find_active_instance():
-    p = android.attach("*ooo*", load_symbols=[])
+    android.install(veryandroidso)
+    p = android.spawn("ooo.defcon2019.quals.veryandroidoso", gated=False, load_symbols=[])
 
     MainActivity = p.java.classes['ooo.defcon2019.quals.veryandroidoso.MainActivity']
 

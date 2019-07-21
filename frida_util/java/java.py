@@ -68,7 +68,7 @@ class Java:
         """
 
         if isinstance(klass, JavaClass):
-            klass_name = klass.name
+            klass_name = klass._name
             
         elif isinstance(klass, str):
             klass_name = klass
@@ -93,7 +93,7 @@ class Java:
             logger.warn("Couldn't find any active instances of {}!".format(klass_name))
             return
 
-        klass.handle = common.auto_int(self._active_handles[klass_name][0]['$handle'])
+        klass._handle = common.auto_int(self._active_handles[klass_name][0]['$handle'])
         return klass
 
     @property

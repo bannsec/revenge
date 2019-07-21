@@ -8,16 +8,16 @@ class JavaClass(object):
 
         Args:
             process (frida_util.Process): Process object
-            name (str, optional): Full name for this class.
+            name (str, optional): Full name for this class, method or field
             prefix (str, optional): What needs to be prefixed on to this object
                 This is generally done automatically.
             handle (int, optional): Handle to where this class is instantiated
                 in memory. Otherwise, it will be instantiated when used.
         """
         self._process = process
-        self.name = name
-        self.prefix = prefix or ""
-        self.handle = handle
+        self._name = name
+        self._prefix = prefix or ""
+        self._handle = handle
 
     def _parse_call_args(self, args):
         """Given args list, standardize it so it's ready for use in a call.
@@ -40,40 +40,40 @@ class JavaClass(object):
     def __repr__(self):
         attrs = ["JavaClass"]
 
-        if self.name is not None:
-            attrs.append(self.name)
+        if self._name is not None:
+            attrs.append(self._name)
 
-        if self.handle is not None:
-            attrs.append("Handle=" + str(self.handle))
+        if self._handle is not None:
+            attrs.append("Handle=" + str(self._handle))
 
         return "<" + " ".join(attrs) + ">"
 
     def __str__(self):
 
         # This is a direct class/method
-        if self.name is not None:
+        if self._name is not None:
             if not self.is_method:
 
-                ret = "Java.use('" + self.name + "')"
+                ret = "Java.use('" + self._name + "')"
 
                 # Are we using an already instantiated instance?
-                if self.handle is not None:
-                    ret = "Java.cast(ptr('{}'), ".format(hex(self.handle)) + ret + ")"
+                if self._handle is not None:
+                    ret = "Java.cast(ptr('{}'), ".format(hex(self._handle)) + ret + ")"
 
                 return ret
 
             else:
-                return self.prefix + "." + self.name
+                return self._prefix + "." + self._name
         else:
             # Name is none, just return prefix. We are probably drilled down.
-            return self.prefix
+            return self._prefix
 
     def __call__(self, *args, **kwargs):
 
         args = self._parse_call_args(args)
 
         # This is an actual call shorthand. We've made the line and want to run it.
-        if self.prefix != "" and self.name is None:
+        if self._prefix != "" and self._name is None:
             unload = kwargs.pop('unload', True)
             context = kwargs.pop('context', None)
 
@@ -110,7 +110,7 @@ class JavaClass(object):
     @property
     def is_method(self):
         """bool: Does this object actually describe a method?"""
-        return self.prefix != ""
+        return self._prefix != ""
 
     @property
     def implementation(self):
