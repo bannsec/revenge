@@ -17,13 +17,15 @@ class JavaClass(object):
             full_description (str, optional): Automatically set full
                 description of this method. Don't manually set.
         """
+
+        self._is_method = None
         self._process = process
         self._name = name
         self._prefix = prefix or ""
         self._handle = handle
         self._full_description = full_description
 
-        if not self.is_method:
+        if not self._is_method:
             self._reflect_methods()
 
     def _reflect_methods(self):
@@ -87,7 +89,7 @@ class JavaClass(object):
 
         # This is a direct class/method
         if self._name is not None:
-            if not self.is_method:
+            if not self._is_method:
 
                 ret = "Java.use('" + self._name + "')"
 
@@ -131,7 +133,7 @@ class JavaClass(object):
                 return ret[0][0]
 
 
-        if not self.is_method:
+        if not self._is_method:
             prefix = str(self) + ".$new(" + ",".join(args) + ")"
         else:
             prefix = str(self) + "(" + ",".join(args) + ")"
@@ -143,9 +145,19 @@ class JavaClass(object):
           return JavaClass(self._process, name=attr, prefix=str(self))
 
     @property
-    def is_method(self):
+    def _is_method(self):
         """bool: Does this object actually describe a method?"""
+        # If we've been explicitly told that this is a method
+        if self.__is_method is not None:
+            return self.__is_method
+
+        # Infer that it is
         return self._prefix != ""
+
+    @_is_method.setter
+    def _is_method(self, is_method):
+        assert isinstance(is_method, (bool, type(None))), "Invalid is_method type of {}".format(type(is_method))
+        self.__is_method = is_method
 
     @property
     def implementation(self):
