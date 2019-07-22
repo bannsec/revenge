@@ -19,6 +19,7 @@ class JavaClass(object):
         """
 
         self._is_method = None
+        self._is_field = None
         self._process = process
         self._name = name
         self._prefix = prefix or ""
@@ -51,6 +52,7 @@ class JavaClass(object):
             # Create method instance
             setattr(self, name, getattr(self, name))
             getattr(self, name)._full_description = full_description
+            getattr(self, name)._is_method = True
             
 
     def _parse_call_args(self, args):
@@ -152,12 +154,26 @@ class JavaClass(object):
             return self.__is_method
 
         # Infer that it is
-        return self._prefix != ""
+        return self._prefix != "" and not self.__is_field
 
     @_is_method.setter
     def _is_method(self, is_method):
         assert isinstance(is_method, (bool, type(None))), "Invalid is_method type of {}".format(type(is_method))
         self.__is_method = is_method
+
+    @property
+    def _is_field(self):
+        """bool: Is this a field?"""
+        if self.__is_field is not None:
+            return self.__is_field
+
+        # Infer it
+        return self._prefix != "" and not self.__is_method
+
+    @_is_field.setter
+    def _is_field(self, is_field):
+        assert isinstance(is_field, (bool, type(None))), "Invalid is_field type of {}".format(type(is_field))
+        self.__is_field = is_field
 
     @property
     def implementation(self):
