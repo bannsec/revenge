@@ -29,7 +29,14 @@ class JavaClass(object):
     def _reflect_methods(self):
         """Reflectively identify methods."""
 
-        methods = self._process.java.run_script_generic("get_declared_methods.js", unload=True, replace={'FULL_CLASS_HERE': self._name})[0]
+        methods = self._process.java._cache_reflected_methods[self._name]
+
+        # If we missed the cache, enumerate it now
+        if methods == []:
+            methods = self._process.java.run_script_generic("get_declared_methods.js", unload=True, replace={'FULL_CLASS_HERE': self._name})[0]
+
+            # Save this off to the cache
+            self._process.java._cache_reflected_methods[self._name] = methods
 
         for method in methods:
             name = method['name']

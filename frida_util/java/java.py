@@ -15,6 +15,9 @@ class Java:
 
         # Key: class name, vlaue = list of handles to active objects in memory
         self._active_handles = collections.defaultdict(lambda: list())
+
+        # Key: Full class name, value = list of dict of reflected info
+        self._cache_reflected_methods = collections.defaultdict(lambda: list())
     
     def run_script_generic(self, script_name, raw=False, main_thread=False, *args, **kwargs):
         """Run the given Java related Frida calls. Simply wraps them in the perform call...
