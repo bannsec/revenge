@@ -77,8 +77,6 @@ class Java:
             logger.error("Invalid klass type of {}".format(type(klass)))
             return
 
-        # Build new instance
-        klass = self.classes[klass_name]
 
         if invalidate_cache:
             self._active_handles[klass_name] = []
@@ -93,7 +91,9 @@ class Java:
             logger.warn("Couldn't find any active instances of {}!".format(klass_name))
             return
 
-        klass._handle = common.auto_int(self._active_handles[klass_name][0]['$handle'])
+        # Build new instance
+        handle = common.auto_int(self._active_handles[klass_name][0]['$handle'])
+        klass = JavaClass(self._process, klass_name, handle=handle)
         return klass
 
     @property

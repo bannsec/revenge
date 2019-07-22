@@ -3,7 +3,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 class JavaClass(object):
-    def __init__(self, process, name=None, prefix=None, handle=None):
+    def __init__(self, process, name=None, prefix=None, handle=None,
+            full_description=None):
         """Represents a Java class.
 
         Args:
@@ -13,11 +14,35 @@ class JavaClass(object):
                 This is generally done automatically.
             handle (int, optional): Handle to where this class is instantiated
                 in memory. Otherwise, it will be instantiated when used.
+            full_description (str, optional): Automatically set full
+                description of this method. Don't manually set.
         """
         self._process = process
         self._name = name
         self._prefix = prefix or ""
         self._handle = handle
+        self._full_description = full_description
+
+        if not self.is_method:
+            self._reflect_methods()
+
+    def _reflect_methods(self):
+        """Reflectively identify methods."""
+
+        methods = self._process.java.run_script_generic("get_declared_methods.js", unload=True, replace={'FULL_CLASS_HERE': self._name})[0]
+
+        for method in methods:
+            name = method['name']
+            full_description = method['full_description']
+
+            # Just skipping unsafe names for now
+            if not JavaClass._is_safe_method_name(name):
+                continue
+
+            # Create method instance
+            setattr(self, name, getattr(self, name))
+            getattr(self, name)._full_description = full_description
+            
 
     def _parse_call_args(self, args):
         """Given args list, standardize it so it's ready for use in a call.
@@ -39,8 +64,11 @@ class JavaClass(object):
 
     def __repr__(self):
         attrs = ["JavaClass"]
+        
+        if self._full_description is not None:
+            attrs.append(self._full_description)
 
-        if self._name is not None:
+        elif self._name is not None:
             attrs.append(self._name)
 
         if self._handle is not None:
@@ -157,3 +185,8 @@ class JavaClass(object):
         
         # Save it off
         self._process.java._implementations[str(self)] = [implementation] + self._process._scripts.pop(0)
+
+    @staticmethod
+    def _is_safe_method_name(name):
+        safe = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_'
+        return all(char in safe for char in name)
