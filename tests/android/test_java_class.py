@@ -32,26 +32,26 @@ def test_reflective_method_and_field_discovery():
         assert hasattr(MainActivity, 'fail')
         assert isinstance(MainActivity.fail, JavaClass)
         assert MainActivity.fail._full_description == 'private void ooo.defcon2019.quals.veryandroidoso.MainActivity.fail()'
-        assert MainActivity.java._is_method
-        assert not MainActivity.java._is_field
+        assert MainActivity.fail._is_method
+        assert not MainActivity.fail._is_field
 
         assert hasattr(MainActivity, 'win')
         assert isinstance(MainActivity.win, JavaClass)
         assert MainActivity.win._full_description == 'private void ooo.defcon2019.quals.veryandroidoso.MainActivity.win()'
-        assert MainActivity.java._is_method
-        assert not MainActivity.java._is_field
+        assert MainActivity.win._is_method
+        assert not MainActivity.win._is_field
 
         assert hasattr(MainActivity, 'onCreate')
         assert isinstance(MainActivity.onCreate, JavaClass)
         assert MainActivity.onCreate._full_description == 'protected void ooo.defcon2019.quals.veryandroidoso.MainActivity.onCreate(android.os.Bundle)'
-        assert MainActivity.java._is_method
-        assert not MainActivity.java._is_field
+        assert MainActivity.onCreate._is_method
+        assert not MainActivity.onCreate._is_field
 
         assert hasattr(MainActivity, 'parse')
         assert isinstance(MainActivity.parse, JavaClass)
         assert MainActivity.parse._full_description == 'private int[] ooo.defcon2019.quals.veryandroidoso.MainActivity.parse(java.lang.String)'
-        assert MainActivity.java._is_method
-        assert not MainActivity.java._is_field
+        assert MainActivity.parse._is_method
+        assert not MainActivity.parse._is_field
 
         # We should have saved this off to the cache
         assert p.java._cache_reflected_methods[MainActivity._name] != []
