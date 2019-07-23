@@ -26,8 +26,38 @@ class JavaClass(object):
         self._handle = handle
         self._full_description = full_description
 
-        if not self._is_method:
+        if not self._is_method and not self._is_field:
             self._reflect_methods()
+            self._reflect_fields()
+
+    def _reflect_fields(self):
+        """Reflectively identify fields."""
+
+        fields = self._process.java._cache_reflected_fields[self._name]
+
+        # If we missed the cache, enumerate it now
+        if fields == []:
+            fields = self._process.java.run_script_generic("get_declared_fields.js", unload=True, replace={'FULL_CLASS_HERE': self._name})[0]
+
+            # Save this off to the cache
+            self._process.java._cache_reflected_fields[self._name] = fields
+
+        for field in fields:
+            name = field['name']
+            full_description = field['full_description']
+            klass = field['class']
+
+            # Just skipping unsafe names for now
+            if not JavaClass._is_safe_method_name(name):
+                continue
+
+            # Create method instance
+            setattr(self, name, getattr(self, name))
+            getattr(self, name)._full_description = full_description
+            getattr(self, name)._is_method = False
+            getattr(self, name)._is_field = True
+            getattr(self, name)._class = klass
+            
 
     def _reflect_methods(self):
         """Reflectively identify methods."""
@@ -53,6 +83,7 @@ class JavaClass(object):
             setattr(self, name, getattr(self, name))
             getattr(self, name)._full_description = full_description
             getattr(self, name)._is_method = True
+            getattr(self, name)._is_field = False
             
 
     def _parse_call_args(self, args):
@@ -91,7 +122,7 @@ class JavaClass(object):
 
         # This is a direct class/method
         if self._name is not None:
-            if not self._is_method:
+            if not self._is_method and not self._is_field:
 
                 ret = "Java.use('" + self._name + "')"
 

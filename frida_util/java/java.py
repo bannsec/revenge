@@ -18,6 +18,7 @@ class Java:
 
         # Key: Full class name, value = list of dict of reflected info
         self._cache_reflected_methods = collections.defaultdict(lambda: list())
+        self._cache_reflected_fields = collections.defaultdict(lambda: list())
     
     def run_script_generic(self, script_name, raw=False, main_thread=False, *args, **kwargs):
         """Run the given Java related Frida calls. Simply wraps them in the perform call...

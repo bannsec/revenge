@@ -53,6 +53,13 @@ def test_reflective_method_and_field_discovery():
         assert MainActivity.parse._is_method
         assert not MainActivity.parse._is_field
 
+        assert hasattr(MainActivity, 'TAG')
+        assert isinstance(MainActivity.TAG, JavaClass)
+        assert MainActivity.TAG._full_description == 'public static final java.lang.String ooo.defcon2019.quals.veryandroidoso.MainActivity.TAG'
+        assert not MainActivity.TAG._is_method
+        assert MainActivity.TAG._is_field
+        assert MainActivity.TAG._class == "class java.lang.String"
+
         # We should have saved this off to the cache
         assert p.java._cache_reflected_methods[MainActivity._name] != []
 
