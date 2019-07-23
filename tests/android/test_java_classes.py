@@ -21,7 +21,7 @@ def test_basic():
 def test_getitem():
     p = android.spawn("*calc*", gated=False, load_symbols=[])
     c = p.java.classes
-    calc = c['*calculator2*']
+    calc = c['*calculator2.Ex*']
     assert calc != []
     for x in calc:
         assert isinstance(x, JavaClass)
