@@ -20,27 +20,31 @@ class JavaClass(object):
 
         self._is_method = None
         self._is_field = None
+        self._class = None
         self._process = process
         self._name = name
         self._prefix = prefix or ""
         self._handle = handle
         self._full_description = full_description
 
-        if not self._is_method and not self._is_field:
-            self._reflect_methods()
-            self._reflect_fields()
-
+        # Assume no prefix means this is the base class
+        if self._prefix == "" and self._name != "":
+            # class in front is needed to separate java class from built-in class
+            self._class = "class " + self._name
+        
     def _reflect_fields(self):
         """Reflectively identify fields."""
+        assert self._class.startswith("class "), "Unexpected Class type {}".format(type(self._class))
+        this_klass = self._class[6:]
 
-        fields = self._process.java._cache_reflected_fields[self._name]
+        fields = self._process.java._cache_reflected_fields[this_klass]
 
         # If we missed the cache, enumerate it now
         if fields == []:
-            fields = self._process.java.run_script_generic("get_declared_fields.js", unload=True, replace={'FULL_CLASS_HERE': self._name})[0]
+            fields = self._process.java.run_script_generic("get_declared_fields.js", unload=True, replace={'FULL_CLASS_HERE': this_klass})[0]
 
             # Save this off to the cache
-            self._process.java._cache_reflected_fields[self._name] = fields
+            self._process.java._cache_reflected_fields[this_klass] = fields
 
         for field in fields:
             name = field['name']
@@ -61,15 +65,17 @@ class JavaClass(object):
 
     def _reflect_methods(self):
         """Reflectively identify methods."""
+        assert self._class.startswith("class "), "Unexpected Class type {}".format(type(self._class))
+        this_klass = self._class[6:]
 
-        methods = self._process.java._cache_reflected_methods[self._name]
+        methods = self._process.java._cache_reflected_methods[this_klass]
 
         # If we missed the cache, enumerate it now
         if methods == []:
-            methods = self._process.java.run_script_generic("get_declared_methods.js", unload=True, replace={'FULL_CLASS_HERE': self._name})[0]
+            methods = self._process.java.run_script_generic("get_declared_methods.js", unload=True, replace={'FULL_CLASS_HERE': this_klass})[0]
 
             # Save this off to the cache
-            self._process.java._cache_reflected_methods[self._name] = methods
+            self._process.java._cache_reflected_methods[this_klass] = methods
 
         for method in methods:
             name = method['name']
@@ -207,6 +213,35 @@ class JavaClass(object):
         self.__is_field = is_field
 
     @property
+    def _class(self):
+        """str: The class type for this object."""
+        return self.__class
+
+    @_class.setter
+    def _class(self, klass):
+        assert isinstance(klass, (type(None), str)), "Invalid _class type of {}".format(type(klass))
+
+        self.__class = klass
+
+        # If we're looking at a full blown java class, populate the methods and fields
+        if isinstance(self.__class, str) and self.__class.startswith("class "):
+
+            # Stop recursion at a given depth...
+            # Problem becomes infinite recursion detection... Bad game.
+            if len(config.recursion) < 3:
+                config.recursion.add(str(self))
+                print(config.recursion)
+
+                self._reflect_methods()
+                self._reflect_fields()
+
+                config.recursion.remove(str(self))
+
+            else:
+                logger.debug("Hit class introspection recursion. Bailing.")
+
+
+    @property
     def implementation(self):
         """str: Returns the over-written implementation for this method, or None if we have not over-written it.
         
@@ -256,3 +291,6 @@ class JavaClass(object):
     def _is_safe_method_name(name):
         safe = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_'
         return all(char in safe for char in name)
+
+
+from .. import config

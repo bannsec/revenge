@@ -59,6 +59,8 @@ def test_reflective_method_and_field_discovery():
         assert not MainActivity.TAG._is_method
         assert MainActivity.TAG._is_field
         assert MainActivity.TAG._class == "class java.lang.String"
+        assert hasattr(MainActivity.TAG, "concat") # Testing some method populations
+        assert hasattr(MainActivity.TAG, "charAt")
 
         # We should have saved this off to the cache
         assert p.java._cache_reflected_methods[MainActivity._name] != []
