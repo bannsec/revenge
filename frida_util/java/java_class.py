@@ -228,9 +228,8 @@ class JavaClass(object):
 
             # Stop recursion at a given depth...
             # Problem becomes infinite recursion detection... Bad game.
-            if len(config.recursion) < 3:
+            if len(config.recursion) < 2:
                 config.recursion.add(str(self))
-                print(config.recursion)
 
                 self._reflect_methods()
                 self._reflect_fields()
