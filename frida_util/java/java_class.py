@@ -3,8 +3,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 class JavaClass(object):
+    _in_init = set()
+
     def __init__(self, process, name=None, prefix=None, handle=None,
-            full_description=None):
+            full_description=None, is_method=None, is_field=None):
         """Represents a Java class.
 
         Args:
@@ -16,10 +18,15 @@ class JavaClass(object):
                 in memory. Otherwise, it will be instantiated when used.
             full_description (str, optional): Automatically set full
                 description of this method. Don't manually set.
+            is_method (bool, optional): Is this a method
+            is_field (bool, optional): Is this a field
         """
 
-        self._is_method = None
-        self._is_field = None
+        JavaClass._in_init.add(id(self))
+
+        self._reflection_done = False
+        self._is_method = is_method
+        self._is_field = is_field
         self._class = None
         self._process = process
         self._name = name
@@ -31,9 +38,29 @@ class JavaClass(object):
         if self._prefix == "" and self._name != "":
             # class in front is needed to separate java class from built-in class
             self._class = "class " + self._name
+
+            # Always reflect fields and methods on base class
+            self._reflect_things()
         
+        JavaClass._in_init.remove(id(self))
+
+    def _reflect_things(self):
+
+        if self._reflection_done:
+            return
+
+        # Methods shouldn't have reflect called on them.
+        if self._is_method:
+            return
+
+        self._reflect_fields()
+        self._reflect_methods()
+
+        self._reflection_done = True
+
     def _reflect_fields(self):
         """Reflectively identify fields."""
+
         assert self._class.startswith("class "), "Unexpected Class type {}".format(type(self._class))
         this_klass = self._class[6:]
 
@@ -56,15 +83,17 @@ class JavaClass(object):
                 continue
 
             # Create method instance
-            setattr(self, name, getattr(self, name))
-            getattr(self, name)._full_description = full_description
-            getattr(self, name)._is_method = False
-            getattr(self, name)._is_field = True
-            getattr(self, name)._class = klass
+            # TODO: Change this to use Class init instead of setting manually
+            new_class = getattr(self, name)
+            new_class._full_description = full_description
+            new_class._is_method = False
+            new_class._is_field = True
+            new_class._class = klass
+            setattr(self, name, new_class)
             
-
     def _reflect_methods(self):
         """Reflectively identify methods."""
+
         assert self._class.startswith("class "), "Unexpected Class type {}".format(type(self._class))
         this_klass = self._class[6:]
 
@@ -86,11 +115,11 @@ class JavaClass(object):
                 continue
 
             # Create method instance
-            setattr(self, name, getattr(self, name))
-            getattr(self, name)._full_description = full_description
-            getattr(self, name)._is_method = True
-            getattr(self, name)._is_field = False
-            
+            # TODO: Change this to use Class init instead of setting manually
+            new_class = JavaClass(self._process, name=name, prefix=str(self),
+                    full_description=full_description, is_method=True,
+                    is_field=False)
+            setattr(self, name, new_class)
 
     def _parse_call_args(self, args):
         """Given args list, standardize it so it's ready for use in a call.
@@ -179,9 +208,25 @@ class JavaClass(object):
 
         return JavaClass(self._process, prefix=prefix)
 
+    def __getattribute__(self, name):
+
+        # Attribute miss will trigger getattr via exception
+        ret = object.__getattribute__(self, name)
+
+        # If this class is initializing, ignore this
+        if id(self) in JavaClass._in_init:
+            return ret
+        
+        # Hold off reflection until the last minute to avoid recurion and 
+        # load costs
+        if isinstance(ret, JavaClass):
+            ret._reflect_things()
+
+        return ret
+
     # Magic wrapper to drill down into methods
     def __getattr__(self, attr):
-          return JavaClass(self._process, name=attr, prefix=str(self))
+        return JavaClass(self._process, name=attr, prefix=str(self))
 
     @property
     def _is_method(self):
@@ -213,6 +258,21 @@ class JavaClass(object):
         self.__is_field = is_field
 
     @property
+    def _is_class(self):
+        """bool: Does this object actually describe a class?"""
+        # If we've been explicitly told that this is a method
+        if self.__is_class is not None:
+            return self.__is_class
+
+        # Infer that it is
+        return self._prefix == ""
+
+    @_is_class.setter
+    def _is_class(self, is_class):
+        assert isinstance(is_class, (bool, type(None))), "Invalid is_class type of {}".format(type(is_class))
+        self.__is_class = is_class
+
+    @property
     def _class(self):
         """str: The class type for this object."""
         return self.__class
@@ -222,23 +282,6 @@ class JavaClass(object):
         assert isinstance(klass, (type(None), str)), "Invalid _class type of {}".format(type(klass))
 
         self.__class = klass
-
-        # If we're looking at a full blown java class, populate the methods and fields
-        if isinstance(self.__class, str) and self.__class.startswith("class "):
-
-            # Stop recursion at a given depth...
-            # Problem becomes infinite recursion detection... Bad game.
-            if len(config.recursion) < 2:
-                config.recursion.add(str(self))
-
-                self._reflect_methods()
-                self._reflect_fields()
-
-                config.recursion.remove(str(self))
-
-            else:
-                logger.debug("Hit class introspection recursion. Bailing.")
-
 
     @property
     def implementation(self):
