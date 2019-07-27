@@ -88,10 +88,9 @@ class JavaClass(object):
 
             # Create method instance
             # TODO: Change this to use Class init instead of setting manually
-            new_class = getattr(self, name)
-            new_class._full_description = full_description
-            new_class._is_method = False
-            new_class._is_field = True
+            new_class = JavaClass(self._process, name=name, prefix=str(self),
+                    full_description=full_description, is_method=False,
+                    is_field=True)
             new_class._class = klass
             setattr(self, name, new_class)
             
