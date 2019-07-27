@@ -65,6 +65,9 @@ def test_reflective_method_and_field_discovery():
         # We should have saved this off to the cache
         assert p.java._cache_reflected_methods[MainActivity._name] != []
 
+    # This isn't a "class " type, but shouldn't fail either
+    assert isinstance(MainActivity.TAG.CASE_INSENSITIVE_ORDER, JavaClass)
+
 def test_find_active_instance():
     android.install(veryandroidso)
     p = android.spawn("ooo.defcon2019.quals.veryandroidoso", gated=False, load_symbols=[])

@@ -53,6 +53,10 @@ class JavaClass(object):
         if self._is_method:
             return
 
+        # Not Java class.
+        if self._class is None or not self._class.startswith("class "):
+            return
+
         self._reflect_fields()
         self._reflect_methods()
 
