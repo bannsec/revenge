@@ -7,7 +7,11 @@ from .x64 import X64Context
 from .x86 import X86Context
 
 def Context(process, *args, **kwargs):
-    """Build context from args."""
+    """Build context from args. Will auto discover context type.
+    
+    Example:
+        context = Context(process, eax=1, ebx=2, ...)
+    """
 
     arch = process.arch
     

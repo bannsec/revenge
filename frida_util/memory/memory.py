@@ -4,6 +4,7 @@ logger = logging.getLogger(__name__)
 
 from prettytable import PrettyTable
 import binascii
+import operator
 import struct
 
 from .. import common
@@ -91,6 +92,24 @@ class Memory(object):
     def find(self, *args, **kwargs):
         """Search for thing in memory. Must be one of the defined types."""
         return MemoryFind(self._process, *args, **kwargs)
+
+    def describe_address(self, address):
+        """Takes in address and attempts to return a better description of what's there."""
+
+        assert isinstance(address, int)
+
+        desc = ""
+        module = self._process.modules[address]
+
+        if module is not None:
+            desc += module.name
+            func_name, func_addr = next((name, addr) for name,addr in sorted(module.symbols.items(), key=operator.itemgetter(1),reverse=True) if address >= addr)
+            desc += ":" + func_name + ":" + hex(address - func_addr)
+
+        else:
+            desc += hex(address)
+
+        return desc
 
     def _type_to_search_string(self, thing):
         """Converts the given object into something relevant that can be fed into a memory search query."""

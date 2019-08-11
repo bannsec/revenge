@@ -96,13 +96,20 @@ class MemoryBytes(object):
                 ret_type = self.return_type.type,
                 args_types = json.dumps(args_types),
             )
-
+        
         # If we are not passing to a context, then sync send it
         if kwargs.get("context", None) is None:
             js += "send(f({args}))".format(args = ', '.join(args_resolved))
         else:
             # We're passing to a context, let it handle the message back.
             js += "f({args})".format(args = ', '.join(args_resolved))
+
+        # Wrap call to watch for native exceptions
+        js = "try { " + js + """} catch (exception) { 
+            send({
+                "exception": exception,
+                "backtrace": Thread.backtrace(exception['memory']['context'])
+            })}"""
 
         ret = self._process.run_script_generic(js, raw=True, unload=True, **kwargs)
 
@@ -120,6 +127,10 @@ class MemoryBytes(object):
                 logger.warn("Not freeing dynamically allocated memory due to use of context. This will cause a memory leak!!")
             else:
                 alloc.free()
+
+        # Handle the case where the process did something bad
+        if isinstance(ret, dict) and "exception" in ret:
+            return NativeException._from_frida_dict(self._process, ret['exception'], ret['backtrace'])
         
         return self.return_type(common.auto_int(ret))
 
@@ -425,3 +436,4 @@ class MemoryBytes(object):
         return AssemblyBlock(self._process, self.address)
 
 from ..tracer.assembly_instruction import AssemblyInstruction, AssemblyBlock
+from ..native_exception import NativeException
