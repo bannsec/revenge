@@ -25,6 +25,8 @@ class NativeBacktrace(object):
 
 class NativeException(object):
 
+    TYPES = ['abort', 'access-violation', 'illegal-instruction']
+
     def __init__(self, context, backtrace=None, type=None,
             memory_operation=None, memory_address=None):
         """Represent a native CPU exception.
@@ -89,16 +91,13 @@ class NativeException(object):
 
     @property
     def type(self):
-        """str: What type of native exception?
-
-        Values: abort. access-violation
-        """
+        """str: What type of native exception? See NativeException.TYPES"""
         return self.__type
 
     @type.setter
     def type(self, type):
         type = type.lower()
-        assert type in ['abort', 'access-violation'], 'Unexpected native exception type of {}'.format(type)
+        assert type in NativeException.TYPES, 'Unexpected native exception type of {}'.format(type)
         self.__type = type
 
     @property
