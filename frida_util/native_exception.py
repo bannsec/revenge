@@ -25,7 +25,7 @@ class NativeBacktrace(object):
 
 class NativeException(object):
 
-    TYPES = ['abort', 'access-violation', 'illegal-instruction']
+    TYPES = ['abort', 'access-violation', 'illegal-instruction', 'arithmetic']
 
     def __init__(self, context, backtrace=None, type=None,
             memory_operation=None, memory_address=None):

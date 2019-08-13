@@ -330,7 +330,13 @@ class Process(object):
         script = self.session.create_script(js, runtime=runtime)
 
         script.on('message', on_message)
-        script.load()
+
+        try:
+            script.load()
+        except:
+            logger.error("Error running script!")
+            script.unload()
+            return
 
         # If we're async, wait until we're done
         # This needs to happen before unlink so we ensure we get all messages
