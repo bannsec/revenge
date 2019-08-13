@@ -113,7 +113,7 @@ class Memory(object):
             except StopIteration:
                 # We did not find a closest function, just offset from module base
                 offset = address - module.base
-            
+
             if offset != 0:
                 desc += "+" + hex(offset)
 

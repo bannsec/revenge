@@ -89,12 +89,16 @@ class NativeException(object):
 
     @property
     def type(self):
-        # access-violation
+        """str: What type of native exception?
+
+        Values: abort. access-violation
+        """
         return self.__type
 
     @type.setter
     def type(self, type):
-        # TODO: Enum this.
+        type = type.lower()
+        assert type in ['abort', 'access-violation'], 'Unexpected native exception type of {}'.format(type)
         self.__type = type
 
     @property

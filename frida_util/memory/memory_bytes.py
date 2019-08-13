@@ -106,9 +106,14 @@ class MemoryBytes(object):
 
         # Wrap call to watch for native exceptions
         js = "try { " + js + """} catch (exception) { 
+            if ( Object.keys(exception).indexOf('memory') == -1 ) {
+                var bt = [];
+            } else {
+                var bt = Thread.backtrace(exception['memory']['context']);
+            }
             send({
                 "exception": exception,
-                "backtrace": Thread.backtrace(exception['memory']['context'])
+                "backtrace": bt,
             })}"""
 
         ret = self._process.run_script_generic(js, raw=True, unload=True, **kwargs)
