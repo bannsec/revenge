@@ -50,6 +50,11 @@ basic_looper_path = os.path.join(bin_location, "basic_looper")
 basic_looper = frida_util.Process(basic_looper_path, resume=False, verbose=False, load_symbols='basic_one')
 
 def test_describe_address():
+
+    #
+    # Have symbols
+    #
+
     p = frida_util.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 
     main_addr = p.modules['basic_one'].symbols['main']
@@ -59,6 +64,15 @@ def test_describe_address():
     func = p.modules['basic_one'].symbols['func']
     assert p.memory.describe_address(func) == 'basic_one:func'
     assert p.memory.describe_address(func + 5) == 'basic_one:func+0x5'
+
+    #
+    # Don't have symbols
+    # 
+
+    p = frida_util.Process(basic_one_path, resume=False, verbose=False, load_symbols=[])
+    
+    assert p.memory.describe_address(p.modules['basic_one'].base) == "basic_one"
+    assert p.memory.describe_address(p.modules['basic_one'].base + 0x123) == "basic_one+0x123"
 
 def test_memory_local_symbol_resolve():
     assert util.memory['basic_one:i8'].address == basic_one_i8_addr

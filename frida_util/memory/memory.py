@@ -103,10 +103,17 @@ class Memory(object):
 
         if module is not None:
             desc += module.name
-            func_name, func_addr = next((name, addr) for name,addr in sorted(module.symbols.items(), key=operator.itemgetter(1),reverse=True) if address >= addr)
-            desc += ":" + func_name
+
+            try:
+                # If we can find a closest function, use that.
+                func_name, func_addr = next((name, addr) for name,addr in sorted(module.symbols.items(), key=operator.itemgetter(1),reverse=True) if address >= addr)
+                desc += ":" + func_name
+                offset = address - func_addr
+
+            except StopIteration:
+                # We did not find a closest function, just offset from module base
+                offset = address - module.base
             
-            offset = address - func_addr
             if offset != 0:
                 desc += "+" + hex(offset)
 
