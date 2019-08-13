@@ -104,7 +104,11 @@ class Memory(object):
         if module is not None:
             desc += module.name
             func_name, func_addr = next((name, addr) for name,addr in sorted(module.symbols.items(), key=operator.itemgetter(1),reverse=True) if address >= addr)
-            desc += ":" + func_name + ":" + hex(address - func_addr)
+            desc += ":" + func_name
+            
+            offset = address - func_addr
+            if offset != 0:
+                desc += "+" + hex(offset)
 
         else:
             desc += hex(address)
