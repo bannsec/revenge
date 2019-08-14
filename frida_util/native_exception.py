@@ -65,8 +65,11 @@ class NativeException(object):
             s += "\n"
 
         s += str(self.context)
-        s += "\n\n"
-        s += str(self._process.memory[self.address].instruction_block)
+        s += "\n"
+
+        # If we can't execute the memory location, don't print it
+        if self.memory_operation != "execute":
+            s += "\n" + str(self._process.memory[self.address].instruction_block)
 
         return s
 

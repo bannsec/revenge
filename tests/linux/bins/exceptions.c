@@ -20,8 +20,14 @@ void do_access_read_violation() {
 }
 
 void do_access_write_violation() {
-    // Attempt to load from memory 0x666
-    __asm ("add %rax, 0x666");
+    // Attempt to write to memory 0x666
+    __asm ("movq %rax, (0x666)");
+}
+
+void do_access_exec_violation() {
+    // Attempt to execute from 0x666
+    __asm ("mov $0x666, %rax;"
+            "jmp %rax");
 }
 
 int do_abort() {
@@ -47,5 +53,4 @@ void do_arithmetic() {
 
 int main() {
     printf("Main");
-
 }
