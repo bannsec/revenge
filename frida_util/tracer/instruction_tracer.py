@@ -126,6 +126,8 @@ class Trace(object):
 
         if self._script is not None:
             # TODO: Why the hell is Frida freezing on attempting to unload the stalker script?
+            # https://github.com/frida/frida/issues/986
+            # v12.6.11 works, but currently anything higher is broken for unfollowing
             self._process.run_script_generic("""Stalker.unfollow({})""".format(self._tid), raw=True, unload=True)
             self._script[0].unload()
             self._process.tracer._active_instruction_traces.pop(self._tid)
