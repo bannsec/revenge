@@ -42,6 +42,10 @@ void do_int3() {
     __asm("int $0x3;");
 }
 
+int do_sigsys() {
+    return raise(SIGSYS);
+}
+
 // TODO: Test this... Right now, frida will hang on catching the exception, then the script will timeout and return
 // The second time it's run, it will come back correctly. Probably a bug...
 // Also, process exit will hang due to some part of this bug.

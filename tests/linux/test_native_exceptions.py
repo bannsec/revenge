@@ -175,3 +175,22 @@ def test_int3():
 
     # If we handled exception correctly, process should still be in good state
     assert not isinstance(do_good, frida_util.native_exception.NativeException)
+
+def test_sigsys():
+
+    do_sigsys = p.memory[p.modules['exceptions'].symbols['do_sigsys']]
+    do_good = p.memory[p.modules['exceptions'].symbols['do_good']] 
+
+    e = do_sigsys()
+    assert isinstance(e, frida_util.native_exception.NativeException)
+    str(e)
+    repr(e)
+    assert e.type == 'system'
+
+    assert 'libc' in p.modules[e.address].name
+    assert p.memory.describe_address(e.address).startswith("libc")
+    assert isinstance(e.backtrace, frida_util.native_exception.NativeBacktrace)
+    assert isinstance(e.context, frida_util.tracer.contexts.x64.X64Context)
+
+    # If we handled exception correctly, process should still be in good state
+    assert not isinstance(do_good, frida_util.native_exception.NativeException)
