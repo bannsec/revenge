@@ -11,6 +11,8 @@ version = '0.6'
 #    long_description = f.read()
 long_description = "See website for more info."
 
+# Frida 12.6.11 -> https://github.com/frida/frida/issues/986
+
 setup(
     name='frida-util',
     version=version,

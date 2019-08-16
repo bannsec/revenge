@@ -422,3 +422,6 @@ from frida_util import Process, types, common, device_types
 >>> MainActivity = p.java.find_active_instance(MainActivity)
 >>> MainActivity.some_method()()
 ```
+
+### Native Exceptions
+Frida-util attempts to handle native exceptions that arise (i.e.: reading memory out of bounds.). If it handles the exception, a `NativeException` object will be returned that will contain pointer to the code, as well as the type of exception that occurred.
