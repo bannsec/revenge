@@ -11,18 +11,21 @@ from time import sleep
 from .. import BaseDevice
 
 class AndroidDevice(BaseDevice):
-    def __init__(self, id=None, type=None):
+    def __init__(self, id=None, type=None, frida_server_release=None):
         """Describes and Android device.
 
         Args:
             id (str, optional): Unique ID for this android device
             type (str, optional): Connection type for this device.
+            frida_server_release (str, optional): Specify a specific version
+                i.e.: 12.6.11 -- default is latest
 
         Examples:
             AndroidDevice(id="emulator-5554")
             AndroidDevice(type="usb")
         """
         self.id = id
+        self._frida_server_release = frida_server_release
         self.type = type.lower()
         self._select_device()
 
@@ -70,7 +73,7 @@ class AndroidDevice(BaseDevice):
         logger.info("Attempting to start up Frida server on device.")
 
         # Download the server
-        server_bin = common.download_frida_server("android", self.arch)
+        server_bin = common.download_frida_server("android", self.arch, release=self._frida_server_release)
 
         print("Pushing frida server ... ", flush=True)
         self.adb("push " + server_bin + " /data/local/tmp/frida-server")

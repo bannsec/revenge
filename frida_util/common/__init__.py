@@ -110,8 +110,14 @@ def load_file_remote(process, file_path):
     else:
         logger.error("No remote file load support yet for: " + process.device_platform)
 
-def download_frida_server(os, arch):
+def download_frida_server(os, arch, release=None):
     """Download frida server of arch to a temporary file. Returns temporary file location.
+
+    Args:
+        os (str): What OS to download, i.e.: ios, android, linux, windows, macos
+        arch (str): What arch to download, i.e.: x86, x86_64, arm, arm64
+        release (str, optional): What release to download (default to latest)
+            Example: 12.6.11
     
     Examples:
         download_frida_server('android', 'x86_64')
@@ -126,7 +132,10 @@ def download_frida_server(os, arch):
     assert os in valid_os, "Invalid OS selected. Must be in: " + str(valid_os)
     assert arch in valid_arch, "Invalid arch selected. Must be in: " + str(valid_arch)
 
-    download_url = "https://github.com/frida/frida/releases/latest"
+    if release is None:
+        download_url = "https://github.com/frida/frida/releases/latest"
+    else:
+        download_url = "https://github.com/frida/frida/releases/tag/" + release
 
     r = requests.get(download_url)
     html = bs4.BeautifulSoup(r.text, features="html.parser")
