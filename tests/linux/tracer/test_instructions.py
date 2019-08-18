@@ -1,6 +1,6 @@
 
 import logging
-logging.basicConfig(level=logging.WARN)
+logging.basicConfig(level=logging.DEBUG)
 
 logger = logging.getLogger(__name__)
 
@@ -362,4 +362,5 @@ def test_basic_one_traceitem():
     repr(t2)
 
     assert isinstance(t2[0], TraceItem)
+
 

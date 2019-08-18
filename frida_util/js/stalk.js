@@ -238,4 +238,14 @@ var module_map = new ModuleMap();
 var tid = THREAD_ID_HERE;
 var include_from = FROM_MODULES_HERE;
 
+rpc.exports = {
+    // Unfollow must be called from the source script doing the stalking. Thus, RPC.
+    unfollow: function () {
+        Stalker.unfollow(tid);
+        Stalker.flush();
+    },
+    // This is automagically called when unloading a script in python
+    dispose: function () { Stalker.unfollow(tid); },
+}
+
 stalker_follow(tid);

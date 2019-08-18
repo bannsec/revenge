@@ -110,12 +110,15 @@ class Process(object):
     def _at_exit(self):
         """Called to clean-up at exit."""
 
-        # Remove breakpoints
-        for addr in copy(self.memory._active_breakpoints):
-            logger.debug("Removing breakpoint: " + hex(addr))
-            self.memory[addr].breakpoint = False
+        # TODO: Remove this once pytest fixes their at_exit issue
+        logging.getLogger().setLevel(logging.WARN)
 
         try:
+
+            # Remove breakpoints
+            for addr in copy(self.memory._active_breakpoints):
+                logger.debug("Removing breakpoint: " + hex(addr))
+                self.memory[addr].breakpoint = False
 
             # Remove function replacements
             for addr in self.memory._active_replacements:
@@ -291,6 +294,7 @@ class Process(object):
 
             if m['type'] == 'error':
                 logger.error("Script Run Error: " + pprint.pformat(m['description']))
+                logger.debug(pprint.pformat(m))
                 return
             
             # Async is done
