@@ -303,7 +303,8 @@ class Process(object):
                 return
 
             logger.debug("on_message: {}".format([m,d]))
-            msg.append(m['payload'])
+
+            msg.append(m['payload'] if 'payload' in m else None)
             data.append(d)
 
         on_message = on_msg if on_message is None else on_message

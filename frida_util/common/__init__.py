@@ -9,6 +9,7 @@ import requests
 import tempfile
 import bs4
 import lzma
+import pprint
 
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -167,4 +168,18 @@ def download_frida_server(os, arch, release=None):
     logger.debug("Server downloaded to: " + file_name)
 
     return file_name
+
+def on_msg_print(m, d, TAG=None):
+    """Generic on message handler to simply print it out."""
+
+    if TAG is None:
+        TAG = ''
+    else:
+        TAG = TAG + ": "
+
+    if m['type'] == 'error':
+        logger.error(TAG + "Script Run Error: " + pprint.pformat(m['description']))
+        logger.debug(pprint.pformat(m))
+        return
     
+    print("on_message: {}".format([m,d]))

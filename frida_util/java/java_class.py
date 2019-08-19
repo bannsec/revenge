@@ -6,7 +6,8 @@ class JavaClass(object):
     _in_init = set()
 
     def __init__(self, process, name=None, prefix=None, handle=None,
-            full_description=None, is_method=None, is_field=None):
+            full_description=None, is_method=None, is_field=None,
+            implementation_message=None):
         """Represents a Java class.
 
         Args:
@@ -20,11 +21,15 @@ class JavaClass(object):
                 description of this method. Don't manually set.
             is_method (bool, optional): Is this a method
             is_field (bool, optional): Is this a field
+            implementation_message (callable, optional): What should get called
+                for any send that happen inside an implementation override?
+                default: just print to the screen
         """
 
         JavaClass._in_init.add(id(self))
 
         self._reflection_done = False
+        self._implementation_message = implementation_message
         self._is_method = is_method
         self._is_field = is_field
         self._class = None
@@ -296,6 +301,9 @@ class JavaClass(object):
             assert process.java.classes['java.lang.Math'].random() == 5
             # Remove your overwrite so Random returns to normal
             process.java.classes['java.lang.Math'].random.implementation = None
+
+            # Remember to call the actual function if you want to keep the functionality
+            process.java.classes['java.lang.Math'].random.implementation = "function (x) { return this.random(x); }"
         """
         try:
             return self._process.java._implementations[str(self)]
@@ -327,10 +335,34 @@ class JavaClass(object):
         # Add new implementation
         #
 
-        self._process.java.run_script_generic("{jclass}.implementation = {implementation}".format(jclass=str(self), implementation=implementation), raw=True, unload=False, runtime='v8')
+        self._process.java.run_script_generic("{jclass}.implementation = {implementation}".format(
+                jclass=str(self),
+                implementation=implementation,
+                ),
+            raw=True,
+            unload=False,
+            runtime='v8',
+            on_message=self._implementation_message,
+            )
         
         # Save it off
         self._process.java._implementations[str(self)] = [implementation] + self._process._scripts.pop(0)
+
+    @property
+    def _implementation_message(self):
+        """callable: Something to get called when 'send' messages are received from implementation."""
+        return self.__implemenetation_message
+
+    @_implementation_message.setter
+    def _implementation_message(self, on_message):
+        assert callable(on_message) or on_message is None, "Implementation message must be a callable!"
+
+        # Default it to printing out the message
+        if on_message is None:
+            on_message = lambda x,y: common.on_msg_print(x,y,str(self))
+
+        self.__implemenetation_message = on_message
+
 
     @staticmethod
     def _is_safe_method_name(name):
@@ -339,3 +371,4 @@ class JavaClass(object):
 
 
 from .. import config
+from .. import common
