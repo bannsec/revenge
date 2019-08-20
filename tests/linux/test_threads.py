@@ -5,7 +5,7 @@ logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
 import os
-import frida_util
+import revenge
 import time
 
 amd64_regs = ['pc', 'sp', 'rax', 'rbx', 'rcx', 'rdx', 'rsp', 'rbp', 'rdi', 'rsi', 'r8', 'r9', 'r10', 'r11', 'r12', 'r13', 'r14', 'r15', 'rip']
@@ -17,11 +17,11 @@ bin_location = os.path.join(here, "bins")
 basic_threads_path = os.path.join(bin_location, "basic_threads")
 basic_threads_after_create = 0x7df
 
-util = frida_util.Process(basic_threads_path, resume=False, verbose=False, load_symbols='basic_threads')
+util = revenge.Process(basic_threads_path, resume=False, verbose=False, load_symbols='basic_threads')
 
 def test_thread_tracing_indicator():
 
-    process = frida_util.Process(basic_threads_path, resume=False, verbose=False, load_symbols='basic_threads')
+    process = revenge.Process(basic_threads_path, resume=False, verbose=False, load_symbols='basic_threads')
     th = list(process.threads)[0]
 
     assert th.trace is None

@@ -5,16 +5,16 @@ logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
 import os
-from frida_util.tracer import contexts
-import frida_util
-types = frida_util.types
+from revenge.tracer import contexts
+import revenge
+types = revenge.types
 
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "bins")
 
 def test_contexts_amd64():
 
-    basic_one = frida_util.Process(os.path.join(bin_location, 'basic_one'), resume=False, verbose=False, load_symbols='basic_one')
+    basic_one = revenge.Process(os.path.join(bin_location, 'basic_one'), resume=False, verbose=False, load_symbols='basic_one')
     t = list(basic_one.threads)[0]
     assert type(t.context) is contexts.X64Context
 
@@ -127,7 +127,7 @@ def test_contexts_amd64():
 
 def test_contexts_x86():
 
-    basic_one = frida_util.Process(os.path.join(bin_location, 'basic_one_ia32'), resume=False, verbose=False, load_symbols='basic_one_ia32')
+    basic_one = revenge.Process(os.path.join(bin_location, 'basic_one_ia32'), resume=False, verbose=False, load_symbols='basic_one_ia32')
     t = list(basic_one.threads)[0]
     assert type(t.context) is contexts.X86Context
 

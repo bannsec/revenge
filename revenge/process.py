@@ -34,7 +34,7 @@ class Process(object):
             verbose (bool, optional): Enable verbose logging
             load_symbols (list, optional): Only load symbols from those modules
                 in the list. Saves some startup time. Can use glob ('libc*')
-            device (frida_util.device_types.*, optional): Define what device
+            device (revenge.device_types.*, optional): Define what device
                 to connect to.
         """
 
@@ -552,7 +552,7 @@ class Process(object):
 
     @device.setter
     def device(self, device):
-        assert isinstance(device, device_types.BaseDevice), "Device must be an instantiation of one of the devices defined in frida_utils.device_types."
+        assert isinstance(device, device_types.BaseDevice), "Device must be an instantiation of one of the devices defined in revenge.device_types."
         self.__device = device
         """
         if isinstance(device, device_types.LocalDevice):

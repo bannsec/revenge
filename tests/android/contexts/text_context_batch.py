@@ -7,7 +7,7 @@ import os
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "bins")
 
-from frida_util import Process, types, common, device_types
+from revenge import Process, types, common, device_types
 
 android = device_types.AndroidDevice(type="usb")
 android._wait_for_frida_server()

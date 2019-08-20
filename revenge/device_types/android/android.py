@@ -112,10 +112,10 @@ class AndroidDevice(BaseDevice):
             gated (bool, optional): If True, pause application immediately on loading
                 This allows hooking prior to program startup.
             load_symbols (list): Only load symbols for the given modules. Same
-                usage as frida_util.Process
+                usage as revenge.Process
 
         Returns:
-            frida_util.Process: Process instantitation for this new process.
+            revenge.Process: Process instantitation for this new process.
         """
         
         if gated:
@@ -141,10 +141,10 @@ class AndroidDevice(BaseDevice):
         Args:
             application (str): Full application name (i.e.: com.android.calculator2) or pid
             load_symbols (list): Only load symbols for the given modules. Same
-                usage as frida_util.Process
+                usage as revenge.Process
 
         Returns:
-            frida_util.Process: Process instantitation for this new process.
+            revenge.Process: Process instantitation for this new process.
         """
         
         if isinstance(application, frida._frida.Application):

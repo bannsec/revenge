@@ -1,5 +1,5 @@
 
-from frida_util import Colorer
+from revenge import Colorer
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -9,9 +9,9 @@ logger = logging.getLogger(__name__)
 import os
 import random
 
-import frida_util
+import revenge
 
-types = frida_util.types
+types = revenge.types
 
 def test_js_attr():
     

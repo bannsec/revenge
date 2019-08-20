@@ -6,13 +6,13 @@ logger = logging.getLogger(__name__)
 
 import os
 import pytest
-import frida_util
-types = frida_util.types
+import revenge
+types = revenge.types
 
 import time
 from copy import copy
 
-from frida_util.tracer.instruction_tracer import TraceItem
+from revenge.tracer.instruction_tracer import TraceItem
 
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "..", "bins")
@@ -33,7 +33,7 @@ trace_items = [item_call, item_ret, item_block, item_compile, item_exec]
 
 def test_basic_one_trace_specify_from_modules():
 
-    basic_one = frida_util.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+    basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
     
     t = basic_one.tracer.instructions(exec=True, from_modules=['basic_one'])
     t2 = list(t)[0]
@@ -63,7 +63,7 @@ def test_basic_one_trace_specify_from_modules():
 
 def test_basic_one_trace_thread_int():
 
-    basic_one = frida_util.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+    basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 
     thread = list(basic_one.threads)[0]
 
@@ -88,7 +88,7 @@ def test_basic_one_trace_thread_int():
 
 def test_basic_one_trace_thread():
 
-    basic_one = frida_util.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+    basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 
     thread = list(basic_one.threads)[0]
 
@@ -112,7 +112,7 @@ def test_basic_one_trace_thread():
 
 def test_basic_one_trace_add_remove():
 
-    basic_one = frida_util.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+    basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
     t = basic_one.tracer.instructions(call=True, ret=True)
     tid = list(t)[0]._tid
 
@@ -132,7 +132,7 @@ def test_basic_one_trace_add_remove():
 
 def test_basic_one_trace_instructions_call_ret():
 
-    basic_one = frida_util.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+    basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
     t = basic_one.tracer.instructions(call=True, ret=True)
     t2 = list(t)[0]
 
@@ -203,7 +203,7 @@ def test_basic_one_trace_instructions_call_ret():
 
 def test_basic_one_trace_instructions_exec():
 
-    basic_one = frida_util.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+    basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
     t = basic_one.tracer.instructions(exec=True)
     t2 = list(t)[0]
 
@@ -288,7 +288,7 @@ def test_basic_one_trace_instructions_exec():
 
 def test_basic_one_trace_instructions_block():
 
-    basic_one = frida_util.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+    basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
     t = basic_one.tracer.instructions(block=True)
     t2 = list(t)[0]
 
@@ -319,7 +319,7 @@ def test_basic_one_trace_instructions_block():
 
 def test_basic_one_traceitem_manual_creation():
 
-    basic_one = frida_util.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+    basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
     module = basic_one.modules['basic_one']
 
     for i in trace_items:
@@ -341,7 +341,7 @@ def test_basic_one_traceitem_manual_creation():
 
 def test_basic_one_traceitem():
 
-    basic_one = frida_util.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+    basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
     module = basic_one.modules['basic_one']
 
     t = basic_one.tracer.instructions()

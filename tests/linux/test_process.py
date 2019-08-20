@@ -5,8 +5,8 @@ logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
 import os
-import frida_util
-types = frida_util.types
+import revenge
+types = revenge.types
 
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "bins")
@@ -27,10 +27,10 @@ basic_one_ui64_addr = 0x201028
 basic_one_string_addr = 0x724
 basic_open_func_addr = 0x64A
 
-basic_one = frida_util.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 
 basic_one_ia32_path = os.path.join(bin_location, "basic_one_ia32")
-basic_one_ia32 = frida_util.Process(basic_one_ia32_path, resume=False, verbose=False, load_symbols='basic_one_ia32')
+basic_one_ia32 = revenge.Process(basic_one_ia32_path, resume=False, verbose=False, load_symbols='basic_one_ia32')
 
 def test_process_arch():
 

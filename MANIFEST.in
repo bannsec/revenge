@@ -1,4 +1,4 @@
-include frida_util/js/*
-include frida_util/common/*
+include revenge/js/*
+include revenge/common/*
 global-exclude *.swp
 global-exclude *.pyc

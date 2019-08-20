@@ -11,11 +11,11 @@ colorama.init()
 from termcolor import cprint, colored
 
 import argparse
-import frida_util
+import revenge
 
-common = frida_util.common
-types = frida_util.types
-Process = frida_util.Process
+common = revenge.common
+types = revenge.types
+Process = revenge.Process
 
 from . import actions
 

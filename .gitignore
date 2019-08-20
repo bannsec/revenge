@@ -1,6 +1,6 @@
 *.swp
 *.pyc
-frida_util.egg-info/
+revenge.egg-info/
 __handlers__
 dist/
 coverage/

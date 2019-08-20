@@ -24,7 +24,7 @@ class ELF(object):
         """Parses the ELF in memory.
 
         Args:
-            process (Process): frida-util Process object
+            process (Process): revenge Process object
             module (Module): Module object to start parsing at
         """
 

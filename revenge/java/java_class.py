@@ -11,7 +11,7 @@ class JavaClass(object):
         """Represents a Java class.
 
         Args:
-            process (frida_util.Process): Process object
+            process (revenge.Process): Process object
             name (str, optional): Full name for this class, method or field
             prefix (str, optional): What needs to be prefixed on to this object
                 This is generally done automatically.

@@ -78,10 +78,10 @@ class BatchContext(object):
     def __init__(self, process, send_buffer_size=None, return_buffer_size=None,
             on_message=None, run_script_generic=None, handler_pre=None,
             handler_post=None):
-        """Represents a context used to send many commands to a frida thread.
+        """Represents a context used to send many commands to a frida script.
 
         Args:
-            process (frida_util.Process): Process this batch is running under.
+            process (revenge.Process): Process this batch is running under.
             send_buffer_size (int, optional): How big of a buffer to have
                 before sending. (default: 1024)
             return_buffer_size (int, optional): How big of a buffer to have

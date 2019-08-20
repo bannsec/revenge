@@ -5,8 +5,8 @@ logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
 import os
-import frida_util
-types = frida_util.types
+import revenge
+types = revenge.types
 
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "..", "bins")
@@ -26,7 +26,7 @@ def test_batch_basic():
         global msg
         msg = messages[0]
 
-    basic_one = frida_util.Process(os.path.join(bin_location, 'basic_one'), resume=False, verbose=False)
+    basic_one = revenge.Process(os.path.join(bin_location, 'basic_one'), resume=False, verbose=False)
 
     #
     # Sending just one

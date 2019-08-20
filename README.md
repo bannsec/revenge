@@ -1,17 +1,17 @@
-[![Build Status](https://travis-ci.org/bannsec/frida-util.svg?branch=master)](https://travis-ci.org/bannsec/frida-util)
-[![PyPI Statistics](https://img.shields.io/pypi/dm/frida-util.svg)](https://pypistats.org/packages/frida-util)
-[![Latest Release](https://img.shields.io/pypi/v/frida-util.svg)](https://pypi.python.org/pypi/frida-util/)
-[![Coverage Status](https://coveralls.io/repos/github/bannsec/frida-util/badge.svg?branch=master)](https://coveralls.io/github/bannsec/frida-util?branch=master)
+[![Build Status](https://travis-ci.org/bannsec/revenge.svg?branch=master)](https://travis-ci.org/bannsec/revenge)
+[![PyPI Statistics](https://img.shields.io/pypi/dm/revenge.svg)](https://pypistats.org/packages/revenge)
+[![Latest Release](https://img.shields.io/pypi/v/revenge.svg)](https://pypi.python.org/pypi/revenge/)
+[![Coverage Status](https://coveralls.io/repos/github/bannsec/revenge/badge.svg?branch=master)](https://coveralls.io/github/bannsec/revenge?branch=master)
 
 # Overview
 This is meant to be a similar functionality to `frida-trace`, but to allow for easier `Stalk` functionality.
 
 # Install
 ```
-pip3 install https://github.com/bannsec/frida-util/archive/master.zip
+pip3 install https://github.com/bannsec/revenge/archive/master.zip
 
 # Or
-pip3 install frida-util
+pip3 install revenge
 ```
 
 # Platforms
@@ -24,10 +24,10 @@ Specifically watching Windows Messages handling
 
 ```bash
 # Automatically discover Windows message handling locations and show event messages as they are handled.
-frida-util -I notepad.exe windows_messages notepad.exe
+revenge -I notepad.exe windows_messages notepad.exe
 
 # Only show information about windows message WM_CHAR and WM_KEYDOWN from notepad.exe
-frida-util -I notepad.exe -rw windows_messages notepad.exe -wm WM_CHAR WM_KEYDOWN
+revenge -I notepad.exe -rw windows_messages notepad.exe -wm WM_CHAR WM_KEYDOWN
 ```
 
 ## Stalking
@@ -35,7 +35,7 @@ Use Frida stalk to trace through things
 
 ```
 # Only look at traces from notepad's Windows Message handler function
-frida-util stalk notepad.exe --include-function notepad.exe:0x3a50 -I notepad.exe
+revenge stalk notepad.exe --include-function notepad.exe:0x3a50 -I notepad.exe
 ```
 
 ## Find
@@ -43,14 +43,14 @@ Find things in memory.
 
 ```
 # Find where your string 'hello world' is in notepad (will check for char and wchar versions)
-frida-util find notepad.exe --string "Hello world"
+revenge find notepad.exe --string "Hello world"
 {'0x55d78c422250': 'StringUTF8', '0x55d78c453820': 'StringUTF8'}
 ```
 
 ## IPython
 Drop into an interactive shell from the command line
 ```
-$ frida-util ipython ls -f /bin/ls
+$ revenge ipython ls -f /bin/ls
 Spawning file                   ... [ DONE ]
 Attaching to the session        ... [ DONE ]
 Enumerating modules             ... [ DONE ]
@@ -59,26 +59,26 @@ Type 'copyright', 'credits' or 'license' for more information
 IPython 7.5.0 -- An enhanced Interactive Python. Type '?' for help.
 
 In [1]: process
-Out[1]: <frida_util.process.Process at 0x7fa036bc14e0>
+Out[1]: <revenge.process.Process at 0x7fa036bc14e0>
 ```
 
 ## General Options
 Replacing functions dynamically during execution
 ```
 # Replace function located at offset 0x64a in a.out binary, returning value 0x123
-frida-util stalk ./a.out --resume -rf "a.out:0x64a?0x123"
+revenge stalk ./a.out --resume -rf "a.out:0x64a?0x123"
 
 # Disable alarm and ptrace functions
-frida-util stalk test2 -f ./test2 --resume -rf ":alarm?1" ":ptrace?1"
+revenge stalk test2 -f ./test2 --resume -rf ":alarm?1" ":ptrace?1"
 ```
 
 ## Python Class Interaction
 ```python
-import frida_util
+import revenge
 
 # Any flag you pass command-line can be passed into the constructor
 # Start up /bin/ls
-process = frida_util.Process("/bin/ls", resume=False, verbose=False)
+process = revenge.Process("/bin/ls", resume=False, verbose=False)
 ```
 
 ### Memory
@@ -328,7 +328,7 @@ ret       libc-2.27.so:0x7f4b704572e7   -> libc-2.27.so:0x7f4b70457489
 Android support is in development. That said, there's some basic support right now. All low-level interactions should be the same as interactions on any other system (see Memory/Threads/etc from above).
 
 ```python
-from frida_util import Process, types, common, device_types
+from revenge import Process, types, common, device_types
 
 # Connect up to the android device (options)
 >>> android = device_types.AndroidDevice(type="usb")
@@ -375,7 +375,7 @@ from frida_util import Process, types, common, device_types
 <clip>
 """
 
-# Launch application and retrieve corresponding frida_util.Process instance
+# Launch application and retrieve corresponding revenge.Process instance
 >>> p = android.spawn("com.android.email", gated=False, load_symbols="*dex")
 <Process <pre-initialized>:4335>
 >>> calc = android.applications['*calc*']

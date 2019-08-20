@@ -7,8 +7,8 @@ RUN dpkg --add-architecture i386 && \
     apt install -y python3 python3-pip python3-venv git libc6:i386 libncurses5:i386 libstdc++6:i386 multiarch-support adb && \
     mkdir -p /opt
 
-COPY . /opt/frida-util/
+COPY . /opt/revenge/
 
-RUN cd /opt/frida-util && pip3 install -e .[dev]
+RUN cd /opt/revenge && pip3 install -e .[dev]
 
-WORKDIR /opt/frida-util
+WORKDIR /opt/revenge

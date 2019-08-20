@@ -6,8 +6,8 @@ logger = logging.getLogger(__name__)
 
 import os
 import pytest
-import frida_util
-types = frida_util.types
+import revenge
+types = revenge.types
 
 import random
 
@@ -19,7 +19,7 @@ bin_location = os.path.join(here, "bins")
 #
 
 basic_one_path = os.path.join(bin_location, "basic_one")
-process = frida_util.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 
 def test_modules_symbols():
 

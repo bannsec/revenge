@@ -11,9 +11,9 @@ import time
 from copy import copy
 import re
 
-import frida_util
-from frida_util.memory import MemoryRange
-types = frida_util.types
+import revenge
+from revenge.memory import MemoryRange
+types = revenge.types
 
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "bins")
@@ -23,7 +23,7 @@ bin_location = os.path.join(here, "bins")
 #
 
 basic_one_path = os.path.join(bin_location, "basic_one")
-util = frida_util.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+util = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 basic_one_module = util.modules['basic_one']
 basic_one_i8_addr = basic_one_module.symbols['i8']
 basic_one_ui8_addr = basic_one_module.symbols['ui8']
@@ -43,11 +43,11 @@ basic_two_i32_addr = 0x201020
 basic_two_f_addr = 0x201010
 basic_two_d_addr = 0x201018
 
-util2 = frida_util.Process(basic_two_path, resume=False, verbose=False, load_symbols=['basic_one'])
+util2 = revenge.Process(basic_two_path, resume=False, verbose=False, load_symbols=['basic_one'])
 
 
 basic_looper_path = os.path.join(bin_location, "basic_looper")
-basic_looper = frida_util.Process(basic_looper_path, resume=False, verbose=False, load_symbols='basic_one')
+basic_looper = revenge.Process(basic_looper_path, resume=False, verbose=False, load_symbols='basic_one')
 
 def test_describe_address():
 
@@ -55,7 +55,7 @@ def test_describe_address():
     # Have symbols
     #
 
-    p = frida_util.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+    p = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 
     main_addr = p.modules['basic_one'].symbols['main']
     assert p.memory.describe_address(main_addr) == 'basic_one:main'
@@ -69,7 +69,7 @@ def test_describe_address():
     # Don't have symbols
     # 
 
-    p = frida_util.Process(basic_one_path, resume=False, verbose=False, load_symbols=[])
+    p = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols=[])
     
     assert p.memory.describe_address(p.modules['basic_one'].base) == "basic_one"
     assert p.memory.describe_address(p.modules['basic_one'].base + 0x123) == "basic_one+0x123"
@@ -153,7 +153,7 @@ def test_memory_call():
 
     abs = util.memory[':abs']
     assert abs(5) == 5
-    assert abs(frida_util.types.Int(-12)) == 12
+    assert abs(revenge.types.Int(-12)) == 12
 
     atof = util.memory[':atof']
     atof.return_type = types.Double

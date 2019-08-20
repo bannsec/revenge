@@ -8,8 +8,8 @@ import os
 import time
 import pytest
 
-import frida_util
-types = frida_util.types
+import revenge
+types = revenge.types
 
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "bins")
@@ -30,7 +30,7 @@ basic_one_ui64_addr = 0x201028
 basic_one_string_addr = 0x724
 basic_open_func_addr = 0x64A
 
-process = frida_util.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 
 def test_memory_find_ranges():
 

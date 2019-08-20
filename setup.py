@@ -5,7 +5,7 @@ from codecs import open
 import os, sys, ast
 
 here = os.path.abspath(os.path.dirname(__file__))
-version = '0.8'
+version = '0.9'
 
 #with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 #    long_description = f.read()
@@ -14,11 +14,11 @@ long_description = "See website for more info."
 # Frida 12.6.11 -> https://github.com/frida/frida/issues/986
 
 setup(
-    name='frida-util',
+    name='revenge',
     version=version,
-    description='Silly python wrapper around Frida.',
+    description='REVerse ENGineering Environment',
     long_description=long_description,
-    url='https://github.com/bannsec/frida-util',
+    url='https://github.com/bannsec/revenge',
     author='Michael Bann',
     author_email='self@bannsecurity.com',
     license='MIT',
@@ -30,7 +30,7 @@ setup(
         'Operating System :: POSIX :: Linux',
         'Environment :: Console'
     ],
-    keywords='frida stalker python3',
+    keywords='frida python3 reversing dbi',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     install_requires=['frida', 'prettytable', 'colorama', 'termcolor', 'psutil', 'pyelftools', 'pefile', 'appdirs', 'bs4', 'requests'],
     extras_require={
@@ -38,7 +38,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'frida-util = frida_util.cli.cli:main',
+            'revenge = revenge.cli.cli:main',
         ],
     },
     include_package_data = True,

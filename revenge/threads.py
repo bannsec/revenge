@@ -103,4 +103,4 @@ class Threads(object):
         threads = self._process.run_script_generic("""send(Process.enumerateThreadsSync());""", raw=True, unload=True)[0][0]
         return [Thread(self._process, thread) for thread in threads]
 
-from frida_util.tracer.contexts import Context
+from .tracer.contexts import Context
