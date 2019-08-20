@@ -4,3 +4,4 @@ revenge.egg-info/
 __handlers__
 dist/
 coverage/
+docs/_build/
