@@ -3,8 +3,10 @@
 [![Latest Release](https://img.shields.io/pypi/v/revenge.svg)](https://pypi.python.org/pypi/revenge/)
 [![Coverage Status](https://coveralls.io/repos/github/bannsec/revenge/badge.svg?branch=master)](https://coveralls.io/github/bannsec/revenge?branch=master)
 
-# Overview
-This is meant to be a similar functionality to `frida-trace`, but to allow for easier `Stalk` functionality.
+# REVerse ENGineering Environment (revenge) Overview
+Attempting to make a centralized binary reverse engineering framework for
+python. Initially, this makes heavy use of `frida` in the backend, but should
+be expandable and has already gone beyond Frida in some ways.
 
 # Install
 ```
