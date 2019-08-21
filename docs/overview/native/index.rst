@@ -11,5 +11,8 @@ threading, and any other things that are going to be common among any platform.
     :caption: Native
     :hidden:
 
-    memory
+    debugging
     functions
+    memory
+    threads
+    tracing
