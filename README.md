@@ -2,6 +2,7 @@
 [![PyPI Statistics](https://img.shields.io/pypi/dm/revenge.svg)](https://pypistats.org/packages/revenge)
 [![Latest Release](https://img.shields.io/pypi/v/revenge.svg)](https://pypi.python.org/pypi/revenge/)
 [![Coverage Status](https://coveralls.io/repos/github/bannsec/revenge/badge.svg?branch=master)](https://coveralls.io/github/bannsec/revenge?branch=master)
+[![Documentation Status](https://readthedocs.org/projects/revenge/badge/?version=latest)](http://revenge.readthedocs.org/en/latest/?badge=latest)
 
 # REVerse ENGineering Environment (revenge)
 Attempting to make a centralized binary reverse engineering framework for
