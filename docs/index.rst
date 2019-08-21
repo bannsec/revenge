@@ -15,6 +15,16 @@ an issue ticket to my `github <https://github.com/bannsec/revenge>`_.
 
 .. toctree::
     :maxdepth: 1
+    :caption: Overview
+    :hidden:
+
+    overview/installation
+    overview/quickstart
+    overview/philosophy
+    overview/native/index
+
+.. toctree::
+    :maxdepth: 1
     :caption: API
     :hidden:
 
@@ -29,5 +39,6 @@ an issue ticket to my `github <https://github.com/bannsec/revenge>`_.
     platform/android/index
     platform/java/index
     platform/linux/index
+    platform/macos/index
     platform/windows/index
 

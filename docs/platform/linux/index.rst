@@ -2,5 +2,6 @@ Linux
 =====
 
 .. toctree::
+    :hidden:
 
     index
