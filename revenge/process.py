@@ -572,10 +572,11 @@ class Process(object):
         """Returns a BatchContext class for this process.
 
         Example:
-            with process.BatchContext() as context:
-                <stuff>
+            .. code-block:: python3
 
-        BatchContext doc:
+                with process.BatchContext() as context:
+                    something(context=contxt)
+
         """
         return lambda *args, **kwargs: BatchContext(self, *args, **kwargs)
 

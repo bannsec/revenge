@@ -1,16 +1,33 @@
 Welcome to revenge's documentation!
 ===================================
+REVerse ENGineering Environment (``revenge``) was created as a python centric
+environment for many things reversing related. The idea is to create a
+cross-platform API to interact with binaries in different ways, simplify
+reverse engineering, and ultimately achieve a goal faster.
+
+For the time being, ``revenge`` heavily relies on ``frida``. On the plus side,
+``frida`` is a nice cross platform DBI (which is why it was the building
+block). It also means that any bugs in ``frida`` will likely affect ``revenge``
+as well.
+
+If you have suggestions for what you would like to see ``revenge`` do, submit
+an issue ticket to my `github <https://github.com/bannsec/revenge>`_.
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+    :maxdepth: 1
+    :caption: API
+    :hidden:
 
-   api/index
+    api/native/index
+    api/java/index
 
+.. toctree::
+    :maxdepth: 1
+    :caption: Platforms
+    :hidden:
 
-Indices and tables
-==================
+    platform/android/index
+    platform/java/index
+    platform/linux/index
+    platform/windows/index
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`

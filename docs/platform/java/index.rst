@@ -1,0 +1,7 @@
+Java
+====
+
+.. toctree::
+    :hidden:
+
+    index
