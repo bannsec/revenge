@@ -1,6 +1,6 @@
-=================
-Native Interation
-=================
+==================
+Native Interaction
+==================
 
 The concept of native interaction are simply those actions that are not
 specific to any platform. This generally entails assembly level, CPU, memory,
