@@ -8,4 +8,6 @@ Native
     devices
     process
     memory
+    threads
+    tracing
     types

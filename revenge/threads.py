@@ -3,6 +3,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from prettytable import PrettyTable
+import typing
 
 from . import common
 
@@ -43,24 +44,29 @@ class Thread(object):
 
 
     @property
-    def id(self):
+    def id(self) -> int:
+        """Thread ID"""
         return self._info['id']
 
     @property
-    def state(self):
+    def state(self) -> str:
+        """Thread state, such as 'waiting', 'suspended'"""
         return self._info['state']
 
     @property
-    def pc(self):
+    def pc(self) -> int:
+        """The current program counter/instruction pointer."""
         return int(self._info['context']['pc'],16)
 
     @property
-    def module(self):
+    def module(self) -> str:
+        """What module is the thread's program counter in? i.e.:
+        libc-2.27.so."""
         return self._process.get_module_by_addr(self.pc) or "Unknown"
     
     @property
     def trace(self):
-        """Trace or None: Returns Trace object if this thread is currently being traced, otherwise None."""
+        """revenge.tracer.instruction_tracer.Trace: Returns Trace object if this thread is currently being traced, otherwise None."""
         if self.id in self._process.tracer._active_instruction_traces:
             return self._process.tracer._active_instruction_traces[self.id]
 
@@ -99,7 +105,8 @@ class Threads(object):
             logger.error("Not sure how to handle this.")
 
     @property
-    def threads(self):
+    def threads(self) -> typing.List[Thread]:
+        """Current snapshop of active threads."""
         threads = self._process.run_script_generic("""send(Process.enumerateThreadsSync());""", raw=True, unload=True)[0][0]
         return [Thread(self._process, thread) for thread in threads]
 
