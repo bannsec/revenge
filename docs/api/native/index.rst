@@ -6,6 +6,7 @@ Native
     :caption: Native
 
     devices
+    exceptions
     process
     memory
     threads

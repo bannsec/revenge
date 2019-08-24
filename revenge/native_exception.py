@@ -4,6 +4,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+import typing
 import frida
 import colorama
 colorama.init()
@@ -95,7 +96,7 @@ class NativeException(object):
 
     @property
     def type(self):
-        """str: What type of native exception? See NativeException.TYPES"""
+        """str: What type of native exception? One of """
         return self.__type
 
     @type.setter
@@ -137,3 +138,5 @@ class NativeException(object):
 
 from .tracer.contexts import Context as CPUContext
 from . import common
+
+NativeException.type.__doc__ += ', '.join(NativeException.TYPES)
