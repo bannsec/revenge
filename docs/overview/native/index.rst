@@ -15,5 +15,6 @@ threading, and any other things that are going to be common among any platform.
     exceptions
     functions
     memory
+    modules
     threads
     tracing

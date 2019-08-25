@@ -34,6 +34,9 @@ Examples
     for thread in threads:
         print(thread)
 
+    # If you know the thread id, you can index to it
+    thread = process.threads[81921]
+
 Tracing
 =======
 

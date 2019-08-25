@@ -9,6 +9,7 @@ Native
     exceptions
     process
     memory
+    modules
     threads
     tracing
     types
