@@ -16,5 +16,6 @@ threading, and any other things that are going to be common among any platform.
     functions
     memory
     modules
+    symbols
     threads
     tracing

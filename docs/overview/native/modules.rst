@@ -47,3 +47,19 @@ glob name, or by giving an address.
     # Or resolve address into corresponding module
     process.modules[0x7f282f7ab123]
     """<Module libc-2.27.so @ 0x7f282f7aa000>"""
+
+Symbols
+=======
+
+Symbols for modules can be resolved and enumerated in a few ways.
+
+Examples
+--------
+
+.. code-block:: python3
+
+    # Grab symbol address for main function in my_bin
+    main = process.modules['a.out'].symbols['main']
+
+    # List all symbols from libc
+    print(process.modules['*libc*'].symbols)
