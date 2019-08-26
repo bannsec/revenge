@@ -97,10 +97,11 @@ class BatchContext(object):
                 iterating over the strings provided.
 
         Example:
-            with process.BatchContext():
-                for i in range(255):
-                    do_something
+            .. code-block:: python3
 
+                with process.BatchContext():
+                    for i in range(255):
+                        do_something
 
         This Context will simply queue up a bunch of strings, which will be fed
         into the thread and executed sequentially.

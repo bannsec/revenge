@@ -469,7 +469,7 @@ class Process(object):
 
     @property
     def file_name(self):
-        """The base file name."""
+        """str: The base file name."""
         # TODO: This assumes the base module is always first...
         if self.__file_name is None:
             self.__file_name = self.run_script_generic("""send(Process.enumerateModulesSync())""", raw=True, unload=True)[0][0][0]['name']
@@ -547,7 +547,7 @@ class Process(object):
 
     @property
     def device(self):
-        """Frida device object for this connection."""
+        """frida.core.Device: Frida device object for this connection."""
         return self.__device
 
     @device.setter
@@ -575,7 +575,7 @@ class Process(object):
             .. code-block:: python3
 
                 with process.BatchContext() as context:
-                    something(context=contxt)
+                    something(context=context)
 
         """
         return lambda *args, **kwargs: BatchContext(self, *args, **kwargs)
