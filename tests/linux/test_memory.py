@@ -49,6 +49,32 @@ util2 = revenge.Process(basic_two_path, resume=False, verbose=False, load_symbol
 basic_looper_path = os.path.join(bin_location, "basic_looper")
 basic_looper = revenge.Process(basic_looper_path, resume=False, verbose=False, load_symbols='basic_one')
 
+def test_replace_with_js():
+    global messages
+    messages = []
+
+    def on_message(x,y):
+        global messages
+        messages.append(x['payload'])
+
+    p = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+
+    strlen = p.memory[':strlen']
+
+    strlen.argument_types = types.Pointer
+    strlen.return_type = types.Int64
+
+    # "original" is helper var that should always be the original function
+    strlen.replace_on_message = on_message
+    strlen.replace = """function (x) { send(x.readUtf8String()); return original(x)-1; }"""
+
+    assert strlen("123456") == 5
+    time.sleep(0.3)
+    assert messages == ["123456"]
+
+    strlen.replace = None
+    assert strlen("123456") == 6
+
 def test_argument_types():
 
     p = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
@@ -127,7 +153,7 @@ def test_memory_bytes_function_replace():
     assert global_var.int64 == 31337
     # Replace with something not supported
     func.replace = lambda x:1
-    assert func.replace == 31337
+    assert func.replace == None
 
     func.replace = None
     assert func.replace is None

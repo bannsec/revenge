@@ -4,7 +4,10 @@
 //var return_value = FUNCTION_RETURN_VALUE;
 var func_ptr = FUNCTION_ADDRESS;
 
-Interceptor.replace(func_ptr, new NativeCallback(FUNCTION_REPLACE, "FUNCTION_RETURN_TYPE", []));
+// Keep copy of original, just in case
+var original = new NativeFunction(func_ptr, "FUNCTION_RETURN_TYPE", FUNCTION_ARG_TYPES);
+
+Interceptor.replace(func_ptr, new NativeCallback(FUNCTION_REPLACE, "FUNCTION_RETURN_TYPE", FUNCTION_ARG_TYPES));
 
 /*
 Interceptor.replace(func_ptr, new NativeCallback(function () {

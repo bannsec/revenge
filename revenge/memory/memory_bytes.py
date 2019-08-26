@@ -146,10 +146,69 @@ class MemoryBytes(object):
             self._process.memory._active_replacements[self.address][1][0].unload()
             self._process.memory._active_replacements.pop(self.address)
 
+    @property
+    def replace_on_message(self):
+        """callable: Optional callable to be called if/when something inside the function replace sends data back."""
+
+        try:
+            return self.__replace_on_message
+        except AttributeError:
+            return None
+
+    @replace_on_message.setter
+    def replace_on_message(self, replace_on_message):
+
+        if replace_on_message is None:
+            self.__replace_on_message = None
+            return
+
+        if not callable(replace_on_message):
+            logger.error("On Message handler must be callable.")
+            return
+
+        self.__replace_on_message = replace_on_message
 
     @property
     def replace(self):
-        """What is this function being replaced by? None if there's no replacement."""
+        """What is this function being replaced by? None if there's no replacement.
+        
+        Examples:
+            
+            Replacing strlen with a function that sends back the argument
+
+            .. code-block:: python3
+
+                strlen = process.memory[':strlen']
+                strlen.return_type = types.Int64
+                strlen.argument_types = types.Pointer
+
+                # If you're not sending messages, you don't need this
+                def on_message(x,y):
+                    print(x,y)
+
+                strlen.replace_on_message = on_message
+
+                # Replacing strlen with some arbitrary js function
+                # "original" is always going to be the function you're replacing
+                # In this case, take response and decrement it by one
+                strlen.replace = "function (s) { send(s); return original(s)-1;}"
+                assert strlen("hello") == 42
+
+                # Remove the replace
+                strlen.replace = None
+                assert strlen("test") == 4
+
+            Replacing alarm to return 1
+
+            .. code-block:: python3
+
+                alarm = process.memory[':alarm']
+                # Replace function by just returning static value
+                alarm.replace = 1
+
+                # Alarm is not set
+                assert alarm(1) == 1
+        """
         try:
             return self._process.memory._active_replacements[self.address][0]
         except:
@@ -158,17 +217,16 @@ class MemoryBytes(object):
     @replace.setter
     def replace(self, replace):
 
+        self._remove_replace()
+
         if replace is None:
-            self._remove_replace()
+            return
 
         #
         # Replace function with simple return value
         #
 
-        elif isinstance(replace, int):
-            self._remove_replace()
-
-            replace_address = self.address.js
+        if isinstance(replace, int):
 
             # If it's not already a defined type
             if type(replace) is int:
@@ -184,8 +242,9 @@ class MemoryBytes(object):
 
             replace_vars = {
                 "FUNCTION_RETURN_TYPE": replace_type,
-                "FUNCTION_ADDRESS": replace_address,
-                "FUNCTION_REPLACE": replace_func
+                "FUNCTION_ADDRESS": self.address.js,
+                "FUNCTION_REPLACE": replace_func,
+                "FUNCTION_ARG_TYPES": str([])
             }
 
             self._process.run_script_generic("replace_function.js", replace=replace_vars, unload=False)
@@ -197,7 +256,26 @@ class MemoryBytes(object):
         #
 
         elif isinstance(replace, str):
-            pass
+
+            # Default return to pointer
+            return_type = self.return_type.type or types.Pointer
+
+            # Default to no argument types
+            arg_types = [x.type for x in self.argument_types] if self.argument_types is not None else []
+            arg_types = str(arg_types)
+
+            replace_vars = {
+                "FUNCTION_RETURN_TYPE": return_type,
+                "FUNCTION_ADDRESS": self.address.js,
+                "FUNCTION_REPLACE": replace,
+                "FUNCTION_ARG_TYPES": arg_types
+            }
+
+            self._process.run_script_generic("replace_function.js",
+                    replace=replace_vars, unload=False,
+                    on_message=self.replace_on_message)
+            script = self._process._scripts.pop(0)
+            self._process.memory._active_replacements[self.address] = (replace, script)
 
         else:
             logger.error("Invalid replacement type of {}".format(type(replace)))
