@@ -2,6 +2,28 @@
 Functions
 =========
 
+Args and Return Types
+=====================
+
+In some cases, ``revenge`` will be able to identify (or guess) correctly the
+arugment types and return types for the function. However, in some cases you
+may need to tell it what to expect.
+
+Examples
+--------
+
+.. code-block:: python3
+
+    atof = process.memory[':atof']
+
+    # Tell revenge what the return type should be
+    atof.return_type = revenge.types.Double
+
+    # Not needed in this case, but you can tell revenge explicitly the
+    # parameter type
+    atof.argument_types = revenge.types.StringUTF8
+
+
 Calling Functions
 =================
 

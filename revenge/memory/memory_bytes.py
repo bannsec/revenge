@@ -180,18 +180,56 @@ class MemoryBytes(object):
                 replace_val = replace.js
                 replace_type = replace.type
 
+            replace_func = """function () {{ return {}; }}""".format(replace_val)
+
             replace_vars = {
-                "FUNCTION_RETURN_VALUE": replace_val,
                 "FUNCTION_RETURN_TYPE": replace_type,
                 "FUNCTION_ADDRESS": replace_address,
+                "FUNCTION_REPLACE": replace_func
             }
 
             self._process.run_script_generic("replace_function.js", replace=replace_vars, unload=False)
             script = self._process._scripts.pop(0)
             self._process.memory._active_replacements[self.address] = (replace, script)
 
+        #
+        # Replace function with js
+        #
+
+        elif isinstance(replace, str):
+            pass
+
         else:
             logger.error("Invalid replacement type of {}".format(type(replace)))
+
+    @property
+    def argument_types(self):
+        """tuple: Returns the registered arguments types for this function or
+        None if none have been found/registered."""
+
+        try:
+            return self.__argument_types
+        except AttributeError:
+            return None
+
+    @argument_types.setter
+    def argument_types(self, arg_types):
+        
+        if arg_types is None:
+            self.__argument_types = None
+            return
+
+        if isinstance(arg_types, list):
+            arg_types = tuple(arg_types)
+
+        if not isinstance(arg_types, tuple):
+            arg_types = (arg_types,)
+
+        if not all(t in types.all_types for t in arg_types):
+            logger.error("All argument types must be valid revenge.type types.")
+            return
+
+        self.__argument_types = arg_types
 
     @property
     def return_type(self):

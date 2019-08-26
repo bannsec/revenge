@@ -49,6 +49,27 @@ util2 = revenge.Process(basic_two_path, resume=False, verbose=False, load_symbol
 basic_looper_path = os.path.join(bin_location, "basic_looper")
 basic_looper = revenge.Process(basic_looper_path, resume=False, verbose=False, load_symbols='basic_one')
 
+def test_argument_types():
+
+    p = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+
+    strlen = p.memory[':strlen']
+
+    assert strlen.argument_types is None
+    
+    # This should produce logger error and not set
+    strlen.argument_types = 12
+    assert strlen.argument_types is None
+
+    strlen.argument_types = types.Int32
+    assert strlen.argument_types == (types.Int32,)
+
+    strlen.argument_types = (types.Int32, types.Double)
+    assert strlen.argument_types == (types.Int32, types.Double)
+
+    strlen.argument_types = [types.Int32, types.Double]
+    assert strlen.argument_types == (types.Int32, types.Double)
+
 def test_describe_address():
 
     #
