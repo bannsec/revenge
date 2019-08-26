@@ -64,8 +64,20 @@ Examples
 Function Hooking
 ================
 
-You can hook and replace functions. For native functions, at the moment, you
-can replace a function with any return value.
+You can hook and replace functions. For native functions, you can either use an
+integer (which simply replaces the entire function and returns that integer
+instead), or a string that contains javascript that will be executed.
+
+For the javascript replace, a special variable is created for you called
+``original``. You can assume this variable will always be there and will always
+be the original function you are replacing. This allows you to call down to the
+original function if needed, either replacing arguments, return types, or
+simply proxying the call.
+
+To get data back from inside your replacement function, you need to define
+replace_on_message. That variable needs to be a callable that takes in at least
+one argument (the return from the script). Otherwise, all return sends will
+simply be ignored.
 
 Examples
 --------
@@ -81,6 +93,10 @@ Examples
 
     # Un-replace alarm, reverting it to normal functionality
     alarm.replace = None
+
+More examples in the code.
+
+:meth:`revenge.memory.MemoryBytes.replace`
 
 Disassembly
 ===========

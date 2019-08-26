@@ -148,7 +148,17 @@ class MemoryBytes(object):
 
     @property
     def replace_on_message(self):
-        """callable: Optional callable to be called if/when something inside the function replace sends data back."""
+        """callable: Optional callable to be called if/when something inside the function replace sends data back.
+        
+        Example:
+            .. code-block:: python3
+
+                # If you just wanted to print out the messages that came back
+                def on_message(x,y):
+                    print(x,y)
+
+                strlen.replace_on_message = on_message
+        """
 
         try:
             return self.__replace_on_message
@@ -192,7 +202,7 @@ class MemoryBytes(object):
                 # "original" is always going to be the function you're replacing
                 # In this case, take response and decrement it by one
                 strlen.replace = "function (s) { send(s); return original(s)-1;}"
-                assert strlen("hello") == 42
+                assert strlen("hello") == 4
 
                 # Remove the replace
                 strlen.replace = None
