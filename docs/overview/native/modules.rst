@@ -63,3 +63,16 @@ Examples
 
     # List all symbols from libc
     print(process.modules['*libc*'].symbols)
+
+File Format Parsing
+===================
+
+Some limited file format parsing is implemented.
+
+Examples
+--------
+
+.. code-block:: python3
+
+    # This elf object parses the elf as loaded in memory
+    elf = process.modules['ls'].elf
