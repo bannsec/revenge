@@ -61,21 +61,26 @@ def test_replace_with_js():
 
     strlen = p.memory[':strlen']
 
-    strlen.argument_types = types.Pointer
-    strlen.return_type = types.Int64
-
     # "original" is helper var that should always be the original function
     strlen.replace = """function (x) { send(x.readUtf8String()); return original(x)-1; }"""
 
     # Adding this after setting replace to test that it updates the replace
+    strlen.argument_types = types.Pointer
+    strlen.return_type = types.Int64
     strlen.replace_on_message = on_message
 
     assert strlen("123456") == 5
     time.sleep(0.3)
     assert messages == ["123456"]
 
-    strlen.replace = None
+    # implementation is just a pass-through
+    assert strlen.replace == strlen.implementation
+
+    strlen.implementation = None
     assert strlen("123456") == 6
+
+    assert strlen.replace == strlen.implementation
+
 
 def test_argument_types():
 

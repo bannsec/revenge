@@ -178,8 +178,7 @@ class MemoryBytes(object):
 
         self.__replace_on_message = replace_on_message
 
-        # This will force reload the modification with the new on_message
-        # handler
+        # force reload the modification with the new on_message handler
         self.replace = self.replace
 
     @property
@@ -295,6 +294,14 @@ class MemoryBytes(object):
             logger.error("Invalid replacement type of {}".format(type(replace)))
 
     @property
+    def implementation(self):
+        return self.replace
+
+    @implementation.setter
+    def implementation(self, implementation):
+        self.replace = implementation
+
+    @property
     def argument_types(self):
         """tuple: Returns the registered arguments types for this function or
         None if none have been found/registered."""
@@ -323,6 +330,9 @@ class MemoryBytes(object):
 
         self.__argument_types = arg_types
 
+        # force reload the modification with the new on_message handler
+        self.replace = self.replace
+
     @property
     def return_type(self):
         """What's the return type for this? Only valid if this is a function."""
@@ -340,6 +350,9 @@ class MemoryBytes(object):
             return
 
         self.__return_type = ret
+
+        # force reload the modification with the new on_message handler
+        self.replace = self.replace
 
     @property
     def int8(self):
@@ -569,6 +582,12 @@ class MemoryBytes(object):
     def instruction_block(self):
         """AssemblyBlock: Returns an AssemblyBlock starting at this instruction."""
         return AssemblyBlock(self._process, self.address)
+
+#
+# Doc Updates
+#
+MemoryBytes.implementation.__doc__ = MemoryBytes.replace.__doc__
+
 
 from ..tracer.assembly_instruction import AssemblyInstruction, AssemblyBlock
 from ..native_exception import NativeException
