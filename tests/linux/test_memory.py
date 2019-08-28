@@ -65,8 +65,10 @@ def test_replace_with_js():
     strlen.return_type = types.Int64
 
     # "original" is helper var that should always be the original function
-    strlen.replace_on_message = on_message
     strlen.replace = """function (x) { send(x.readUtf8String()); return original(x)-1; }"""
+
+    # Adding this after setting replace to test that it updates the replace
+    strlen.replace_on_message = on_message
 
     assert strlen("123456") == 5
     time.sleep(0.3)

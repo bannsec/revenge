@@ -178,6 +178,10 @@ class MemoryBytes(object):
 
         self.__replace_on_message = replace_on_message
 
+        # This will force reload the modification with the new on_message
+        # handler
+        self.replace = self.replace
+
     @property
     def replace(self):
         """What is this function being replaced by? None if there's no replacement.
