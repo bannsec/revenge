@@ -89,7 +89,8 @@ class Threads(object):
         table = PrettyTable(['id', 'state', 'pc', 'module', 'Trace'])
 
         for thread in self:
-            table.add_row([str(thread.id), thread.state, hex(thread.pc), thread.module, 'Yes' if thread.trace is not None else 'No'])
+            table.add_row([str(thread.id), thread.state,
+                self._process.memory.describe_address(thread.pc).split(":")[-1], thread.module, 'Yes' if thread.trace is not None else 'No'])
 
         return str(table)
 
