@@ -198,7 +198,7 @@ class AndroidDevice(BaseDevice):
         try:
             self.device.enumerate_applications()
             return True
-        except (frida.ServerNotRunningError, frida.InvalidOperationError):
+        except (frida.ServerNotRunningError, frida.InvalidOperationError, frida.ProcessNotFoundError, frida.TransportError):
             return False
 
     @property

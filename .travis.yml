@@ -48,22 +48,10 @@ matrix:
               - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
               - sudo apt-get update
               - sudo apt-get -y install docker-ce
-              - export PATH=${ANDROID_HOME}:${ANDROID_HOME}/emulator:${TOOLS}:${TOOLS}/bin:${ANDROID_HOME}/platform-tools:${PATH}
-              - touch /home/travis/.android/repositories.cfg
-              - echo y | sdkmanager --update >/dev/null
-              - echo y | sdkmanager "platform-tools" >/dev/null
-              - echo y | sdkmanager "tools" >/dev/null
-              - echo y | sdkmanager "build-tools;28.0.3" >/dev/null
-              - echo y | sdkmanager "platforms;android-27" >/dev/null
-              - echo y | sdkmanager --channel=4 "emulator" >/dev/null
-              - echo y | sdkmanager "extras;android;m2repository"  >/dev/null
-              - echo y | sdkmanager "system-images;android-27;default;x86_64" >/dev/null
-              - echo no | avdmanager create avd --force --name test --package 'system-images;android-27;default;x86_64'
-              - emulator -avd test -no-window -no-accel -no-snapshot -camera-back none -camera-front none -selinux permissive -verbose -qemu -m 2048 &
-              - android-wait-for-emulator >/dev/null
           install:
               - docker build -t bannsec/revenge -f $DOCKERFILE .
           script:
+              - docker run -dit --rm --network host --privileged bannsec/revenge_testenv_android-27_default_x86_64 /opt/emulator/emulator @test -no-window -no-accel
               - docker run -it --rm --privileged --network host --cap-add ALL -e TRAVIS_BRANCH=$TRAVIS_BRANCH -e COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN bannsec/revenge bash -c 'cd /opt/revenge && ./test_android.sh'
                 #- docker run -it --rm --privileged --network host --cap-add ALL -e TRAVIS_BRANCH=$TRAVIS_BRANCH -e COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN bannsec/revenge bash -c 'cd /opt/revenge && ./test.sh && if [ ! -z "$COVERALLS_REPO_TOKEN" ]; then coveralls; fi'
 env:
