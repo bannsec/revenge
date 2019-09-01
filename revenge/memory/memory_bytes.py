@@ -129,7 +129,7 @@ class MemoryBytes(object):
             # If we dynamically allocated something but we're in a context, we
             # cannot free it yet.  Warn the user.
             if kwargs.get("context", None) is not None:
-                logger.warn("Not freeing dynamically allocated memory due to use of context. This will cause a memory leak!!")
+                logger.warning("Not freeing dynamically allocated memory due to use of context. This will cause a memory leak!!")
             else:
                 alloc.free()
 

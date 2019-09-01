@@ -8,9 +8,7 @@ import operator
 import struct
 from termcolor import cprint, colored
 
-from .. import common
-from .. import types
-
+from .. import common, types, symbols
 
 class Memory(object):
     """Class to simplify getting and writing things to memory. Behaves like a list.
@@ -106,7 +104,10 @@ class Memory(object):
             str: description of the address
         """
 
-        assert isinstance(address, int)
+        if isinstance(address, symbols.Symbol):
+            address = address.address
+
+        assert isinstance(address, int), "Unexpected address type of {}".format(type(address))
 
         desc = ""
         module = self._process.modules[address]
@@ -119,7 +120,8 @@ class Memory(object):
 
             try:
                 # If we can find a closest function, use that.
-                func_name, func_addr = next((name, addr) for name,addr in sorted(module.symbols.items(), key=operator.itemgetter(1),reverse=True) if address >= addr)
+                func_name, func_addr = next((name, addr.address) for name,addr in sorted(module.symbols.items(), key=operator.itemgetter(1),reverse=True) if address >= addr)
+                func_name = str(func_name)
 
                 offset = address - func_addr
 
@@ -201,6 +203,9 @@ class Memory(object):
         if type(item) == str:
             # Assume it's something we need to resolve
             item = self._process._resolve_location_string(item)
+
+        if isinstance(item, symbols.Symbol):
+            item = item.address
 
         if isinstance(item, int):
             return MemoryBytes(self._process, item)

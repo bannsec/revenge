@@ -12,7 +12,7 @@ import json
 from fnmatch import fnmatch
 import pefile
 
-from .. import common, types, config
+from .. import common, types, config, symbols
 
 symbol_cache_path = os.path.join(config.app_dirs.user_cache_dir, 'symbol_cache')
 os.makedirs(symbol_cache_path, exist_ok=True)
@@ -67,7 +67,8 @@ class Module(object):
                     (self.elf is not None and self.elf.type_str == 'DYN'):
                 address = address + self.base
 
-            self._process.modules._symbol_to_address[self.name][sym] = types.Pointer(address)
+            sym = symbols.Symbol(self._process, name=sym, address=address)
+            self._process.modules._symbol_to_address[self.name][sym.name] = sym
             self._process.modules._address_to_symbol[address] = sym
 
         #
@@ -84,8 +85,10 @@ class Module(object):
         if 'plt' in cache:
             for i, sym in enumerate(cache['plt']):
                 addr = self.plt + ((i+1)*0x10)
-                self._process.modules._symbol_to_address[self.name]['plt.' + sym] = types.Pointer(addr)
-                self._process.modules._address_to_symbol[addr] = 'plt.' + sym
+                name = 'plt.' + sym
+                sym = symbols.Symbol(self._process, name=name, address=addr)
+                self._process.modules._symbol_to_address[self.name][name] = sym
+                self._process.modules._address_to_symbol[addr] = sym
 
     def _save_symbols_cache(self, file_io, cache):
         """Saves symbols into cache to be used later.
@@ -202,54 +205,54 @@ class Module(object):
             if self.elf.type_str == 'DYN':
                 address = address + self.base
 
-            self._process.modules._symbol_to_address[self.name][sym.name] = types.Pointer(address)
-            self._process.modules._address_to_symbol[address] = sym.name
             cache['symbols'][sym.name] = rel_address
 
         #
         # Section offsets
         #
 
-        cache['plt_offset'] = e.get_section_by_name('.plt').header.sh_offset
-        self.plt = cache['plt_offset']
+        plt_section = e.get_section_by_name('.plt')
 
-        #
-        # PLT/GOT
-        #
+        if plt_section is not None:
 
-        rels = []
+            cache['plt_offset'] = plt_section.header.sh_offset
+            self.plt = cache['plt_offset']
 
-        try:
-            rels.append(e.get_section_by_name('.rela.plt').iter_relocations())
-        except AttributeError:
-            pass
+            #
+            # PLT/GOT
+            #
 
-        try:
-            rels.append(e.get_section_by_name('.rel.plt').iter_relocations())
-        except AttributeError:
-            pass
-        
-        i = 1
-        for s in itertools.chain(*rels):
-            sym_name = dynsym.get_symbol(s.entry.r_info_sym).name
-            got_offset = s.entry.r_offset
+            rels = []
 
-            self._process.modules._symbol_to_address[self.name]['plt.' + sym_name] = self.plt + (0x10*i)
-            self._process.modules._address_to_symbol[self.plt + (0x10*i)] = 'plt.' + sym_name
+            try:
+                rels.append(e.get_section_by_name('.rela.plt').iter_relocations())
+            except AttributeError:
+                pass
 
-            if self.elf.type_str == 'DYN':
-                got = self.base + got_offset
-            else:
-                got = got_offset
+            try:
+                rels.append(e.get_section_by_name('.rel.plt').iter_relocations())
+            except AttributeError:
+                pass
+            
+            i = 1
+            for s in itertools.chain(*rels):
+                sym_name = dynsym.get_symbol(s.entry.r_info_sym).name
+                got_offset = s.entry.r_offset
 
-            self._process.modules._symbol_to_address[self.name]['got.' + sym_name] = got
-            self._process.modules._address_to_symbol[got] = 'got.' + sym_name
+                if self.elf.type_str == 'DYN':
+                    got = self.base + got_offset
+                else:
+                    got = got_offset
 
-            cache['plt'].append(sym_name)
-            cache['symbols']['got.' + sym_name] = got_offset
-            i += 1
+                cache['plt'].append(sym_name)
+                cache['symbols']['got.' + sym_name] = got_offset
+                i += 1
+
+        else:
+            logger.warning("Could not find PLT for ELF '{}'".format(self.name))
 
         self._save_symbols_cache(elf_io, cache)
+        self._load_symbols_cache(cache)
 
         cprint("[ DONE ]", "green")
 

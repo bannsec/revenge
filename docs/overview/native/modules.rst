@@ -68,7 +68,10 @@ Examples
     process.modules['a.out']['got.printf']
 
     # Grab the PLT entry for printf
-    process.modules['a.out']['plt.printf']
+    printf_plt = process.modules['a.out']['plt.printf']
+
+    # Use symbol to get memory
+    mem = process.memory[printf_plt]
 
 
 File Format Parsing

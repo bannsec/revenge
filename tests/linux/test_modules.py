@@ -70,48 +70,6 @@ def test_plt():
     assert 'printf' in basic_one_ia32_nopie.memory.describe_address(basic_one_mod.symbols['got.printf'])
     assert 'printf' in basic_one_ia32_nopie.memory.describe_address(basic_one_ia32_nopie.memory[basic_one_mod.symbols['got.printf']].pointer)
 
-    #
-    # Symbols from cache
-    # 
-
-    process_2 = revenge.Process(basic_one_path, resume=False, verbose=False)
-    basic_one_64_nopie_2 = revenge.Process(basic_one_64_nopie_path, resume=False)
-    basic_one_ia32_2 = revenge.Process(basic_one_ia32_path, resume=False)
-    basic_one_ia32_nopie_2 = revenge.Process(basic_one_ia32_nopie_path, resume=False)
-
-    basic_one_mod = process_2.modules['basic_one']
-    assert basic_one_mod.plt & 0xfff == 0x510
-    printf = process_2.memory[basic_one_mod.symbols['plt.printf']]
-    assert printf("123456") == 6
-    assert 'printf' in process_2.memory.describe_address(basic_one_mod.symbols['plt.printf'])
-    assert 'printf' in process_2.memory.describe_address(basic_one_mod.symbols['got.printf'])
-    assert 'printf' in process_2.memory.describe_address(process_2.memory[basic_one_mod.symbols['got.printf']].pointer)
-
-    basic_one_mod = basic_one_64_nopie_2.modules['basic_one*']
-    assert basic_one_mod.plt == 0x4003e0
-    printf = basic_one_64_nopie_2.memory[basic_one_mod.symbols['plt.printf']]
-    assert printf("123456") == 6
-    assert 'printf' in basic_one_64_nopie_2.memory.describe_address(basic_one_mod.symbols['plt.printf'])
-    assert 'printf' in basic_one_64_nopie_2.memory.describe_address(basic_one_mod.symbols['got.printf'])
-    assert 'printf' in basic_one_64_nopie_2.memory.describe_address(basic_one_64_nopie_2.memory[basic_one_mod.symbols['got.printf']].pointer)
-
-    basic_one_mod = basic_one_ia32_2.modules['basic_one*']
-    assert basic_one_mod.plt & 0xfff == 0x3a0
-    printf = basic_one_ia32_2.memory[basic_one_mod.symbols['plt.printf']]
-    # This uses thunks... No easy way of testing call through plt rn..
-    #assert printf("123456") == 6
-    assert 'printf' in basic_one_ia32_2.memory.describe_address(basic_one_mod.symbols['plt.printf'])
-    assert 'printf' in basic_one_ia32_2.memory.describe_address(basic_one_mod.symbols['got.printf'])
-    assert 'printf' in basic_one_ia32_2.memory.describe_address(basic_one_ia32_2.memory[basic_one_mod.symbols['got.printf']].pointer)
-
-    basic_one_mod = basic_one_ia32_nopie_2.modules['basic_one*']
-    assert basic_one_mod.plt == 0x80482d0
-    printf = basic_one_ia32_nopie_2.memory[basic_one_mod.symbols['plt.printf']]
-    assert printf("123456") == 6
-    assert 'printf' in basic_one_ia32_nopie_2.memory.describe_address(basic_one_mod.symbols['plt.printf'])
-    assert 'printf' in basic_one_ia32_nopie_2.memory.describe_address(basic_one_mod.symbols['got.printf'])
-    assert 'printf' in basic_one_ia32_nopie_2.memory.describe_address(basic_one_ia32_nopie_2.memory[basic_one_mod.symbols['got.printf']].pointer)
-
 def test_modules_symbols():
 
     basic_one_mod = process.modules['basic_one']
@@ -124,7 +82,7 @@ def test_modules_symbols():
     assert basic_one_mod.symbols['ui32'] - basic_one_mod.base == 0x20101C
     assert basic_one_mod.symbols['i64'] - basic_one_mod.base == 0x201020
     assert basic_one_mod.symbols['ui64'] - basic_one_mod.base == 0x201028
-    assert isinstance(basic_one_mod.symbols['ui64'], types.Pointer)
+    assert isinstance(basic_one_mod.symbols['ui64'].address, types.Pointer)
 
 
 def test_modules_by_int():

@@ -92,7 +92,7 @@ class AssemblyInstruction(object):
         for thing in things:
             sym = self._process.modules.lookup_symbol(int(thing,16))
             if sym is not None:
-                s = s.replace(thing, sym)
+                s = s.replace(thing, str(sym))
 
         return s
 

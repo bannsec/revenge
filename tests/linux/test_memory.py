@@ -25,16 +25,16 @@ bin_location = os.path.join(here, "bins")
 basic_one_path = os.path.join(bin_location, "basic_one")
 util = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 basic_one_module = util.modules['basic_one']
-basic_one_i8_addr = basic_one_module.symbols['i8']
-basic_one_ui8_addr = basic_one_module.symbols['ui8']
-basic_one_i16_addr = basic_one_module.symbols['i16']
-basic_one_ui16_addr = basic_one_module.symbols['ui16']
-basic_one_i32_addr = basic_one_module.symbols['i32']
-basic_one_ui32_addr = basic_one_module.symbols['ui32']
-basic_one_i64_addr = basic_one_module.symbols['i64']
-basic_one_ui64_addr = basic_one_module.symbols['ui64']
+basic_one_i8_addr = basic_one_module.symbols['i8'].address
+basic_one_ui8_addr = basic_one_module.symbols['ui8'].address
+basic_one_i16_addr = basic_one_module.symbols['i16'].address
+basic_one_ui16_addr = basic_one_module.symbols['ui16'].address
+basic_one_i32_addr = basic_one_module.symbols['i32'].address
+basic_one_ui32_addr = basic_one_module.symbols['ui32'].address
+basic_one_i64_addr = basic_one_module.symbols['i64'].address
+basic_one_ui64_addr = basic_one_module.symbols['ui64'].address
 basic_one_string_addr = 0x724
-basic_open_func_addr = basic_one_module.symbols['func']
+basic_open_func_addr = basic_one_module.symbols['func'].address
 
 
 basic_two_path = os.path.join(bin_location, "basic_two")
