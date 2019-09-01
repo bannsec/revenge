@@ -121,12 +121,16 @@ class Memory(object):
                 # If we can find a closest function, use that.
                 func_name, func_addr = next((name, addr) for name,addr in sorted(module.symbols.items(), key=operator.itemgetter(1),reverse=True) if address >= addr)
 
+                offset = address - func_addr
+
+                # This is probably not really the function
+                if func_name.startswith('plt.') and offset >= 0x10:
+                    raise StopIteration
+
                 if color:
                     desc += ":" + colored(func_name, "magenta", attrs=["bold"])
                 else:
                     desc += ":" + func_name
-
-                offset = address - func_addr
 
             except StopIteration:
                 # We did not find a closest function, just offset from module base

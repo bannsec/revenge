@@ -64,6 +64,13 @@ Examples
     # List all symbols from libc
     print(process.modules['*libc*'].symbols)
 
+    # Grab the GOT entry for printf
+    process.modules['a.out']['got.printf']
+
+    # Grab the PLT entry for printf
+    process.modules['a.out']['plt.printf']
+
+
 File Format Parsing
 ===================
 

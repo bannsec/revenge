@@ -77,6 +77,15 @@ class Module(object):
         if 'plt_offset' in cache:
             self.plt = cache['plt_offset']
 
+        #
+        # PLT
+        #
+
+        if 'plt' in cache:
+            for i, sym in enumerate(cache['plt']):
+                addr = self.plt + ((i+1)*0x10)
+                self._process.modules._symbol_to_address[self.name]['plt.' + sym] = types.Pointer(addr)
+                self._process.modules._address_to_symbol[addr] = 'plt.' + sym
 
     def _save_symbols_cache(self, file_io, cache):
         """Saves symbols into cache to be used later.
@@ -166,7 +175,10 @@ class Module(object):
         dynsym = e.get_section_by_name('.dynsym')
 
         symbols = []
-        cache = {'symbols': {}}
+        cache = {
+                'symbols': {},
+                'plt': [],
+                }
 
         #
         # Static Symbols
@@ -200,6 +212,42 @@ class Module(object):
 
         cache['plt_offset'] = e.get_section_by_name('.plt').header.sh_offset
         self.plt = cache['plt_offset']
+
+        #
+        # PLT/GOT
+        #
+
+        rels = []
+
+        try:
+            rels.append(e.get_section_by_name('.rela.plt').iter_relocations())
+        except AttributeError:
+            pass
+
+        try:
+            rels.append(e.get_section_by_name('.rel.plt').iter_relocations())
+        except AttributeError:
+            pass
+        
+        i = 1
+        for s in itertools.chain(*rels):
+            sym_name = dynsym.get_symbol(s.entry.r_info_sym).name
+            got_offset = s.entry.r_offset
+
+            self._process.modules._symbol_to_address[self.name]['plt.' + sym_name] = self.plt + (0x10*i)
+            self._process.modules._address_to_symbol[self.plt + (0x10*i)] = 'plt.' + sym_name
+
+            if self.elf.type_str == 'DYN':
+                got = self.base + got_offset
+            else:
+                got = got_offset
+
+            self._process.modules._symbol_to_address[self.name]['got.' + sym_name] = got
+            self._process.modules._address_to_symbol[got] = 'got.' + sym_name
+
+            cache['plt'].append(sym_name)
+            cache['symbols']['got.' + sym_name] = got_offset
+            i += 1
 
         self._save_symbols_cache(elf_io, cache)
 
