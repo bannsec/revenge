@@ -152,10 +152,19 @@ class Trace(object):
         table.header = False
         table.align = 'l'
 
-        #return '\n'.join(str(i) for i in self)
+        depth = 0
 
         for i in self:
+            # Implicitly assign depths
+            if i.depth is None:
+                i.depth = depth
+            
             i._str_add_table_row(table)
+
+            if i.type == 'call':
+                depth = i.depth + 1
+            elif i.type == 'ret':
+                depth = i.depth - 1
 
         return str(table)
 
