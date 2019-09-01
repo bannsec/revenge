@@ -38,7 +38,7 @@ def test_basic_one_trace_slice():
     t = basic_one.tracer.instructions(call=True, ret=True, exec=True, from_modules=['basic_one'])
     t2 = list(t)[0]
     
-    basic_one.memory[basic_one.entrypoint_rebased].breakpoint = False
+    basic_one.memory[basic_one.entrypoint].breakpoint = False
     t2.wait_for('basic_one:0x692') # final ret
 
     t3 = t2[:12]
@@ -54,7 +54,7 @@ def test_basic_one_trace_specify_from_modules():
     t = basic_one.tracer.instructions(exec=True, from_modules=['basic_one'])
     t2 = list(t)[0]
     
-    basic_one.memory[basic_one.entrypoint_rebased].breakpoint = False
+    basic_one.memory[basic_one.entrypoint].breakpoint = False
     t2.wait_for('basic_one:0x692') # final ret
 
     print(t2)
@@ -118,7 +118,7 @@ def test_basic_one_trace_thread():
     time.sleep(0.3)
     t = basic_one.tracer.instructions(exec=True, threads=thread)
     t2 = list(t)[0]
-    basic_one.memory[basic_one.entrypoint_rebased].breakpoint = False
+    basic_one.memory[basic_one.entrypoint].breakpoint = False
     t2.wait_for('basic_one:0x692') # final ret
     assert len(t2) > 0
 
@@ -155,7 +155,7 @@ def test_basic_one_trace_instructions_call_ret():
     module = basic_one.modules['basic_one']
 
     # Start it
-    basic_one.memory[basic_one.entrypoint_rebased].breakpoint = False
+    basic_one.memory[basic_one.entrypoint].breakpoint = False
     t2.wait_for('basic_one:0x692') # final ret
 
     trace_copy = copy(list(t)[0])
@@ -226,7 +226,7 @@ def test_basic_one_trace_instructions_exec():
     module = basic_one.modules['basic_one']
 
     # Start it
-    basic_one.memory[basic_one.entrypoint_rebased].breakpoint = False
+    basic_one.memory[basic_one.entrypoint].breakpoint = False
     t2.wait_for('basic_one:0x692') # final ret
 
     trace_copy = copy(list(t)[0])
@@ -311,7 +311,7 @@ def test_basic_one_trace_instructions_block():
     module = basic_one.modules['basic_one']
 
     # Start it
-    basic_one.memory[basic_one.entrypoint_rebased].breakpoint = False
+    basic_one.memory[basic_one.entrypoint].breakpoint = False
 
     t2.wait_for('basic_one:0x692') # final ret
 

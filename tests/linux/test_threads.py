@@ -45,7 +45,7 @@ def test_thread_enum():
     util.memory['basic_threads:' + hex(basic_threads_after_create)].breakpoint = True
 
     # Continue
-    util.memory[util.entrypoint_rebased].breakpoint = False
+    util.memory[util.entrypoint].breakpoint = False
 
     # Race condition...
     time.sleep(0.5)

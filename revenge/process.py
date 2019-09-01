@@ -74,7 +74,7 @@ class Process(object):
         if self._spawned_pid is not None and self.file_type == 'ELF':
 
             # Set breakpoint at entry
-            self.memory[self.entrypoint_rebased].breakpoint = True
+            self.memory[self.entrypoint].breakpoint = True
 
             # Set breakpoints at exit calls
             for c in [':exit', ':_exit']:
@@ -95,8 +95,8 @@ class Process(object):
         if resume:
 
             # If we are using a resume variable
-            if self.memory[self.entrypoint_rebased].breakpoint:
-                self.memory[self.entrypoint_rebased].breakpoint = False
+            if self.memory[self.entrypoint].breakpoint:
+                self.memory[self.entrypoint].breakpoint = False
             
             else:
                 self.device.device.resume(self._spawned_pid)
@@ -401,31 +401,24 @@ class Process(object):
         return self.session._impl.pid
 
     @property
-    def entrypoint_rebased(self):
-        """Entrypoint as it exists in the current rebased program."""
-        mod = self.modules[self.file_name]
-
-        if self.file_type == 'ELF':
-            if mod.elf.type_str == 'DYN':
-                return types.Pointer(self.entrypoint + mod.base)
-
-        # TODO: Windows?
-        # TODO: Mac?
-
-        return self.entrypoint
-
-    @property
     def entrypoint(self):
         """int: Returns the entrypoint for this running program."""
+        mod = self.modules[self.file_name]
 
         if self.__entrypoint is None:
             if self.file_type == 'ELF':
-                self.__entrypoint = int(self.run_script_generic("""send(Memory.readPointer(ptr(Number(Process.getModuleByName('{}').base) + 0x18)))""".format(self.file_name), raw=True, unload=True)[0][0],16)
+                self.__entrypoint = types.Pointer(int(self.run_script_generic("""send(Memory.readPointer(ptr(Number(Process.getModuleByName('{}').base) + 0x18)))""".format(self.file_name), raw=True, unload=True)[0][0],16))
+                
+                if mod.elf.type_str == 'DYN':
+                    self.__entrypoint = types.Pointer(self.__entrypoint + mod.base)
 
             else:
                 logger.warn('entrypoint not implemented for file of type {}'.format(self.file_type))
                 return None
             
+        # TODO: Windows?
+        # TODO: Mac?
+
         return self.__entrypoint
 
     @property

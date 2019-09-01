@@ -142,7 +142,7 @@ def test_memory_bytes_function_replace():
     assert func.replace is None
     
     # Start the looper!
-    basic_looper.memory[basic_looper.entrypoint_rebased].breakpoint = False
+    basic_looper.memory[basic_looper.entrypoint].breakpoint = False
     time.sleep(0.2)
 
     # Base value from func is 1
@@ -317,8 +317,8 @@ def test_memory_breakpoint():
     assert func.breakpoint == True
 
     # Release from entrypoint
-    util2.memory[util2.entrypoint_rebased].breakpoint = False
-    assert util2.memory[util2.entrypoint_rebased].breakpoint == False
+    util2.memory[util2.entrypoint].breakpoint = False
+    assert util2.memory[util2.entrypoint].breakpoint == False
     assert func.breakpoint == True
     
     # Ensure we're not duplicating alloc places
