@@ -70,6 +70,13 @@ class Module(object):
             self._process.modules._symbol_to_address[self.name][sym] = types.Pointer(address)
             self._process.modules._address_to_symbol[address] = sym
 
+        #
+        # Sections
+        #
+
+        if 'plt_offset' in cache:
+            self.plt = cache['plt_offset']
+
 
     def _save_symbols_cache(self, file_io, cache):
         """Saves symbols into cache to be used later.
@@ -161,6 +168,10 @@ class Module(object):
         symbols = []
         cache = {'symbols': {}}
 
+        #
+        # Static Symbols
+        #
+
         # Sometimes the binary won't have a symbol table
         if symtab is not None:
             symbols.append(symtab.iter_symbols())
@@ -182,6 +193,13 @@ class Module(object):
             self._process.modules._symbol_to_address[self.name][sym.name] = types.Pointer(address)
             self._process.modules._address_to_symbol[address] = sym.name
             cache['symbols'][sym.name] = rel_address
+
+        #
+        # Section offsets
+        #
+
+        cache['plt_offset'] = e.get_section_by_name('.plt').header.sh_offset
+        self.plt = cache['plt_offset']
 
         self._save_symbols_cache(elf_io, cache)
 
@@ -270,7 +288,24 @@ class Module(object):
 
     @property
     def plt(self):
-        """int: Location of PLT for this module."""
-        pass
+        """int: Location of PLT for this module. Returns None if not known."""
+        try:
+            return self.symbols['.plt']
+        except KeyError:
+            return None
+
+    @plt.setter
+    def plt(self, address):
+
+        if self._process.file_type == "PE":
+            logger.warn("PLT is not valid for this file type.")
+            return
+
+        # Assuming plt needs to be rebased
+        #if self.elf is not None and self.elf.type_str == 'DYN':
+        address = address + self.base
+
+        self.symbols['.plt'] = address
+
 
 from ..parsers import ELF

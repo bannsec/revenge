@@ -21,6 +21,29 @@ bin_location = os.path.join(here, "bins")
 basic_one_path = os.path.join(bin_location, "basic_one")
 process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 
+basic_one_64_nopie_path = os.path.join(bin_location, "basic_one_64_nopie")
+basic_one_64_nopie = revenge.Process(basic_one_64_nopie_path, resume=False)
+
+basic_one_ia32_path = os.path.join(bin_location, "basic_one_ia32")
+basic_one_ia32 = revenge.Process(basic_one_ia32_path, resume=False)
+
+basic_one_ia32_nopie_path = os.path.join(bin_location, "basic_one_ia32_nopie")
+basic_one_ia32_nopie = revenge.Process(basic_one_ia32_nopie_path, resume=False)
+
+def test_plt():
+
+    basic_one_mod = process.modules['basic_one']
+    assert basic_one_mod.plt & 0xfff == 0x510
+
+    basic_one_mod = basic_one_64_nopie.modules['basic_one*']
+    assert basic_one_mod.plt == 0x4003e0
+
+    basic_one_mod = basic_one_ia32.modules['basic_one*']
+    assert basic_one_mod.plt & 0xfff == 0x3a0
+
+    basic_one_mod = basic_one_ia32_nopie.modules['basic_one*']
+    assert basic_one_mod.plt == 0x80482d0
+
 def test_modules_symbols():
 
     basic_one_mod = process.modules['basic_one']
