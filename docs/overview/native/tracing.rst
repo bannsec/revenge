@@ -54,3 +54,6 @@ Examples
 
     # Stop the trace so you can run a different one
     t.stop()
+
+    # Take a slice of the trace
+    t2 = t[12:24]

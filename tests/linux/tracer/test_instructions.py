@@ -12,7 +12,7 @@ types = revenge.types
 import time
 from copy import copy
 
-from revenge.tracer.instruction_tracer import TraceItem
+from revenge.tracer.instruction_tracer import TraceItem, Trace
 
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "..", "bins")
@@ -30,6 +30,22 @@ item_block = {'tid': 16050, 'type': 'block', 'from_ip': '0x7f1154c799de', 'to_ip
 item_compile = {'tid': 16050, 'type': 'compile', 'from_ip': '0x7f1154c799de', 'from_module': 'libc-2.27.so'}
 item_exec = {'tid': 16050, 'type': 'exec', 'from_ip': '0x7f1154c799de', 'from_module': 'libc-2.27.so'}
 trace_items = [item_call, item_ret, item_block, item_compile, item_exec]
+
+def test_basic_one_trace_slice():
+
+    basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+    
+    t = basic_one.tracer.instructions(call=True, ret=True, exec=True, from_modules=['basic_one'])
+    t2 = list(t)[0]
+    
+    basic_one.memory[basic_one.entrypoint_rebased].breakpoint = False
+    t2.wait_for('basic_one:0x692') # final ret
+
+    t3 = t2[:12]
+    assert isinstance(t3, Trace)
+
+    for i in range(12):
+        assert t2[i] == t3[i]
 
 def test_basic_one_trace_specify_from_modules():
 

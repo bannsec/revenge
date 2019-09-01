@@ -175,7 +175,16 @@ class Trace(object):
         return "<{}>".format(' '.join(attr))
 
     def __getitem__(self, item):
-        return self._trace.__getitem__(item)
+
+        if isinstance(item, int):
+            return self._trace.__getitem__(item)
+
+        if isinstance(item, slice):
+            ret = Trace(self._process, self._tid, script=None)
+            ret._trace = self._trace[item]
+            return ret
+
+        raise Exception("Unhandled getitem type of {}".format(type(item)))
 
 class InstructionTracer(object):
 
