@@ -58,7 +58,11 @@ class Module(object):
             cache (dict): Dictionary cache to load up.
         """
 
-        for sym, address in cache.items():
+        #
+        # Symbols
+        #
+
+        for sym, address in cache['symbols'].items():
             if self._process.file_type is "PE" or \
                     (self.elf is not None and self.elf.type_str == 'DYN'):
                 address = address + self.base
@@ -117,7 +121,7 @@ class Module(object):
         print("Loading symbols for {} ... ".format(self.name), end='', flush=True)
 
         pe = pefile.PE(data=pe_io.read())
-        cache = {}
+        cache = {'symbols': {}}
 
         # Some PEs don't export anything.
         if hasattr(pe, "DIRECTORY_ENTRY_EXPORT"):
@@ -132,7 +136,7 @@ class Module(object):
 
                 self._process.modules._symbol_to_address[self.name][name] = types.Pointer(address)
                 self._process.modules._address_to_symbol[address] = name
-                cache[name] = rel_address
+                cache['symbols'][name] = rel_address
 
         self._save_symbols_cache(pe_io, cache)
         cprint("[ DONE ]", "green")
@@ -155,7 +159,7 @@ class Module(object):
         dynsym = e.get_section_by_name('.dynsym')
 
         symbols = []
-        cache = {}
+        cache = {'symbols': {}}
 
         # Sometimes the binary won't have a symbol table
         if symtab is not None:
@@ -177,7 +181,7 @@ class Module(object):
 
             self._process.modules._symbol_to_address[self.name][sym.name] = types.Pointer(address)
             self._process.modules._address_to_symbol[address] = sym.name
-            cache[sym.name] = rel_address
+            cache['symbols'][sym.name] = rel_address
 
         self._save_symbols_cache(elf_io, cache)
 
@@ -263,5 +267,10 @@ class Module(object):
     def symbols(self):
         """dict: symbol name -> address for this binary."""
         return self._process.modules._symbol_to_address[self.name]
+
+    @property
+    def plt(self):
+        """int: Location of PLT for this module."""
+        pass
 
 from ..parsers import ELF
