@@ -6,6 +6,7 @@ from prettytable import PrettyTable
 import binascii
 import operator
 import struct
+from termcolor import cprint, colored
 
 from .. import common
 from .. import types
@@ -93,7 +94,7 @@ class Memory(object):
         """Search for thing in memory. Must be one of the defined types."""
         return MemoryFind(self._process, *args, **kwargs)
 
-    def describe_address(self, address):
+    def describe_address(self, address, color=False):
         """Takes in address and attempts to return a better description of what's there."""
 
         assert isinstance(address, int)
@@ -102,12 +103,20 @@ class Memory(object):
         module = self._process.modules[address]
 
         if module is not None:
-            desc += module.name
+            if color:
+                desc += colored(module.name,"magenta") or ""
+            else:
+                desc += module.name or ""
 
             try:
                 # If we can find a closest function, use that.
                 func_name, func_addr = next((name, addr) for name,addr in sorted(module.symbols.items(), key=operator.itemgetter(1),reverse=True) if address >= addr)
-                desc += ":" + func_name
+
+                if color:
+                    desc += ":" + colored(func_name, "magenta", attrs=["bold"])
+                else:
+                    desc += ":" + func_name
+
                 offset = address - func_addr
 
             except StopIteration:
@@ -115,10 +124,16 @@ class Memory(object):
                 offset = address - module.base
 
             if offset != 0:
-                desc += "+" + hex(offset)
+                if color:
+                    desc += "+" + colored(hex(offset), "cyan")
+                else:
+                    desc += "+" + hex(offset)
 
         else:
-            desc += hex(address)
+            if color:
+                desc += colored(hex(address), "cyan")
+            else:
+                desc += hex(address)
 
         return desc
 

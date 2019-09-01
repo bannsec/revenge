@@ -4,6 +4,7 @@ logger = logging.getLogger(__name__)
 
 import collections
 from prettytable import PrettyTable
+import datetime
 from fnmatch import fnmatch
 
 from .. import common, types
@@ -18,6 +19,8 @@ class Modules(object):
 
         # key == address, value == symbol
         self._address_to_symbol = {}
+
+        self.__last_update = datetime.datetime(1970,1,1)
 
     def lookup_symbol(self, symbol):
         """Generically resolve a symbol.
@@ -92,7 +95,13 @@ class Modules(object):
     @property
     def modules(self):
         """list: Return list of modules."""
-        mods = self._process.run_script_generic("""send(Process.enumerateModulesSync());""", raw=True, unload=True)[0][0]
-        return [Module(self._process, name=mod['name'], base=mod['base'], size=mod['size'], path=mod['path']) for mod in mods]
+
+        # Time to update the cache
+        if datetime.datetime.now() - self.__last_update > datetime.timedelta(seconds=0.5):
+            mods = self._process.run_script_generic("""send(Process.enumerateModulesSync());""", raw=True, unload=True)[0][0]
+            self.__modules = [Module(self._process, name=mod['name'], base=mod['base'], size=mod['size'], path=mod['path']) for mod in mods]
+            self.__last_update = datetime.datetime.now()
+
+        return self.__modules
 
 from .module import Module

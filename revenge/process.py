@@ -10,6 +10,7 @@ import colorama
 colorama.init()
 
 import os
+import sys
 from termcolor import cprint, colored
 from prettytable import PrettyTable
 import time
@@ -594,7 +595,7 @@ Process.BatchContext.__doc__ += BatchContext.__init__.__doc__
 
 
 def sigint_handler(sig, frame):
-    exit()
+    sys.exit()
 
 signal.signal(signal.SIGINT, sigint_handler)
 

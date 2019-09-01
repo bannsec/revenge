@@ -43,21 +43,24 @@ class TraceItem(object):
         if 'depth' in item:
             self.depth = common.auto_int(item['depth'])
 
+    def _str_add_table_row(self, table):
+
+        table.add_row([
+            colored(self.type, attrs=['bold']),
+            self._process.memory.describe_address(self.from_ip, color=True),
+            self._process.memory.describe_address(self.to_ip, color=True) if self.to_ip is not None else "",
+            str(self.depth) if self.depth is not None else ""
+            ])
+
     def __str__(self):
-        s =  colored("{: <10}".format(self.type), attrs=['bold'])
-        from_ip = self.from_symbol or hex(self.from_ip)
 
-        s += "{: <55}".format(colored(self.from_module,"magenta") + ":" + colored(from_ip, 'magenta', attrs=['bold']))
+        table = PrettyTable(['Type', 'From', 'To', 'Depth'])
+        table.border = False
+        table.header = False
 
-        if self.to_ip is not None:
-            to_ip = self.to_symbol or hex(self.to_ip)
-            s += "-> "
-            s += "{: <55}".format(colored(self.to_module, "magenta") + ":" + colored(to_ip, "magenta", attrs=["bold"]))
+        self._str_add_table_row(table)
 
-        if self.depth is not None:
-            s += str(self.depth)
-
-        return s.strip()
+        return str(table)
 
     def __repr__(self):
         attrs = ["TraceItem"]
@@ -87,23 +90,6 @@ class TraceItem(object):
 
         self.__type = t
 
-    @property
-    def from_symbol(self):
-        """Attempts to resolve from_ip into a symbol. If it can, it returns the symbol name. Otherwise it returns None."""
-        return self._process.modules.lookup_symbol(self.from_ip)
-        try:
-            #return self._process.modules._address_to_symbol[self.from_ip]
-            return self._process.modules._address_to_symbol[self.from_ip]
-        except KeyError:
-            return None
-
-    @property
-    def to_symbol(self):
-        """Attempts to resolve to_ip into a symbol. If it can, it returns the symbol name. Otherwise it returns None."""
-        try:
-            return self._process.modules._address_to_symbol[self.to_ip]
-        except KeyError:
-            return None
 
 
 class Trace(object):
@@ -156,7 +142,17 @@ class Trace(object):
         return len(self._trace)
 
     def __str__(self):
-        return '\n'.join(str(i) for i in self)
+        table = PrettyTable(['Type', 'From', 'To', 'Depth'])
+        table.border = False
+        table.header = False
+        table.align = 'l'
+
+        #return '\n'.join(str(i) for i in self)
+
+        for i in self:
+            i._str_add_table_row(table)
+
+        return str(table)
 
     def __repr__(self):
         attr = ['Trace', 'Thread={}'.format(self._tid)]
