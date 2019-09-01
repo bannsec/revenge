@@ -95,7 +95,16 @@ class Memory(object):
         return MemoryFind(self._process, *args, **kwargs)
 
     def describe_address(self, address, color=False):
-        """Takes in address and attempts to return a better description of what's there."""
+        """Takes in address and attempts to return a better description of what's there.
+        
+        Args:
+            address (int): What address to describe
+            color (bool, optional): Should the description be colored?
+                (default: False)
+
+        Returns:
+            str: description of the address
+        """
 
         assert isinstance(address, int)
 

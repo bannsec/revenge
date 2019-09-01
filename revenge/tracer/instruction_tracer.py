@@ -44,11 +44,16 @@ class TraceItem(object):
             self.depth = common.auto_int(item['depth'])
 
     def _str_add_table_row(self, table):
+        
+        if self.depth is not None:
+            indent = ' '*self.depth
+        else:
+            indent = ''
 
         table.add_row([
             colored(self.type, attrs=['bold']),
-            self._process.memory.describe_address(self.from_ip, color=True),
-            self._process.memory.describe_address(self.to_ip, color=True) if self.to_ip is not None else "",
+            indent + self._process.memory.describe_address(self.from_ip, color=True),
+            indent + self._process.memory.describe_address(self.to_ip, color=True) if self.to_ip is not None else "",
             str(self.depth) if self.depth is not None else ""
             ])
 

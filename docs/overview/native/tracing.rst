@@ -31,14 +31,20 @@ Examples
 
     print(t)
     """
-    call      libc-2.27.so:0x7f4b704f89de   -> libc-2.27.so:0x7f4b70544740
-    ret       libc-2.27.so:0x7f4b7054476f   -> libc-2.27.so:0x7f4b704f89e3
-    ret       libc-2.27.so:0x7f4b704f89ed   -> frida-agent-64.so:0x7f4b6df41216
-    ret       ld-2.27.so:0x7f4b70c420a5     -> ls:0x5613ad9b2030
-    call      ls:0x5613ad997874             -> libc-2.27.so:0x7f4b70435ab0
-    call      libc-2.27.so:0x7f4b70435af7   -> libc-2.27.so:0x7f4b70457430
-    call      libc-2.27.so:0x7f4b70457484   -> libc-2.27.so:0x7f4b70457220
-    ret       libc-2.27.so:0x7f4b704572e7   -> libc-2.27.so:0x7f4b70457489
+    call  ls:_init+0x211c                                           libc-2.27.so:__libc_start_main                      0
+    call   libc-2.27.so:__libc_start_main+0x47                       libc-2.27.so:__cxa_atexit                          1
+    call    libc-2.27.so:__cxa_atexit+0x54                            libc-2.27.so:on_exit+0xe0                         2
+    ret      libc-2.27.so:on_exit+0x1a7                                libc-2.27.so:__cxa_atexit+0x59                   3
+    ret     libc-2.27.so:__cxa_atexit+0xb4                            libc-2.27.so:__libc_start_main+0x4c               2
+    call   libc-2.27.so:__libc_start_main+0x76                       ls:_obstack_memory_used+0xc30                      1
+    call    ls:_obstack_memory_used+0xc5c                             ls:_init                                          2
+    ret      ls:_init+0x16                                             ls:_obstack_memory_used+0xc61                    3
+    call    ls:_obstack_memory_used+0xc79                             ls:_init+0x21f8                                   2
+    ret      ls:_init+0x21a9                                           ls:_obstack_memory_used+0xc7d                    3
+    ret     ls:_obstack_memory_used+0xc94                             libc-2.27.so:__libc_start_main+0x78               2
+    call   libc-2.27.so:__libc_start_main+0x9a                       libc-2.27.so:_setjmp                               1
+    ret     libc-2.27.so:__sigsetjmp+0x83                             libc-2.27.so:__libc_start_main+0x9f               2
+    call   libc-2.27.so:__libc_start_main+0xe5                       ls:_init+0x738                                     1
     <clipped>
     """
 
