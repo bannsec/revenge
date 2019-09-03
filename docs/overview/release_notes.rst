@@ -5,9 +5,9 @@ Release Notes
 Version 0.11
 =============
 
-- Updated :meth:`~revenge.threads.Threads.__repr__` to use descriptive addresses
+- Updated :meth:`revenge.threads.Threads.__repr__` to use descriptive addresses
 - Added 0.5 second cache to :class:`~revenge.modules.Modules` to improve performance.
-- Many updates to :meth:`~revenge.tracer.instruction_tracer.Trace.__str__` to
+- Many updates to :meth:`revenge.tracer.instruction_tracer.Trace.__str__` to
   improve readabiliy (descriptive addrs, indentation, programmatic spacing)
 - Implemented :meth:`~revenge.modules.Module.plt` to identify the base of the
   Procedure Lookup Table in ELF.
