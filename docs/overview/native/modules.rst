@@ -71,7 +71,10 @@ Examples
     printf_plt = process.modules['a.out']['plt.printf']
 
     # Use symbol to get memory
-    mem = process.memory[printf_plt]
+    printf_plt.memory
+
+    # Call symbol directly
+    printf_plt()
 
 
 File Format Parsing

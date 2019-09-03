@@ -35,5 +35,11 @@ def test_symbol_basic():
     assert s < 0xffffff
     assert s <= 123456
 
+def test_symbol_memory():
 
-    
+    strlen = process.modules['*libc*'].symbols['strlen']
+
+    # Modern libc, this will just be a lookup for which version of strlen to use
+    assert process.memory[strlen.memory()]('test') == 4
+    assert process.memory[strlen()]('test') == 4
+

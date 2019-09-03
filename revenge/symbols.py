@@ -61,6 +61,9 @@ class Symbol(object):
     def __index__(self):
         return int(self.address)
 
+    def __call__(self, *args, **kwargs):
+        return self.memory(*args, **kwargs)
+
     @property
     def name(self):
         """str: Name of this symbol."""
@@ -88,5 +91,10 @@ class Symbol(object):
             return
 
         self.__address = types.Pointer(address)
+
+    @property
+    def memory(self):
+        """Convenience property to grab a memory object for this symbol."""
+        return self._process.memory[self.address]
 
 from . import types
