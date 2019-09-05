@@ -2,6 +2,8 @@
 import logging
 logger = logging.getLogger(__name__)
 
+import collections
+
 # Keeping str types as properties in case they change what they call things later
 
 class Basic: 
@@ -41,24 +43,31 @@ class FloatBasic:
 
 class Int8(Basic, int):
     type = "int8"
+    sizeof = 8
 
 class UInt8(Basic, int):
     type = "uint8"
+    sizeof = 8
 
 class Int16(Basic, int):
     type = "int16"
+    sizeof = 16
 
 class UInt16(Basic, int):
     type = "uint16"
+    sizeof = 16
 
 class Int32(Basic, int):
     type = "int32"
+    sizeof = 32
 
 class UInt32(Basic, int):
     type = "uint32"
+    sizeof = 32
 
 class Int64(Basic, int):
     type = "int64"
+    sizeof = 64
 
     @property
     def js(self):
@@ -66,6 +75,7 @@ class Int64(Basic, int):
 
 class UInt64(Basic, int):
     type = "uint64"
+    sizeof = 64
 
     @property
     def js(self):
@@ -97,6 +107,7 @@ class ULong(UInt64):
 
 class Float(FloatBasic, float):
     type = "float"
+    sizeof = 4
 
     @property
     def js(self):
@@ -104,9 +115,14 @@ class Float(FloatBasic, float):
 
 class Double(Float):
     type = "double"
+    sizeof = 8
 
 class Pointer(UInt64):
     type = "pointer"
+    
+    @property
+    def sizof(self):
+        raise Exception("Not sure how to handle this rn...")
 
     @property
     def js(self):
@@ -132,5 +148,54 @@ class StringUTF16(str):
         logger.error("Shouldn't be asking for js on this object...")
         return str(self)
 
+class Struct(Pointer):
+
+    def add_member(self, name, value=None):
+        """Adds given member to the end of this current structure.
+        
+        Args:
+            name (str): Name of the Struct member
+            value (revenge.types.all_types): Type and/or value for member.
+
+        Examples:
+            .. code-block:: python3
+
+                s = revenge.types.Struct()
+                s.add_member('my_int', revenge.types.Int(12))
+
+                # Or, just the definition
+                s = revenge.types.Struct()
+                s.add_member('my_int', revenge.types.Int)
+        """
+
+        if not type(name) is str:
+            logger.error("Member name must be of type str.")
+            return
+
+        if not isinstance(value, all_types) and not value in all_types:
+            logger.error("Entry added must be one of the revenge.types.* classes.")
+            return
+
+        self.members[name] = value
+
+    @property
+    def members(self):
+        try:
+            return self.__members
+        except AttributeError:
+            self.__members = collections.OrderedDict()
+            return self.__members
+
+    @members.setter
+    def members(self, members):
+
+        if isinstance(members, tuple):
+            members = list(members)
+
+        if not isinstance(members, list):
+            logger.error("Setting members property requires a list.")
+            return
+
+        self.__members = members
 
 all_types = (Pointer, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64, Char, UChar, Short, UShort, Int, UInt, Long, ULong, Float, Double, StringUTF8, StringUTF16)
