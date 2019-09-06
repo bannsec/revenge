@@ -3,6 +3,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import collections
+from .exceptions import *
 
 # Keeping str types as properties in case they change what they call things later
 
@@ -121,8 +122,11 @@ class Pointer(UInt64):
     type = "pointer"
     
     @property
-    def sizof(self):
-        raise Exception("Not sure how to handle this rn...")
+    def sizeof(self):
+        try:
+            return self._process.bits
+        except AttributeError:
+            raise RevengeProcessRequiredError("Checking sizeof on a Pointer requires ._process be set.")
 
     @property
     def js(self):
@@ -134,6 +138,7 @@ class Pointer(UInt64):
 
 class StringUTF8(str):
     type = 'utf8'
+    sizeof = Pointer.sizeof
 
     @property
     def js(self):
@@ -142,6 +147,7 @@ class StringUTF8(str):
 
 class StringUTF16(str):
     type = 'utf16'
+    sizeof = Pointer.sizeof
 
     @property
     def js(self):
@@ -176,7 +182,27 @@ class Struct(Pointer):
             logger.error("Entry added must be one of the revenge.types.* classes.")
             return
 
+        if name in self.members:
+            logger.warning("Member name already exists! This will overwrite the old member with the new value!")
+
         self.members[name] = value
+
+    @property
+    def sizeof(self):
+        """Equivalent of calling 'sizeof(this_struct)'."""
+
+        if not hasattr(self, '_process'):
+            raise RevengeProcessRequiredError("Checking sizeof on a Struct requires ._process be set.")
+
+        sum = 0
+        for name, value in self.members.items():
+            # Temporarily make an object so we can figure out size
+            if type(value) is type:
+                value = value()
+            value._process = self._process
+            sum += value.sizeof
+
+        return sum
 
     @property
     def members(self):
@@ -198,4 +224,4 @@ class Struct(Pointer):
 
         self.__members = members
 
-all_types = (Pointer, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64, Char, UChar, Short, UShort, Int, UInt, Long, ULong, Float, Double, StringUTF8, StringUTF16)
+all_types = (Pointer, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64, Char, UChar, Short, UShort, Int, UInt, Long, ULong, Float, Double, StringUTF8, StringUTF16, Struct)
