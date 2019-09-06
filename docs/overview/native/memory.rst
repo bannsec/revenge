@@ -33,6 +33,9 @@ Examples
     # Grab memory object directly with address
     thing = process.memory[0x12345]
 
+    # Write memory directly to address
+    process.memory[0x12345] = thing
+
 Find
 ====
 

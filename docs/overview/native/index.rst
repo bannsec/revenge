@@ -19,3 +19,4 @@ threading, and any other things that are going to be common among any platform.
     symbols
     threads
     tracing
+    types

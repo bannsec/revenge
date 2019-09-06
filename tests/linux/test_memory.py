@@ -49,6 +49,50 @@ util2 = revenge.Process(basic_two_path, resume=False, verbose=False, load_symbol
 basic_looper_path = os.path.join(bin_location, "basic_looper")
 basic_looper = revenge.Process(basic_looper_path, resume=False, verbose=False, load_symbols='basic_one')
 
+def test_memory_setitem():
+    process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+    basic_one_module = process.modules['basic_one']
+    basic_one_i8_addr = basic_one_module.symbols['i8'].address
+    
+    # Just need scratch space
+    addr = basic_one_i8_addr
+
+    process.memory[addr] = types.Int8(-4)
+    assert process.memory[addr].int8 == -4
+
+    process.memory[addr] = types.UInt8(4)
+    assert process.memory[addr].uint8 == 4
+
+    process.memory[addr] = types.Int16(-4)
+    assert process.memory[addr].int16 == -4
+
+    process.memory[addr] = types.UInt16(4)
+    assert process.memory[addr].uint16 == 4
+
+    process.memory[addr] = types.Int32(-4)
+    assert process.memory[addr].int32 == -4
+
+    process.memory[addr] = types.UInt32(4)
+    assert process.memory[addr].uint32 == 4
+
+    process.memory[addr] = types.Int64(-4)
+    assert process.memory[addr].int64 == -4
+
+    process.memory[addr] = types.UInt64(4)
+    assert process.memory[addr].uint64 == 4
+
+    process.memory[addr] = types.Float(-4)
+    assert process.memory[addr].float == -4
+
+    process.memory[addr] = types.Double(4)
+    assert process.memory[addr].double == 4
+
+    process.memory[addr] = types.StringUTF8("Test")
+    assert process.memory[addr].string_utf8 == "Test"
+
+    process.memory[addr] = types.StringUTF16("Test")
+    assert process.memory[addr].string_utf16 == "Test"
+
 def test_replace_with_js():
     global messages
     messages = []

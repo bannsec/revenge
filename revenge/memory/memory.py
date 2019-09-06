@@ -11,11 +11,22 @@ from termcolor import cprint, colored
 from .. import common, types, symbols
 
 class Memory(object):
-    """Class to simplify getting and writing things to memory. Behaves like a list.
+    """Class to simplify getting and writing things to memory.
     
-    Example:
-        - memory[0x12345].int8 -> Reads a signed 8-bit int from address
-        - memory[0x12345:0x12666] -> Returns byte array from memory
+    Examples:
+        .. code-block:: python3
+
+            # Read a signed 8-bit int from address
+            memory[0x12345].int8
+
+            # Returns MemoryBytes object for memory
+            memory[0x12345:0x12666]
+
+            # Write int directly to memory
+            memory[0x12345] = types.Int8(12)
+
+            # Write string directly to memory
+            memory[0x12345] = types.StringUTF8("hello!")
     """
 
     def __init__(self, process):
@@ -219,6 +230,63 @@ class Memory(object):
             return MemoryBytes(self._process, item.start, item.stop)
 
         logger.error("Unhandled memory type of {}".format(type(item)))
+
+    def __setitem__(self, index, value):
+
+        if not isinstance(value, types.all_types):
+            logger.error("When implicitly memory writing, you MUST use an instantiation of revenge.types.*")
+            return
+
+        # Grab the mem
+        mem = self._process.memory[index]
+
+        # TODO: Implement char?
+
+        if isinstance(value, types.Int8):
+            mem.int8 = value
+
+        elif isinstance(value, types.UInt8):
+            mem.uint8 = value
+
+        elif isinstance(value, types.Int16):
+            mem.int16 = value
+
+        elif isinstance(value, types.UInt16):
+            mem.uint16 = value
+
+        elif isinstance(value, types.Int32):
+            mem.int32 = value
+
+        elif isinstance(value, types.UInt32):
+            mem.uint32 = value
+
+        elif isinstance(value, types.Int64):
+            mem.int64 = value
+
+        elif isinstance(value, types.UInt64):
+            mem.uint64 = value
+
+        elif isinstance(value, types.Double):
+            mem.double = value
+
+        elif isinstance(value, types.Float):
+            mem.float = value
+
+        elif isinstance(value, types.Pointer):
+            mem.pointer = value
+
+        elif isinstance(value, types.StringUTF8):
+            mem.string_utf8 = value
+
+        elif isinstance(value, types.StringUTF16):
+            mem.string_utf16 = value
+
+        elif isinstance(value, types.Struct):
+            mem.struct = value
+
+        else:
+            logger.error("Unhandled memory write type of {}".format(type(value)))
+
 
     @property
     def maps(self):

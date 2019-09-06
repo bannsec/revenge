@@ -155,6 +155,7 @@ class StringUTF16(str):
         return str(self)
 
 class Struct(Pointer):
+    """Defines a C structure."""
 
     def add_member(self, name, value=None):
         """Adds given member to the end of this current structure.

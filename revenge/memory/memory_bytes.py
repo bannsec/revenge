@@ -583,6 +583,24 @@ class MemoryBytes(object):
         """AssemblyBlock: Returns an AssemblyBlock starting at this instruction."""
         return AssemblyBlock(self._process, self.address)
 
+    @property
+    def struct(self):
+        """Not implemented yet..."""
+        raise NotImplementedError
+
+    """
+    @struct.setter
+    def struct(self, struct):
+
+        if not isinstance(struct, types.Struct):
+            logger.error("MemoryBytes.struct must be an instance of types.Struct")
+            return
+
+        addr = self.address
+        for name, member in struct.members.items():
+    """
+
+
 #
 # Doc Updates
 #
