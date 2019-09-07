@@ -104,6 +104,12 @@ Examples
     # Write bytes into memory
     mem.bytes = b'AB\x13\x37'
 
+    # You can write bytes generically if using types
+    process.memory['ls:0x12345'] = types.Int(12)
+
+    # You can use cast to read bytes using a type
+    assert mem.cast(types.Int32) == mem.int32
+
 Memory Pages
 ============
 

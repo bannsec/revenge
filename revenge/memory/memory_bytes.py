@@ -34,6 +34,85 @@ class MemoryBytes(object):
         script[0].unload()
         return True
 
+    def cast(self, cast_to):
+        """Returns this memory cast to whatever type you give it.
+
+        Examples:
+            .. code-block:: python3
+
+                ptr = memory.cast(types.Pointer)
+
+                struct = types.Struct()
+                struct.add_member('my_int', types.Int)
+                struct.add_member('my_pointer', types.Pointer)
+                struct = memory.cast(struct)
+        """
+        
+        if type(cast_to) is type:
+            cast_type = cast_to
+
+        elif isinstance(cast_to, types.all_types):
+            cast_type = type(cast_to)
+
+        else:
+            logger.error("Unexpected cast type. Please use revenge.types.*")
+            return
+
+        if not cast_type in types.all_types:
+            logger.error("Unexpected cast type. Please use revenge.types.*")
+            return
+
+        if cast_type == types.Struct:
+            if not isinstance(cast_to, types.Struct):
+                logger.error("To cast to an struct, you MUST provide an instance of the struct.")
+                return
+
+            cast_to.memory = self
+            return cast_to
+
+        elif cast_type == types.Int8:
+            return self.int8
+
+        elif cast_type == types.UInt8:
+            return self.uint8
+
+        elif cast_type == types.Int16:
+            return self.int16
+
+        elif cast_type == types.UInt16:
+            return self.uint16
+
+        elif cast_type == types.Int32:
+            return self.int32
+
+        elif cast_type == types.UInt32:
+            return self.uint32
+
+        elif cast_type == types.Int64:
+            return self.int64
+
+        elif cast_type == types.UInt64:
+            return self.uint64
+
+        elif cast_type == types.Double:
+            return self.double
+
+        elif cast_type == types.Float:
+            return self.float
+
+        elif cast_type == types.Pointer:
+            return self.pointer
+
+        elif cast_type == types.StringUTF8:
+            return self.string_utf8
+
+        elif cast_type == types.StringUTF16:
+            return self.string_utf16
+
+        else:
+            logger.error("Unhandled memory cast type of {}".format(cast_type))
+
+
     def __repr__(self):
         attrs = ['MemoryBytes', hex(self.address)]
 

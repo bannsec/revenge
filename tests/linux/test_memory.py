@@ -49,6 +49,30 @@ util2 = revenge.Process(basic_two_path, resume=False, verbose=False, load_symbol
 basic_looper_path = os.path.join(bin_location, "basic_looper")
 basic_looper = revenge.Process(basic_looper_path, resume=False, verbose=False, load_symbols='basic_one')
 
+def test_memory_cast_struct(caplog):
+    process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+    basic_one_module = process.modules['basic_one']
+    basic_one_i8_addr = basic_one_module.symbols['i8'].address
+    
+    # Just need scratch space
+    addr = basic_one_i8_addr
+
+    struct = types.Struct()
+    struct.add_member('test1', types.Int32(-5))
+    struct.add_member('test2', types.Int8(-12))
+    struct.add_member('test3', types.UInt16(16))
+    struct.add_member('test4', types.Pointer(4444))
+    struct.add_member('test5', types.Int16) # This should cause warning
+    struct.add_member('test6', types.Pointer(5555))
+
+    mem = process.memory[addr]
+
+    assert mem.cast(types.Struct) is None
+    s = mem.cast(struct)
+    assert s is struct
+    assert s.memory is mem
+
+
 def test_memory_write_struct(caplog):
     process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
     basic_one_module = process.modules['basic_one']
@@ -414,41 +438,57 @@ def test_memory_breakpoint():
 
 def test_memory_read_float_double():
     assert abs(util2.memory['basic_two:{}'.format(hex(basic_two_f_addr))].float - 4.1251) < 0.0001
-    assert abs(util2.memory['basic_two:{}'.format(hex(basic_two_d_addr))].double - 10.4421) < 0.0001
+    assert abs(util2.memory['basic_two:{}'.format(hex(basic_two_f_addr))].cast(types.Float) - 4.1251) < 0.0001
+    assert abs(util2.memory['basic_two:{}'.format(hex(basic_two_d_addr))].cast(types.Double) - 10.4421) < 0.0001
 
 def test_memory_read_int():
 
-    #assert util.memory['basic_one:{}'.format(hex(basic_one_i8_addr))].int8 == -13
     assert util.memory[basic_one_i8_addr].int8 == -13
-    #assert isinstance(util.memory['basic_one:{}'.format(hex(basic_one_i8_addr))].int8, types.Int8)
     assert isinstance(util.memory[basic_one_i8_addr].int8, types.Int8)
+    assert util.memory[basic_one_i8_addr].cast(types.Int8) == -13
+    assert isinstance(util.memory[basic_one_i8_addr].cast(types.Int8), types.Int8)
 
     assert util.memory[basic_one_ui8_addr].uint8 == 13
     assert isinstance(util.memory[basic_one_ui8_addr].uint8, types.UInt8)
+    assert util.memory[basic_one_ui8_addr].cast(types.UInt8) == 13
+    assert isinstance(util.memory[basic_one_ui8_addr].cast(types.UInt8), types.UInt8)
 
     assert util.memory[basic_one_i16_addr].int16 == -1337
     assert isinstance(util.memory[basic_one_i16_addr].int16, types.Int16)
+    assert util.memory[basic_one_i16_addr].cast(types.Int16) == -1337
+    assert isinstance(util.memory[basic_one_i16_addr].cast(types.Int16), types.Int16)
 
     assert util.memory[basic_one_ui16_addr].uint16 == 1337
     assert isinstance(util.memory[basic_one_ui16_addr].uint16, types.UInt16)
+    assert util.memory[basic_one_ui16_addr].cast(types.UInt16) == 1337
+    assert isinstance(util.memory[basic_one_ui16_addr].cast(types.UInt16), types.UInt16)
 
     assert util.memory[basic_one_i32_addr].int32 == -1337
     assert isinstance(util.memory[basic_one_i32_addr].int32, types.Int32)
+    assert util.memory[basic_one_i32_addr].cast(types.Int32) == -1337
+    assert isinstance(util.memory[basic_one_i32_addr].cast(types.Int32), types.Int32)
 
     assert util.memory[basic_one_ui32_addr].uint32 == 1337
     assert isinstance(util.memory[basic_one_ui32_addr].uint32, types.UInt32)
+    assert util.memory[basic_one_ui32_addr].cast(types.UInt32) == 1337
+    assert isinstance(util.memory[basic_one_ui32_addr].cast(types.UInt32), types.UInt32)
 
     assert util.memory[basic_one_i64_addr].int64 == -1337
     assert isinstance(util.memory[basic_one_i64_addr].int64, types.Int64)
+    assert util.memory[basic_one_i64_addr].cast(types.Int64) == -1337
+    assert isinstance(util.memory[basic_one_i64_addr].cast(types.Int64), types.Int64)
 
     assert util.memory[basic_one_ui64_addr].uint64 == 1337
     assert isinstance(util.memory[basic_one_ui64_addr].uint64, types.UInt64)
+    assert util.memory[basic_one_ui64_addr].cast(types.UInt64) == 1337
+    assert isinstance(util.memory[basic_one_ui64_addr].cast(types.UInt64), types.UInt64)
 
 def test_memory_read_write_str_byte():
 
     #string_addr = util.memory['basic_one:{}'.format(hex(basic_one_string_addr))].address
     string = util.memory['basic_one:{}'.format(hex(basic_one_string_addr))]
     assert string.string_utf8 == "This is my string"
+    assert string.cast(types.StringUTF8) == "This is my string"
     assert string.bytes == b'T'
     assert util.memory[string.address:string.address+17].bytes == b"This is my string"
 
@@ -458,6 +498,7 @@ def test_memory_read_write_str_byte():
     string.string_utf16 = "New string"
     assert string.string_utf8 != "New string"
     assert string.string_utf16 == "New string"
+    assert string.cast(types.StringUTF16) == "New string"
 
     # This currently isn't supported
     assert util.memory[string.address:] == None
@@ -553,6 +594,7 @@ def test_memory_write():
     x = random.randint(1, 2**64-1)
     ui64.pointer = x
     assert ui64.pointer == x
+    assert ui64.cast(types.Pointer) == x
 
     x = round(random.random(),4)
     ui64.float = x

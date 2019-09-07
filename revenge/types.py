@@ -5,9 +5,75 @@ logger = logging.getLogger(__name__)
 import collections
 from .exceptions import *
 
-# Keeping str types as properties in case they change what they call things later
+def require_process(func):
+    def func_wrap(self, *args, **kwargs):
+        if self._process is None:
+            raise RevengeProcessRequiredError("Calling {} requires ._process be set first.".format(func.__name__))
+        return func(self, *args, **kwargs)
+    return func_wrap
 
-class Basic: 
+
+# Keeping str types as properties in case they change what they call things later
+class BasicBasic(object):
+    @property
+    def _process(self):
+        """Process property is only required for certain actions."""
+        
+        try:
+            return self.__process
+        except AttributeError:
+            return None
+
+    @_process.setter
+    def _process(self, process):
+        if not isinstance(process, Process):
+            logger.error("_process must be an instance of Process. Got type {}".format(type(process)))
+            return
+
+        self.__process = process
+
+    @property
+    def memory(self):
+        """Instantiate this type to an active memory location for getting
+        and setting.
+
+        Examples:
+            .. code-block:: python3
+
+                struct = types.Struct()
+                struct.add_member('my_int', types.Int)
+                struct.add_member('my_pointer', types.Pointer)
+
+                struct.memory = 0x12345
+                # OR
+                struct.memory = 'a.out:symb'
+                # OR
+                struct.memory = process.memory[<whatever>]
+        """
+
+        try:
+            return self.__memory
+        except AttributeError:
+            return None
+
+    @memory.setter
+    def memory(self, memory):
+
+        if isinstance(memory, (int, str)):
+            # Passthrough and let memory object deal with it
+            if self._process is None:
+                logger.error("Setting Memory via int or str requires ._process be set.")
+                return
+            self.__memory = self._process.memory[memory]
+
+        elif isinstance(memory, MemoryBytes):
+            self.__memory = memory
+            self._process = memory._process
+
+        else:
+            logger.error("Unhandled memory property setter of type {}".format(type(memory)))
+
+class Basic(BasicBasic):
     def __add__(self, other):
         if type(self) is type(other) or type(other) is int:
             return self.__class__(int.__add__(self, other))
@@ -122,11 +188,9 @@ class Pointer(UInt64):
     type = "pointer"
     
     @property
+    @require_process
     def sizeof(self):
-        try:
-            return self._process.bits
-        except AttributeError:
-            raise RevengeProcessRequiredError("Checking sizeof on a Pointer requires ._process be set.")
+        return self._process.bits
 
     @property
     def js(self):
@@ -136,7 +200,7 @@ class Pointer(UInt64):
 # These don't directly have a return type value, they will just be pointers..
 # 
 
-class StringUTF8(str):
+class StringUTF8(BasicBasic, str):
     type = 'utf8'
     sizeof = Pointer.sizeof
 
@@ -145,7 +209,7 @@ class StringUTF8(str):
         logger.error("Shouldn't be asking for js on this object...")
         return str(self)
 
-class StringUTF16(str):
+class StringUTF16(BasicBasic, str):
     type = 'utf16'
     sizeof = Pointer.sizeof
 
@@ -188,12 +252,28 @@ class Struct(Pointer):
 
         self.members[name] = value
 
+    @require_process
+    def _get_member_offset(self, member_name):
+        """int: Figure out how far in from the struct a given member is."""
+
+        if member_name not in self.members:
+            logger.error("This member doesn't exist.")
+            return
+
+        offset = 0
+        for name, member in self.members.items():
+            if name == member_name:
+                return offset
+
+            if type(member) is type:
+                member = member()
+            member._process = self._process
+            offset += member.sizeof
+
     @property
+    @require_process
     def sizeof(self):
         """Equivalent of calling 'sizeof(this_struct)'."""
-
-        if not hasattr(self, '_process'):
-            raise RevengeProcessRequiredError("Checking sizeof on a Struct requires ._process be set.")
 
         sum = 0
         for name, value in self.members.items():
@@ -225,4 +305,54 @@ class Struct(Pointer):
 
         self.__members = members
 
+
+    def __getitem__(self, member_name):
+
+        if not isinstance(member_name, str):
+            logger.error("Only member names are currently supported.")
+            return
+
+        if member_name not in self.members:
+            logger.error("Member {} doesn't appear to exist in this struct.".format(member_name))
+            return
+
+        member = self.members[member_name]
+
+        if self.memory is not None:
+            # Assume we want to read the actual value
+            member_offset = self._get_member_offset(member_name)
+            return self.memory._process.memory[self.memory.address + member_offset].cast(member)
+
+        return member
+
+    def __setitem__(self, member_name, value):
+        
+        # If not bound, this is the same as [re]adding a member
+        if self.memory is None:
+            return self.add_member(member_name, value)
+
+        if not isinstance(member_name, str):
+            logger.error("Only member names are currently supported.")
+            return
+
+        if member_name not in self.members:
+            logger.error("Member {} doesn't appear to exist in this struct.".format(member_name))
+            return
+
+        member = self.members[member_name]
+
+        if type(member) is not type:
+            member_type = type(member)
+        else:
+            member_type = member
+
+        member_offset = self._get_member_offset(member_name)
+
+        # Auto type-casting it
+        self.memory._process.memory[self.memory.address + member_offset] = member_type(value)
+
+        
 all_types = (Pointer, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64, Char, UChar, Short, UShort, Int, UInt, Long, ULong, Float, Double, StringUTF8, StringUTF16, Struct)
+
+from .memory import MemoryBytes
+from .process import Process

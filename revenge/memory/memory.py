@@ -241,8 +241,10 @@ class Memory(object):
         mem = self._process.memory[index]
 
         # TODO: Implement char?
+        if isinstance(value, types.Struct):
+            mem.struct = value
 
-        if isinstance(value, types.Int8):
+        elif isinstance(value, types.Int8):
             mem.int8 = value
 
         elif isinstance(value, types.UInt8):
@@ -280,9 +282,6 @@ class Memory(object):
 
         elif isinstance(value, types.StringUTF16):
             mem.string_utf16 = value
-
-        elif isinstance(value, types.Struct):
-            mem.struct = value
 
         else:
             logger.error("Unhandled memory write type of {}".format(type(value)))
