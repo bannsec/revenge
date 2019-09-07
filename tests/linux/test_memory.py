@@ -49,6 +49,36 @@ util2 = revenge.Process(basic_two_path, resume=False, verbose=False, load_symbol
 basic_looper_path = os.path.join(bin_location, "basic_looper")
 basic_looper = revenge.Process(basic_looper_path, resume=False, verbose=False, load_symbols='basic_one')
 
+def test_memory_write_struct(caplog):
+    process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+    basic_one_module = process.modules['basic_one']
+    basic_one_i8_addr = basic_one_module.symbols['i8'].address
+    
+    # Just need scratch space
+    addr = basic_one_i8_addr
+
+    struct = types.Struct()
+    struct.add_member('test1', types.Int32(-5))
+    struct.add_member('test2', types.Int8(-12))
+    struct.add_member('test3', types.UInt16(16))
+    struct.add_member('test4', types.Pointer(4444))
+    struct.add_member('test5', types.Int16) # This should cause warning
+    struct.add_member('test6', types.Pointer(5555))
+
+    mem = process.memory[addr]
+    caplog.clear()
+    mem.struct = struct
+
+    assert "was left uninitialized" in caplog.records[0].msg
+    caplog.clear()
+
+    assert mem.int32 == -5
+    assert process.memory[addr+32].int8 == -12
+    assert process.memory[addr+32+8].uint16 == 16
+    assert process.memory[addr+32+8+16].pointer == 4444
+    assert process.memory[addr+32+8+16+64+16].pointer == 5555
+
+
 def test_memory_setitem():
     process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
     basic_one_module = process.modules['basic_one']

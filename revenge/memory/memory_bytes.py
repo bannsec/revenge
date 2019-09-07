@@ -585,20 +585,47 @@ class MemoryBytes(object):
 
     @property
     def struct(self):
-        """Not implemented yet..."""
+        """Write as a struct.
+        
+        Example:
+            .. code-block:: python3
+
+                struct = types.Struct()
+                struct.add_member('test1', types.Int32(-5))
+                struct.add_member('test2', types.Int8(-12))
+                struct.add_member('test3', types.UInt16(16))
+                process.memory[0x12345].struct = struct
+
+                # Or
+                process.memory[0x12345] = struct
+        """
         raise NotImplementedError
 
-    """
     @struct.setter
     def struct(self, struct):
 
         if not isinstance(struct, types.Struct):
-            logger.error("MemoryBytes.struct must be an instance of types.Struct")
+            logger.error("MemoryBytes.struct must be an instance of types.Struct. Got type {} instead.".format(type(struct)))
             return
 
+        # TODO: Maybe create a blob and just write it in at once as bytes instead of individual calls...
         addr = self.address
         for name, member in struct.members.items():
-    """
+
+            if member in types.all_types:
+                logger.warning("Member of struct '{}' was left uninitialized. Not writing anything for this member.".format(name))
+                tmp = member()
+                tmp._process = self._process
+                addr += tmp.sizeof
+
+            else:
+
+                # Write in member
+                # TODO: But what if this is a struct? I.e.: nested structs
+                self._process.memory[addr] = member
+                member._process = self._process # Just in case for sizeof
+                addr += member.sizeof
+
 
 
 #
