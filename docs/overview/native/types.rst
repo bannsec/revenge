@@ -59,3 +59,17 @@ Examples
 
     # Write in some new values (this will auto-cast based on struct def)
     my_struct['member_1'] = 12
+
+    # Print out some detail about it
+    print(my_struct)
+    """
+    struct {
+      test1 = -18;
+      test2 = 3;
+      test3 = 26;
+      test4 = 4545;
+      test5 = 3;
+      test6 = 5454;
+    }
+    """
+

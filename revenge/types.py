@@ -219,7 +219,34 @@ class StringUTF16(BasicBasic, str):
         return str(self)
 
 class Struct(Pointer):
-    """Defines a C structure."""
+    """Defines a C structure.
+    
+    Examples:
+        .. code-block:: python3
+
+            # Create a struct
+            my_struct = types.Struct()
+            my_struct.add_member('member_1', types.Int)
+            my_struct.add_member('member_2', types.Pointer)
+
+            # Alternatively, add them IN ORDER via dict setter
+            my_struct = types.Struct()
+            my_struct['member_1'] = types.Int
+            my_struct['member_2'] = types.Pointer
+
+            # Use cast to bind your struct to a location
+            my_struct = process.memory[0x12345].cast(my_struct)
+
+            # Or set memory property directly
+            my_struct.memory = process.memory[0x12345]
+
+            # Read out the values
+            my_struct['member_1']
+            my_struct['member_2']
+
+            # Write in some new values (this will auto-cast based on struct def)
+            my_struct['member_1'] = 12
+    """
 
     def add_member(self, name, value=None):
         """Adds given member to the end of this current structure.
@@ -350,6 +377,27 @@ class Struct(Pointer):
 
         # Auto type-casting it
         self.memory._process.memory[self.memory.address + member_offset] = member_type(value)
+
+    def __repr__(self):
+        attrs = ['Struct']
+
+        attrs += ['members:' + str(len(self.members))]
+
+        return '<' + ' '.join(attrs) + '>'
+
+    def __str__(self):
+        # No. This is not meant to be actual working struct code!
+
+        s = "struct {\n"
+
+        for name, value in self.members.items():
+            s += "  " + name + " = "
+            s += str(self[name])
+            s += ";\n"
+
+        s += "}"
+        return s
+
 
         
 all_types = (Pointer, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64, Char, UChar, Short, UShort, Int, UInt, Long, ULong, Float, Double, StringUTF8, StringUTF16, Struct)

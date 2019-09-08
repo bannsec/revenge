@@ -87,6 +87,10 @@ def test_struct_read_write():
     assert struct['test4'] == 4545
     assert struct['test6'] == 5454
 
+    # Just make sure it works...
+    repr(struct)
+    str(struct)
+
 def test_struct_get_member_offset(caplog):
     basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 
