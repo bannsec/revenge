@@ -220,7 +220,7 @@ class StringUTF16(BasicBasic, str):
 
 class Struct(Pointer):
     """Defines a C structure.
-    
+
     Examples:
         .. code-block:: python3
 
@@ -332,6 +332,20 @@ class Struct(Pointer):
 
         self.__members = members
 
+    @property
+    def name(self):
+        try:
+            return self.__name
+        except AttributeError:
+            return None
+
+    @name.setter
+    def name(self, name):
+        if not isinstance(name, str):
+            logger.error("Name must be instance of str.")
+            return
+
+        self.__name = name
 
     def __getitem__(self, member_name):
 
@@ -381,6 +395,9 @@ class Struct(Pointer):
     def __repr__(self):
         attrs = ['Struct']
 
+        if self.name is not None:
+            attrs.append(self.name)
+
         attrs += ['members:' + str(len(self.members))]
 
         return '<' + ' '.join(attrs) + '>'
@@ -388,7 +405,7 @@ class Struct(Pointer):
     def __str__(self):
         # No. This is not meant to be actual working struct code!
 
-        s = "struct {\n"
+        s = "struct {} {{\n".format(self.name if self.name is not None else "")
 
         for name, value in self.members.items():
             s += "  " + name + " = "

@@ -71,12 +71,19 @@ def test_struct_read_write():
     assert struct['test6'] == 5454
 
     struct = types.Struct()
+    assert struct.name is None
+    struct.name = "MyStruct"
+    assert struct.name == "MyStruct"
+
     struct['test1'] = types.Int32
     struct['test2'] = types.Int8
     struct['test3'] = types.UInt16
     struct['test4'] = types.Pointer
     struct['test5'] = types.Int16 # This should cause warning
     struct['test6'] = types.Pointer
+
+    str(struct)
+    repr(struct)
 
     # Bind it to the memory address
     struct.memory = basic_one.memory[writable.base]
@@ -90,6 +97,7 @@ def test_struct_read_write():
     # Just make sure it works...
     repr(struct)
     str(struct)
+
 
 def test_struct_get_member_offset(caplog):
     basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
