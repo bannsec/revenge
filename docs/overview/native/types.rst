@@ -32,6 +32,12 @@ A struct can be defined by itself first, and then "bound" to a memory address.
 
 The behavior of structs is to be used like dictionary objects.
 
+.. note::
+    
+    Compilers have NO standardization for struct padding. If your struct is not
+    displaying correctly, check if you need to add type.Padding in between
+    some elements.
+
 Examples
 --------
 
@@ -73,3 +79,11 @@ Examples
     }
     """
 
+    # There's also a short-hand way to get space for your struct on the heap
+    struct = process.memory.alloc_struct(struct)
+    
+    # It's bound to that address now, use it as above.
+    # Using this struct as an argument to a function call, you will likely
+    # want to wrap it as a pointer.
+    func = process.memory[<something>]
+    func(types.Pointer(my_struct))

@@ -8,3 +8,6 @@ class RevengeError(Exception):
 class RevengeProcessRequiredError(RevengeError):
     """Raised when a Process class is required but not found."""
     pass
+
+class RevengeInvalidArgumentType(RevengeError):
+    pass

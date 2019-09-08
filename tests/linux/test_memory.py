@@ -97,10 +97,10 @@ def test_memory_write_struct(caplog):
     caplog.clear()
 
     assert mem.int32 == -5
-    assert process.memory[addr+32].int8 == -12
-    assert process.memory[addr+32+8].uint16 == 16
-    assert process.memory[addr+32+8+16].pointer == 4444
-    assert process.memory[addr+32+8+16+64+16].pointer == 5555
+    assert process.memory[addr+4].int8 == -12
+    assert process.memory[addr+4+1].uint16 == 16
+    assert process.memory[addr+4+1+2].pointer == 4444
+    assert process.memory[addr+4+1+2+8+2].pointer == 5555
 
 
 def test_memory_setitem():

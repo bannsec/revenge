@@ -82,7 +82,7 @@ class MemoryBytes(object):
         elif cast_type == types.UInt16:
             return self.uint16
 
-        elif cast_type == types.Int32:
+        elif cast_type in [types.Int32, types.Int]:
             return self.int32
 
         elif cast_type == types.UInt32:

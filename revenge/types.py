@@ -110,31 +110,31 @@ class FloatBasic:
 
 class Int8(Basic, int):
     type = "int8"
-    sizeof = 8
+    sizeof = 1
 
 class UInt8(Basic, int):
     type = "uint8"
-    sizeof = 8
+    sizeof = 1
 
 class Int16(Basic, int):
     type = "int16"
-    sizeof = 16
+    sizeof = 2
 
 class UInt16(Basic, int):
     type = "uint16"
-    sizeof = 16
+    sizeof = 2
 
 class Int32(Basic, int):
     type = "int32"
-    sizeof = 32
+    sizeof = 4
 
 class UInt32(Basic, int):
     type = "uint32"
-    sizeof = 32
+    sizeof = 4
 
 class Int64(Basic, int):
     type = "int64"
-    sizeof = 64
+    sizeof = 8
 
     @property
     def js(self):
@@ -142,7 +142,7 @@ class Int64(Basic, int):
 
 class UInt64(Basic, int):
     type = "uint64"
-    sizeof = 64
+    sizeof = 8
 
     @property
     def js(self):
@@ -190,11 +190,26 @@ class Pointer(UInt64):
     @property
     @require_process
     def sizeof(self):
-        return self._process.bits
+        return int(self._process.bits/8)
 
     @property
     def js(self):
         return "ptr('{}')".format(hex(self))
+
+class Padding(BasicBasic):
+    """Defines the spacing between struct entries.
+
+    Example:
+        .. code-block:: python3
+
+            struct = types.Struct()
+            struct['one'] = types.Int8
+            struct['pad1'] = types.Padding(3)
+            struct['two'] = types.Int16
+    """
+
+    def __init__(self, size):
+        self.sizeof = size
 
 #
 # These don't directly have a return type value, they will just be pointers..
@@ -227,6 +242,7 @@ class Struct(Pointer):
             # Create a struct
             my_struct = types.Struct()
             my_struct.add_member('member_1', types.Int)
+            my_struct.add_member('pad1', types.Padding(1))
             my_struct.add_member('member_2', types.Pointer)
 
             # Alternatively, add them IN ORDER via dict setter
@@ -246,6 +262,10 @@ class Struct(Pointer):
 
             # Write in some new values (this will auto-cast based on struct def)
             my_struct['member_1'] = 12
+
+            # Allocate a struct and use it in a function call
+            my_struct = process.memory.alloc_struct(my_struct)
+            process.memory[<some function>](types.Pointer(my_struct))
     """
 
     def add_member(self, name, value=None):
@@ -281,7 +301,7 @@ class Struct(Pointer):
 
     @require_process
     def _get_member_offset(self, member_name):
-        """int: Figure out how far in from the struct a given member is."""
+        """int: Figure out how far in (in bytes) from the struct a given member is."""
 
         if member_name not in self.members:
             logger.error("This member doesn't exist.")
@@ -408,6 +428,9 @@ class Struct(Pointer):
         s = "struct {} {{\n".format(self.name if self.name is not None else "")
 
         for name, value in self.members.items():
+            if isinstance(value, Padding):
+                continue
+
             s += "  " + name + " = "
             s += str(self[name])
             s += ";\n"
@@ -415,9 +438,21 @@ class Struct(Pointer):
         s += "}"
         return s
 
+    def __int__(self):
+        try:
+            return int(self.memory.address)
+        except AttributeError:
+            return 0
+
+    def __hex__(self):
+        return hex(int(self))
+
+    def __index__(self):
+        return int(self)
 
         
-all_types = (Pointer, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64, Char, UChar, Short, UShort, Int, UInt, Long, ULong, Float, Double, StringUTF8, StringUTF16, Struct)
+frida_types = (Pointer, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64, Char, UChar, Short, UShort, Int, UInt, Long, ULong, Float, Double)
+all_types = frida_types + (Struct, Padding, StringUTF8, StringUTF16)
 
 from .memory import MemoryBytes
 from .process import Process

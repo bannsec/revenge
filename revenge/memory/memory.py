@@ -50,6 +50,9 @@ class Memory(object):
     
         Args:
             size (int): How many bytes to allocate.
+
+        Returns:
+            revenge.memory.MemoryBytes: Object for the new memory location.
         """
         
         assert type(size) is int
@@ -59,6 +62,37 @@ class Memory(object):
 
         self._allocated_memory[pointer] = script
         return MemoryBytes(self._process, pointer, pointer+size)
+
+    def alloc_struct(self, struct):
+        """Short-hand to alloc appropriate space for the struct and write it in.
+        
+        Args:
+            struct (revenge.types.Struct): The struct to write into memory.
+
+        Returns:
+            revenge.types.Struct: The original struct, but now bound to the
+            new memory location.
+        """
+        
+        if not isinstance(struct, types.Struct):
+            error = "Struct should be of type revenge.types.Struct. Got {}".format(type(struct))
+            logger.error(error)
+            raise RevengeInvalidArgumentType(error)
+
+        struct._process = self._process
+
+        # Allocate the amount of size needed
+        mem = self.alloc(struct.sizeof)
+        
+        # Write the struct in memory
+        mem.struct = struct
+
+        # Tell the struct object where the memory is
+        struct.memory = mem
+
+        # Return the struct
+        return struct
+
 
     def alloc_string(self, s, encoding='latin-1'):
         """Short-hand to run alloc of appropriate size, then write in the string.
@@ -312,5 +346,6 @@ from . import MemoryBytes
 from . import MemoryRange
 from . import MemoryFind
 from . import MemoryMap
+from ..exceptions import *
 
 Memory.find.__doc__ = MemoryFind.__init__.__doc__
