@@ -127,7 +127,16 @@ class AndroidDevice(BaseDevice):
             application = self.applications[application]
 
         application = application.identifier
-        pid = self.device.spawn(application)
+
+        # Spawn has been timing out on slow emulators...
+        retry = 5
+        while retry > 0:
+            try:
+                pid = self.device.spawn(application)
+                break
+            except frida.TransportError as e:
+                logger.error("Transport Error, retying: {}".format(str(e)))
+                retry -= 1
 
         if not gated:
             # Sometimes it gates anyway
