@@ -183,3 +183,41 @@ def on_msg_print(m, d, TAG=None):
         return
     
     print("on_message: {}".format([m,d]))
+
+#
+# Decorators
+#
+
+class retry_on_exception(object):
+    """Decorator to retry the given function up to retry times if an
+    exception is caught from the given list/tuple.
+
+    Args:
+        exceptions (tuple): What exceptions should trigger a retry?
+        retry (int, optional): How many times to retry? Default: 5
+    """
+
+    def __init__(self, exceptions, retry=5):
+
+        if isinstance(exceptions, (list, tuple)):
+            self.exceptions = tuple(exceptions)
+        else:
+            self.exceptions = (exceptions,)
+
+        self.retry = retry
+
+    def __call__(self, func):
+
+        def wrapper(*args, **kwargs):
+            while True:
+                try:
+                    return func(*args, **kwargs)
+                except self.exceptions as e:
+                    if self.retry >= 0:
+                        logger.warning("Caught retry-able error '{}'. Retrying.".format(str(e)))
+                        self.retry -= 1
+                        continue
+                    else:
+                        logger.error("Ran out of retries... {}".format(str(e)))
+                        raise
+        return wrapper

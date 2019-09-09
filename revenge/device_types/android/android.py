@@ -9,6 +9,7 @@ import subprocess
 from time import sleep
 
 from .. import BaseDevice
+from ... import common
 
 class AndroidDevice(BaseDevice):
     def __init__(self, id=None, type=None, frida_server_release=None):
@@ -104,6 +105,7 @@ class AndroidDevice(BaseDevice):
         self.adb("shell", interactive=True)
 
 
+    @common.retry_on_exception((frida.TransportError,))
     def spawn(self, application, gated=True, load_symbols=None):
         """Spawn the given application.
 
@@ -127,16 +129,7 @@ class AndroidDevice(BaseDevice):
             application = self.applications[application]
 
         application = application.identifier
-
-        # Spawn has been timing out on slow emulators...
-        retry = 5
-        while retry > 0:
-            try:
-                pid = self.device.spawn(application)
-                break
-            except frida.TransportError as e:
-                logger.error("Transport Error, retying: {}".format(str(e)))
-                retry -= 1
+        pid = self.device.spawn(application)
 
         if not gated:
             # Sometimes it gates anyway
@@ -144,6 +137,7 @@ class AndroidDevice(BaseDevice):
 
         return Process(pid, device=self, load_symbols=load_symbols)
 
+    @common.retry_on_exception((frida.TransportError,))
     def attach(self, application, load_symbols=None):
         """Attach to the given application.
 
@@ -158,6 +152,8 @@ class AndroidDevice(BaseDevice):
         
         if isinstance(application, frida._frida.Application):
             pid = application.pid
+        elif isinstance(application, int):
+            pid = application
         else:
             pid = self.applications[application].pid
 
@@ -238,7 +234,6 @@ class AndroidDevice(BaseDevice):
             return self.__version
 
 from .applications import AndroidApplications
-from ... import common
 from .. import uname_standard
 from ...process import Process
 
