@@ -22,7 +22,7 @@ function flush () {{
         'return_buffer': return_buffer
     }}
     send(message);
-    recv('flush', flush);
+    // recv('flush', flush);
 }}
 
 function handler (args) {{
@@ -52,13 +52,10 @@ function generic_handler(args) {{
     if ( args['type'] == "list" ) {{
         handler(args);
     }}
-    else if ( args['type'] == "flush" ) {{
-        flush();
-    }}
 }}
 
 var recv_list = recv('list', handler);
-var recv_flush = recv('flush', flush);
+//var recv_flush = recv('flush', flush);
 
 // Setting up blocking recv-loop
 // Blocking is sadly needed due to Java implementation...
@@ -71,6 +68,10 @@ while ( 1 ) {{
 }}
 */
 
+rpc.exports = {{
+    dispose: function () {{ flush(); }},
+    flush: function () {{ flush(); }},
+}}
 
 """
 
@@ -159,7 +160,8 @@ class BatchContext(object):
             logger.error("Cannot find script to tell to flush!")
             return
 
-        self._script[0].post({"type": "flush"})
+        #self._script[0].post({"type": "flush"})
+        self._script[0].exports.flush()
 
     def _send_buffer(self):
         """Handles sending and emptying the buffer.
@@ -264,7 +266,8 @@ class BatchContext(object):
         # TODO: There's a race condition here where the Frida js has finished
         # processing the things we've sent, but has not finished flushing data
         # back. Sleeping for now, but find a better way...
-        sleep(0.2)
+        # This should be fixed with the rpc dispose call now...
+        #sleep(0.2)
 
         # Done with this script.
         self._unload_script()
