@@ -2,10 +2,12 @@
 import logging
 logger = logging.getLogger(__name__)
 
+import os
 import collections
 from prettytable import PrettyTable
 import datetime
 from fnmatch import fnmatch
+import time
 
 from .. import common, types
 
@@ -57,6 +59,60 @@ class Modules(object):
 
         return types.Pointer(common.auto_int(self._process.run_script_generic("resolve_location_address.js", replace=replace_vars, unload=True)[0][0]))
 
+    def load_library(self, library):
+        """Dynamically load a library into the program.
+
+        Args:
+            library (str): The full path to the library on the process machine
+
+        Returns:
+            revenge.modules.Module: RetuRns the new loaded module or None on error.
+
+        Examples:
+            .. code-block:: python3
+
+                selinux = process.modules.load_library("/lib/x86_64-linux-gnu/libselinux.so.1")
+
+        This will eventually be implemented across all platforms. For now,
+        it only works on linux platforms.
+        """
+
+        def load_linux(self, library):
+
+            dlopen = self._process.memory[':dlopen']
+            dlopen.argument_types = types.Pointer, types.Int32
+            
+            if dlopen is None:
+                logger.error("Unable to locate dlopen. Cannot dynamically load.")
+                return
+
+            # Assuming non-lazy load and exporting symbols for now.
+            out = dlopen(library, 0x102)
+
+            # dlopen is reporting an error
+            if out == 0:
+                return False
+
+            self._flush_cache()
+            return self[os.path.basename(library)]
+
+
+        if not isinstance(library, str):
+            error = "library argument must be of type str."
+            logger.error(error)
+            raise RevengeInvalidArgumentType(error)
+
+
+        if self._process.device_platform == "linux":
+            return load_linux(self, library)
+
+        else:
+            logger.error("Not yet supported platform for load_library: {}".format(self._process.device_platform))
+
+    def _flush_cache(self):
+        """Make sure the next time we're hit is a full one."""
+        self.__last_update = datetime.datetime(1970,1,1)
+
     def __iter__(self):
         return self.modules.__iter__()
 
@@ -105,3 +161,4 @@ class Modules(object):
         return self.__modules
 
 from .module import Module
+from ..exceptions import *

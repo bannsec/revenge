@@ -89,3 +89,11 @@ Examples
 
     # This elf object parses the elf as loaded in memory
     elf = process.modules['ls'].elf
+
+Loading Libraries
+=================
+
+You can dynamically load libraries in ``revenge`` by using the
+:meth:`~revenge.modules.Modules.load_library` method. This will attempt to load
+the library using native calls for your platform and return a
+:class:`~revenge.modules.Module` object.

@@ -30,6 +30,21 @@ basic_one_ia32 = revenge.Process(basic_one_ia32_path, resume=False)
 basic_one_ia32_nopie_path = os.path.join(bin_location, "basic_one_ia32_nopie")
 basic_one_ia32_nopie = revenge.Process(basic_one_ia32_nopie_path, resume=False)
 
+chess_path = os.path.join(bin_location, "ChessAI.so")
+
+def test_load_library():
+
+    process = revenge.Process(basic_one_path, resume=False, verbose=False)
+
+    with pytest.raises(StopIteration):
+        process.modules["ChessAI.so"]
+
+    chess = process.modules.load_library(chess_path)
+
+    assert chess is not None
+    assert process.memory[chess.symbols['getAiName']()].string_utf8 == "DeepFLARE"
+    assert process.memory[process.memory[':getAiGreeting']()].string_utf8 == "Finally, a worthy opponent. Let us begin"
+
 def test_plt():
 
     #
