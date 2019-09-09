@@ -339,8 +339,8 @@ class Process(object):
 
         try:
             script.load()
-        except:
-            logger.error("Error running script!")
+        except Exception as e:
+            logger.error("Error running script! " + str(e))
             script.unload()
             return
 
