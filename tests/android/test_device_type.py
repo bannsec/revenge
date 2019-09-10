@@ -26,12 +26,15 @@ def test_spawn():
     list(p.threads)
     list(p.modules)
     list(p.memory.maps)
+    p.quit()
 
     # Spawn with splat
     p = android.spawn("*calc*", gated=False, load_symbols=[])
+    p.quit()
 
 def test_attach():
     p = android.attach(android.device.get_frontmost_application(), load_symbols=[])
+    p.quit()
 
 def test_applications():
     calc = android.applications['*calc*']
@@ -40,6 +43,8 @@ def test_applications():
     list(android.applications)
     len(android.applications)
 
+    p.quit()
+
 def test_install_uninstall_application():
     android.install(veryandroidso)
     # Race condition for install vs run
@@ -47,6 +52,8 @@ def test_install_uninstall_application():
     very = android.applications['*ooo*']
     p = android.spawn(very, gated=False, load_symbols=[])
     android.uninstall(very)
+
+    p.quit()
 
 def test_repr():
     repr(android)

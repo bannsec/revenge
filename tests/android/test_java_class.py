@@ -68,6 +68,8 @@ def test_reflective_method_and_field_discovery():
     # This isn't a "class " type, but shouldn't fail either
     assert isinstance(MainActivity.TAG.CASE_INSENSITIVE_ORDER, JavaClass)
 
+    p.quit()
+
 def test_find_active_instance():
     android.install(veryandroidso)
     p = android.spawn("ooo.defcon2019.quals.veryandroidoso", gated=False, load_symbols=[])
@@ -81,6 +83,8 @@ def test_find_active_instance():
     M = p.java.find_active_instance('ooo.defcon2019.quals.veryandroidoso.MainActivity')
     assert M is not None
     assert M.parse("OOO{fab43416484944beba}")() == [250,180,52,22,72,73,68,190,186]
+
+    p.quit()
 
 def test_basic():
     calc = android.attach("*calc*", load_symbols=[])

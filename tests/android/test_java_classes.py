@@ -17,6 +17,7 @@ def test_basic():
     p = android.spawn("*email*", gated=False, load_symbols=[])
     c = p.java.classes
     repr(c)
+    p.quit()
 
 def test_getitem():
     p = android.spawn("*calc*", gated=False, load_symbols=[])
@@ -27,4 +28,6 @@ def test_getitem():
         assert isinstance(x, JavaClass)
 
     assert isinstance(c[12], JavaClass)
+    
+    p.quit()
 
