@@ -2,6 +2,26 @@
 Release Notes
 =============
 
+Version 0.12
+============
+
+- Added ``__call__`` to :class:`~revenge.symbols.Symbol` allowing for
+  ``symbol()`` function call directly from the symbol class.
+- Added Symbol :meth:`~revenge.symbols.Symbol.memory` as a shortcut to get the
+  MemoryBytes object for said symbol.
+- Implemented new type for :class:`~revenge.types.Struct`. It's now much easier
+  to both define, set, and read memory structures.
+- Implemented :class:`~revenge.memory.Memory` ``__setitem__``, allowing for
+  setting memory implicitly based on type. Example:
+
+    .. code-block:: python3
+
+        process.memory[0x12345] = types.Int16(5)
+
+- Implemented MemoryBytes :meth:`~revenge.memory.MemoryBytes.cast`, allowing
+  for more programmatic retrieval based on type.
+- Stability improvements
+
 Version 0.11
 =============
 

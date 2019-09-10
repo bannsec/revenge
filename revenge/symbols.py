@@ -3,21 +3,26 @@ import logging
 logger = logging.getLogger(__name__)
 
 class Symbol(object):
+    """Represents a binary symbol.
+
+    Args:
+        process: Process object
+        name (str, optional): Name of this symbol
+        address (int, optional): Address of this symbol
+    """
 
     def __init__(self, process, name=None, address=None):
-        """Represents a binary symbol.
-
-        Args:
-            process: Process object
-            name (str, optional): Name of this symbol
-            address (int, optional): Address of this symbol
-        """
 
         self._process = process
         self.name = name
         self.address = address
 
     def startswith(self, x):
+        """Passthrough to check if the symbol name starts with some string.
+        
+        Returns:
+            bool
+        """
         return self.name.startswith(x)
 
     def __repr__(self):
@@ -94,7 +99,7 @@ class Symbol(object):
 
     @property
     def memory(self):
-        """Convenience property to grab a memory object for this symbol."""
+        """revenge.memory.MemoryBytes: Convenience property to grab a memory object for this symbol."""
         return self._process.memory[self.address]
 
 from . import types

@@ -10,6 +10,7 @@ Native
     process
     memory
     modules
+    symbols
     threads
     tracing
     types
