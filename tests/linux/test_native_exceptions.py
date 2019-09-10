@@ -12,9 +12,9 @@ here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "bins")
 
 exceptions_path = os.path.join(bin_location, "exceptions")
-p = revenge.Process(exceptions_path, resume=False, verbose=False)
 
 def test_arithmetic():
+    p = revenge.Process(exceptions_path, resume=False, verbose=False)
 
     do_arithmetic = p.memory[p.modules['exceptions'].symbols['do_arithmetic']] 
     do_good = p.memory[p.modules['exceptions'].symbols['do_good']] 
@@ -33,7 +33,10 @@ def test_arithmetic():
     # If we handled exception correctly, process should still be in good state
     assert not isinstance(do_good, revenge.native_exception.NativeException)
 
+    p.quit()
+
 def test_illegal_instruction():
+    p = revenge.Process(exceptions_path, resume=False, verbose=False)
 
     do_ill = p.memory[p.modules['exceptions'].symbols['do_ill']] 
     do_good = p.memory[p.modules['exceptions'].symbols['do_good']] 
@@ -51,7 +54,10 @@ def test_illegal_instruction():
     # If we handled exception correctly, process should still be in good state
     assert not isinstance(do_good, revenge.native_exception.NativeException)
 
+    p.quit()
+
 def test_abort():
+    p = revenge.Process(exceptions_path, resume=False, verbose=False)
 
     do_abort = p.memory[p.modules['exceptions'].symbols['do_abort']] 
     do_good = p.memory[p.modules['exceptions'].symbols['do_good']] 
@@ -69,7 +75,10 @@ def test_abort():
     # If we handled exception correctly, process should still be in good state
     assert not isinstance(do_good, revenge.native_exception.NativeException)
 
+    p.quit()
+
 def test_access_violation():
+    p = revenge.Process(exceptions_path, resume=False, verbose=False)
 
     do_access_violation = p.memory[p.modules['exceptions'].symbols['do_access_violation']]
     do_good = p.memory[p.modules['exceptions'].symbols['do_good']] 
@@ -88,7 +97,10 @@ def test_access_violation():
     # If we handled exception correctly, process should still be in good state
     assert not isinstance(do_good, revenge.native_exception.NativeException)
 
+    p.quit()
+
 def test_access_violation_read():
+    p = revenge.Process(exceptions_path, resume=False, verbose=False)
 
     do_access_read_violation = p.memory[p.modules['exceptions'].symbols['do_access_read_violation']]
     do_good = p.memory[p.modules['exceptions'].symbols['do_good']] 
@@ -109,6 +121,8 @@ def test_access_violation_read():
 
     # If we handled exception correctly, process should still be in good state
     assert not isinstance(do_good, revenge.native_exception.NativeException)
+
+    p.quit()
 
 """
 def test_access_violation_write():
@@ -136,6 +150,7 @@ def test_access_violation_write():
 """
 
 def test_access_violation_execute():
+    p = revenge.Process(exceptions_path, resume=False, verbose=False)
 
     do_access_exec_violation = p.memory[p.modules['exceptions'].symbols['do_access_exec_violation']]
     do_good = p.memory[p.modules['exceptions'].symbols['do_good']] 
@@ -157,7 +172,10 @@ def test_access_violation_execute():
     # If we handled exception correctly, process should still be in good state
     assert not isinstance(do_good, revenge.native_exception.NativeException)
 
+    p.quit()
+
 def test_int3():
+    p = revenge.Process(exceptions_path, resume=False, verbose=False)
 
     do_int3 = p.memory[p.modules['exceptions'].symbols['do_int3']]
     do_good = p.memory[p.modules['exceptions'].symbols['do_good']] 
@@ -176,7 +194,10 @@ def test_int3():
     # If we handled exception correctly, process should still be in good state
     assert not isinstance(do_good, revenge.native_exception.NativeException)
 
+    p.quit()
+
 def test_sigsys():
+    p = revenge.Process(exceptions_path, resume=False, verbose=False)
 
     do_sigsys = p.memory[p.modules['exceptions'].symbols['do_sigsys']]
     do_good = p.memory[p.modules['exceptions'].symbols['do_good']] 
@@ -194,3 +215,5 @@ def test_sigsys():
 
     # If we handled exception correctly, process should still be in good state
     assert not isinstance(do_good, revenge.native_exception.NativeException)
+
+    p.quit()

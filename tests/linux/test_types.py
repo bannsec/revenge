@@ -89,6 +89,8 @@ def test_struct_calling():
     assert struct['p'] == 0xcaf3bab3
     assert return_p(types.Pointer(struct)) == struct['p']
 
+    basic_struct.quit()
+
 
 def test_struct_read_write():
     basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
@@ -168,6 +170,8 @@ def test_struct_read_write():
     repr(struct)
     str(struct)
 
+    basic_one.quit()
+
 
 def test_struct_get_member_offset(caplog):
     basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
@@ -188,6 +192,8 @@ def test_struct_get_member_offset(caplog):
     assert struct._get_member_offset('test4') == 4+1+2
     assert struct._get_member_offset('test5') == 4+1+2+8
     assert struct._get_member_offset('test6') == 4+1+2+8+2
+
+    basic_one.quit()
 
 
 def test_sizeof():
@@ -284,6 +290,9 @@ def test_sizeof():
     assert x.sizeof == 13
     x._process = basic_one_ia32
     assert x.sizeof == 9
+
+    basic_one.quit()
+    basic_one_ia32.quit()
 
 def test_js_attr():
 

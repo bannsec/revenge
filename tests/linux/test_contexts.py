@@ -125,6 +125,8 @@ def test_contexts_amd64():
 
     str(x64)
 
+    basic_one.quit()
+
 def test_contexts_x86():
 
     basic_one = revenge.Process(os.path.join(bin_location, 'basic_one_ia32'), resume=False, verbose=False, load_symbols='basic_one_ia32')
@@ -181,3 +183,5 @@ def test_contexts_x86():
     assert x86.eip == 0x87654321
 
     str(x86)
+
+    basic_one.quit()

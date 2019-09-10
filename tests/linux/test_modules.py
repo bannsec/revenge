@@ -19,21 +19,13 @@ bin_location = os.path.join(here, "bins")
 #
 
 basic_one_path = os.path.join(bin_location, "basic_one")
-process = revenge.Process(basic_one_path, resume=False, verbose=False)
-
 basic_one_64_nopie_path = os.path.join(bin_location, "basic_one_64_nopie")
-basic_one_64_nopie = revenge.Process(basic_one_64_nopie_path, resume=False)
-
 basic_one_ia32_path = os.path.join(bin_location, "basic_one_ia32")
-basic_one_ia32 = revenge.Process(basic_one_ia32_path, resume=False)
-
 basic_one_ia32_nopie_path = os.path.join(bin_location, "basic_one_ia32_nopie")
-basic_one_ia32_nopie = revenge.Process(basic_one_ia32_nopie_path, resume=False)
 
 chess_path = os.path.join(bin_location, "ChessAI.so")
 
 def test_load_library():
-
     process = revenge.Process(basic_one_path, resume=False, verbose=False)
 
     with pytest.raises(StopIteration):
@@ -45,7 +37,13 @@ def test_load_library():
     assert process.memory[chess.symbols['getAiName']()].string_utf8 == "DeepFLARE"
     assert process.memory[process.memory[':getAiGreeting']()].string_utf8 == "Finally, a worthy opponent. Let us begin"
 
+    process.quit()
+
 def test_plt():
+    process = revenge.Process(basic_one_path, resume=False, verbose=False)
+    basic_one_64_nopie = revenge.Process(basic_one_64_nopie_path, resume=False)
+    basic_one_ia32 = revenge.Process(basic_one_ia32_path, resume=False)
+    basic_one_ia32_nopie = revenge.Process(basic_one_ia32_nopie_path, resume=False)
 
     #
     # First parse
@@ -85,7 +83,13 @@ def test_plt():
     assert 'printf' in basic_one_ia32_nopie.memory.describe_address(basic_one_mod.symbols['got.printf'])
     assert 'printf' in basic_one_ia32_nopie.memory.describe_address(basic_one_ia32_nopie.memory[basic_one_mod.symbols['got.printf']].pointer)
 
+    process.quit()
+    basic_one_64_nopie.quit()
+    basic_one_ia32.quit()
+    basic_one_ia32_nopie.quit()
+
 def test_modules_symbols():
+    process = revenge.Process(basic_one_path, resume=False, verbose=False)
 
     basic_one_mod = process.modules['basic_one']
     assert basic_one_mod.symbols['func'] - basic_one_mod.base == 0x64A
@@ -99,8 +103,11 @@ def test_modules_symbols():
     assert basic_one_mod.symbols['ui64'] - basic_one_mod.base == 0x201028
     assert isinstance(basic_one_mod.symbols['ui64'].address, types.Pointer)
 
+    process.quit()
+
 
 def test_modules_by_int():
+    process = revenge.Process(basic_one_path, resume=False, verbose=False)
 
     libc = process.modules['libc*']
     
@@ -110,7 +117,10 @@ def test_modules_by_int():
 
     assert process.modules[123] == None
 
+    process.quit()
+
 def test_modules_basic():
+    process = revenge.Process(basic_one_path, resume=False, verbose=False)
 
     assert process.modules['libc*'] is not None
     assert process.modules['basic_one'] is not None
@@ -148,3 +158,5 @@ def test_modules_basic():
     
     with pytest.raises(StopIteration):
         process.modules["Not a valid module"]
+
+    process.quit()

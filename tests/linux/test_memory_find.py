@@ -30,9 +30,8 @@ basic_one_ui64_addr = 0x201028
 basic_one_string_addr = 0x724
 basic_open_func_addr = 0x64A
 
-process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
-
 def test_memory_find_ranges():
+    process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 
     # Invalid range
     with pytest.raises(Exception):
@@ -43,12 +42,19 @@ def test_memory_find_ranges():
     f = process.memory.find(types.Int64(1), ranges=range)
     f.ranges = range
 
+    process.quit()
+
 def test_memory_find_thing():
+
+    process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 
     with pytest.raises(Exception):
         f = process.memory.find(12)
 
+    process.quit()
+
 def test_memory_find_completed():
+    process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 
     class test(object):
         def unload(self):
@@ -60,7 +66,10 @@ def test_memory_find_completed():
     f.completed = True
     assert f._script == None
 
+    process.quit()
+
 def test_memory_find_repr():
+    process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 
     f = process.memory.find(types.Int64(1))
     f.sleep_until_completed()
@@ -68,7 +77,10 @@ def test_memory_find_repr():
     f.completed = False
     repr(f)
 
+    process.quit()
+
 def test_memory_find_del():
+    process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 
     class test(object):
         def unload(self):
@@ -84,7 +96,10 @@ def test_memory_find_del():
     f.__del__()
     assert f._script is None
 
+    process.quit()
+
 def test_memory_find_iter():
+    process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 
     f = process.memory.find(types.Int64(1))
     f.sleep_until_completed()
@@ -96,8 +111,11 @@ def test_memory_find_iter():
     f.completed = False
     list(f)
 
+    process.quit()
+
 
 def test_memory_on_message():
+    process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 
     f = process.memory.find(types.StringUTF8("This is my string"))
     f.sleep_until_completed()    
@@ -117,8 +135,11 @@ def test_memory_on_message():
     payload = {'payload': 1.12}
     f._on_message(payload, None)
 
+    process.quit()
+
 
 def test_memory_find_ranges():
+    process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 
     ranges = [m for m in process.memory.maps if m.file is not None and "basic_one" in m.file]
 
@@ -129,7 +150,10 @@ def test_memory_find_ranges():
     for addr in f:
         assert process.memory[addr].string_utf8 == "This is my string"
 
+    process.quit()
+
 def test_memory_find_general():
+    process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 
     f = process.memory.find(types.StringUTF8("This is my string"))
     f.sleep_until_completed()
@@ -152,3 +176,5 @@ def test_memory_find_general():
 
     assert mem.address in f
     """
+
+    process.quit()

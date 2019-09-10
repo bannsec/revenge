@@ -14,10 +14,9 @@ bin_location = os.path.join(here, "bins")
 #
 
 basic_one_path = os.path.join(bin_location, "basic_one")
-process = revenge.Process(basic_one_path, resume=False, verbose=False)
-
 
 def test_symbol_basic():
+    process = revenge.Process(basic_one_path, resume=False, verbose=False)
 
     s = revenge.symbols.Symbol(process, name='test', address=123456)
     str(s)
@@ -35,7 +34,10 @@ def test_symbol_basic():
     assert s < 0xffffff
     assert s <= 123456
 
+    process.quit()
+
 def test_symbol_memory():
+    process = revenge.Process(basic_one_path, resume=False, verbose=False)
 
     strlen = process.modules['*libc*'].symbols['strlen']
 
@@ -43,3 +45,4 @@ def test_symbol_memory():
     assert process.memory[strlen.memory()]('test') == 4
     assert process.memory[strlen()]('test') == 4
 
+    process.quit()

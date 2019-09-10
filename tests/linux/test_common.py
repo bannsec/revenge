@@ -50,3 +50,5 @@ def test_common_load_file():
 
     #process.device_platform = 'not_a_real_platform'
     #assert revenge.common.load_file(process, "/bin/ls") is None
+
+    process.quit()

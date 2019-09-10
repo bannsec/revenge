@@ -23,6 +23,7 @@ bin_location = os.path.join(here, "bins")
 #
 
 basic_one_path = os.path.join(bin_location, "basic_one")
+
 util = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 basic_one_module = util.modules['basic_one']
 basic_one_i8_addr = basic_one_module.symbols['i8'].address
@@ -43,11 +44,7 @@ basic_two_i32_addr = 0x201020
 basic_two_f_addr = 0x201010
 basic_two_d_addr = 0x201018
 
-util2 = revenge.Process(basic_two_path, resume=False, verbose=False, load_symbols=['basic_one'])
-
-
 basic_looper_path = os.path.join(bin_location, "basic_looper")
-basic_looper = revenge.Process(basic_looper_path, resume=False, verbose=False, load_symbols='basic_one')
 
 def test_memory_cast_struct(caplog):
     process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
@@ -71,6 +68,8 @@ def test_memory_cast_struct(caplog):
     s = mem.cast(struct)
     assert s is struct
     assert s.memory is mem
+
+    process.quit()
 
 
 def test_memory_write_struct(caplog):
@@ -101,6 +100,8 @@ def test_memory_write_struct(caplog):
     assert process.memory[addr+4+1].uint16 == 16
     assert process.memory[addr+4+1+2].pointer == 4444
     assert process.memory[addr+4+1+2+8+2].pointer == 5555
+
+    process.quit()
 
 
 def test_memory_setitem():
@@ -147,6 +148,8 @@ def test_memory_setitem():
     process.memory[addr] = types.StringUTF16("Test")
     assert process.memory[addr].string_utf16 == "Test"
 
+    process.quit()
+
 def test_replace_with_js():
     global messages
     messages = []
@@ -179,6 +182,7 @@ def test_replace_with_js():
 
     assert strlen.replace == strlen.implementation
 
+    p.quit()
 
 def test_argument_types():
 
@@ -201,6 +205,8 @@ def test_argument_types():
     strlen.argument_types = [types.Int32, types.Double]
     assert strlen.argument_types == (types.Int32, types.Double)
 
+    p.quit()
+
 def test_describe_address():
 
     #
@@ -217,6 +223,8 @@ def test_describe_address():
     assert p.memory.describe_address(func) == 'basic_one:func'
     assert p.memory.describe_address(func + 5) == 'basic_one:func+0x5'
 
+    p.quit()
+
     #
     # Don't have symbols
     # 
@@ -226,11 +234,14 @@ def test_describe_address():
     assert p.memory.describe_address(p.modules['basic_one'].base) == "basic_one"
     assert p.memory.describe_address(p.modules['basic_one'].base + 0x123) == "basic_one+0x123"
 
+    p.quit()
+
 def test_memory_local_symbol_resolve():
     assert util.memory['basic_one:i8'].address == basic_one_i8_addr
     assert util.memory['basic_one:i8'].address == util.modules['basic_one'].base + 0x201010
 
 def test_memory_bytes_function_replace():
+    basic_looper = revenge.Process(basic_looper_path, resume=False, verbose=False, load_symbols='basic_one')
 
     # This var constantly gets updated with the output of the function
     global_var = basic_looper.memory['basic_looper:0x201014']
@@ -267,6 +278,7 @@ def test_memory_bytes_function_replace():
     assert global_var.int64 == 1
     func.replace = None # Shouldn't affect anything
 
+    basic_looper.quit()
 
 
 def test_memory_bytes_address_as_pointer():
@@ -388,6 +400,7 @@ def test_memory_repr_str():
 
 
 def test_memory_breakpoint():
+    util2 = revenge.Process(basic_two_path, resume=False, verbose=False, load_symbols=['basic_one'])
 
     # Initial value
     assert util2.memory['basic_two:{}'.format(hex(basic_two_i32_addr))].int32 == 1337
@@ -434,12 +447,16 @@ def test_memory_breakpoint():
     # It should have changed now
     assert i32.int32 == 31337
 
-
+    util2.quit()
 
 def test_memory_read_float_double():
+    util2 = revenge.Process(basic_two_path, resume=False, verbose=False, load_symbols=['basic_one'])
+
     assert abs(util2.memory['basic_two:{}'.format(hex(basic_two_f_addr))].float - 4.1251) < 0.0001
     assert abs(util2.memory['basic_two:{}'.format(hex(basic_two_f_addr))].cast(types.Float) - 4.1251) < 0.0001
     assert abs(util2.memory['basic_two:{}'.format(hex(basic_two_d_addr))].cast(types.Double) - 10.4421) < 0.0001
+
+    util2.quit()
 
 def test_memory_read_int():
 

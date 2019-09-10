@@ -17,7 +17,6 @@ bin_location = os.path.join(here, "bins")
 basic_threads_path = os.path.join(bin_location, "basic_threads")
 basic_threads_after_create = 0x7df
 
-util = revenge.Process(basic_threads_path, resume=False, verbose=False, load_symbols='basic_threads')
 
 def test_thread_tracing_indicator():
 
@@ -36,8 +35,11 @@ def test_thread_tracing_indicator():
     assert th.trace is None
     assert "tracing" not in repr(th)
 
+    process.quit()
+
 
 def test_thread_enum():
+    util = revenge.Process(basic_threads_path, resume=False, verbose=False, load_symbols='basic_threads')
 
     # Should only be one thread to start with
     assert len(util.threads) == 1
@@ -53,8 +55,11 @@ def test_thread_enum():
     # Should be two threads now
     assert len(util.threads) == 2
 
+    util.quit()
+
 
 def test_thread_regs_amd64():
+    util = revenge.Process(basic_threads_path, resume=False, verbose=False, load_symbols='basic_threads')
 
     # Just checking that the regs are exposed
     t = list(util.threads)[0]
@@ -62,7 +67,10 @@ def test_thread_regs_amd64():
     for reg in amd64_regs:
         assert type(getattr(t, reg)) is int
 
+    util.quit()
+
 def test_thread_repr_str():
+    util = revenge.Process(basic_threads_path, resume=False, verbose=False, load_symbols='basic_threads')
 
     # For now, just make sure they return...
     repr(util.threads)
@@ -72,9 +80,14 @@ def test_thread_repr_str():
     repr(t)
     str(t)
 
+    util.quit()
+
 def test_thread_getitem():
+    util = revenge.Process(basic_threads_path, resume=False, verbose=False, load_symbols='basic_threads')
 
     t = list(util.threads)[0]
     assert util.threads[t.id] is not None
     assert util.threads[0] is None
     assert util.threads[b'blerg'] is None
+
+    util.quit()

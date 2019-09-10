@@ -107,3 +107,5 @@ def test_batch_basic():
     assert context._num_pending_complete == 0
     assert context._script is None
 
+    basic_one.quit()
+

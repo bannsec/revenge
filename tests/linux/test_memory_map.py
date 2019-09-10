@@ -17,9 +17,10 @@ bin_location = os.path.join(here, "bins")
 #
 
 basic_one_path = os.path.join(bin_location, "basic_one")
-basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 
 def test_memory_map_basic():
+
+    basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 
     strlen = basic_one.memory[':strlen']
     assert basic_one.memory.maps[strlen.address] is not None
@@ -29,3 +30,5 @@ def test_memory_map_basic():
     str(basic_one.memory.maps)
     repr(basic_one.memory.maps)
     list(basic_one.memory.maps)
+
+    basic_one.quit()

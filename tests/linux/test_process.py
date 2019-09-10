@@ -27,17 +27,20 @@ basic_one_ui64_addr = 0x201028
 basic_one_string_addr = 0x724
 basic_open_func_addr = 0x64A
 
-basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
-
 basic_one_ia32_path = os.path.join(bin_location, "basic_one_ia32")
-basic_one_ia32 = revenge.Process(basic_one_ia32_path, resume=False, verbose=False, load_symbols='basic_one_ia32')
 
 def test_process_arch():
+    basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+    basic_one_ia32 = revenge.Process(basic_one_ia32_path, resume=False, verbose=False, load_symbols='basic_one_ia32')
 
     assert basic_one.arch == "x64"
     assert basic_one_ia32.arch == "ia32"
 
+    basic_one.quit()
+    basic_one_ia32.quit()
+
 def test_process_run_script_generic_async():
+    basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 
     # Grab some memory area
     x = list(basic_one.memory.maps)[0]
@@ -48,3 +51,4 @@ def test_process_run_script_generic_async():
     # For now, just make sure we got something back
     assert out[0][0] != []
 
+    basic_one.quit()

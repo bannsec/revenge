@@ -47,6 +47,8 @@ def test_basic_one_trace_slice():
     for i in range(12):
         assert t2[i] == t3[i]
 
+    basic_one.quit()
+
 def test_basic_one_trace_specify_from_modules():
 
     basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
@@ -77,6 +79,8 @@ def test_basic_one_trace_specify_from_modules():
     with pytest.raises(Exception):
         t._from_modules = [1.12]
 
+    basic_one.quit()
+
 def test_basic_one_trace_thread_int():
 
     basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
@@ -101,6 +105,7 @@ def test_basic_one_trace_thread_int():
     # This should not raise an exception now
     t = basic_one.tracer.instructions(exec=True)
 
+    basic_one.quit()
 
 def test_basic_one_trace_thread():
 
@@ -125,6 +130,8 @@ def test_basic_one_trace_thread():
     # TODO: Figure out why this final trace stop causes things to hang...
     #t2.stop()
 
+    basic_one.quit()
+
 
 def test_basic_one_trace_add_remove():
 
@@ -145,6 +152,7 @@ def test_basic_one_trace_add_remove():
     # This should just do nothing
     t2.stop()
 
+    basic_one.quit()
 
 def test_basic_one_trace_instructions_call_ret():
 
@@ -216,6 +224,8 @@ def test_basic_one_trace_instructions_call_ret():
 
     assert ti.type == 'ret'
     assert ti.to_module.startswith('libc')
+    
+    basic_one.quit()
 
 def test_basic_one_trace_instructions_exec():
 
@@ -298,6 +308,7 @@ def test_basic_one_trace_instructions_exec():
     ti = trace_copy._trace.pop(0)
     assert ti.from_ip == module.base + 0x692
 
+    basic_one.quit()
 
 """
 # Blocks are a little broken rn: https://github.com/frida/frida/issues/925
@@ -331,6 +342,8 @@ def test_basic_one_trace_instructions_block():
             break
 
     assert ti.to_ip == module.base + 0x500
+
+    basic_one.quit()
 """
 
 def test_basic_one_traceitem_manual_creation():
@@ -355,6 +368,8 @@ def test_basic_one_traceitem_manual_creation():
     str(ti)
     repr(ti)
 
+    basic_one.quit()
+
 def test_basic_one_traceitem():
 
     basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
@@ -378,5 +393,7 @@ def test_basic_one_traceitem():
     repr(t2)
 
     assert isinstance(t2[0], TraceItem)
+
+    basic_one.quit()
 
 

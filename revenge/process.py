@@ -107,7 +107,16 @@ class Process(object):
 
         pause_location = self._resolve_location_string(location)
         self.run_script_generic('pause_at2.js', replace={"FUNCTION_ADDRESS_HERE": hex(pause_location)})
+
+    def quit(self):
+        """Call to quit your session without exiting. Do NOT continue to use this object after.
         
+        If you spawned the process, it will be killed. If you attached to the
+        process, frida will be cleaned out, detatched, and the process should
+        continue normally.
+        """
+        self._at_exit()
+
     def _at_exit(self):
         """Called to clean-up at exit."""
 
