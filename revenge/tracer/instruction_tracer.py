@@ -254,8 +254,8 @@ class InstructionTracer(object):
         }
 
         for thread in self.threads:
-            replace['THREAD_ID_HERE'] = str(thread.id)
-            self._process.run_script_generic("stalk.js", replace=replace, unload=False, on_message=self._on_message, runtime='v8')
+            s = "stalker_follow({})".format(thread.id)
+            self._process.run_script_generic(s, raw=True, include_js="stalk.js", replace=replace, unload=False, on_message=self._on_message, runtime='v8')
             self.traces[thread.id] = Trace(self._process, thread.id, self._process._scripts.pop(0), callback=self.callback)
             self._process.tracer._active_instruction_traces[thread.id] = self.traces[thread.id]
 
