@@ -8,6 +8,8 @@ import os
 import revenge
 types = revenge.types
 
+import time
+
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "bins")
 
@@ -52,3 +54,22 @@ def test_process_run_script_generic_async():
     assert out[0][0] != []
 
     basic_one.quit()
+
+def test_process_run_script_generic_include_js():
+
+    messages = []
+
+    def on_message(x,y):
+        messages.append(x["payload"])
+
+    process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+
+    process.run_script_generic("add_echo()", raw=True, on_message=on_message, unload=False, include_js="echo.js")
+    script = process._scripts[0][0]
+    script.exports.echo("blergy")
+    time.sleep(0.1)
+    assert len(messages) == 1
+    assert messages[0] == "blergy"
+
+    process.quit()
+

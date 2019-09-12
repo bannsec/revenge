@@ -260,7 +260,7 @@ class Process(object):
 
     def run_script_generic(self, script_name, raw=False, replace=None,
             unload=False, runtime='duk', on_message=None, timeout=None,
-            context=None, onComplete=None):
+            context=None, onComplete=None, include_js=None):
         """Run scripts that don't require anything special.
         
         Args:
@@ -283,6 +283,9 @@ class Process(object):
                 until the given onComplete string is returned. Basically
                 allowing run_script_generic to return all things from an async
                 script.
+            include_js (tuple, optional): If defined, the given js files will
+                be loaded into the script before the main script. This is to
+                be used for shared functionality. 
 
         Returns:
             tuple: msg, data return from the script
@@ -319,10 +322,21 @@ class Process(object):
 
         on_message = on_msg if on_message is None else on_message
 
+        js = ""
+
+        if include_js is not None:
+
+            if not isinstance(include_js, (tuple, list)):
+                include_js = (include_js,)
+
+            for js_file in include_js:
+                js += self.load_js(js_file) + "\n"
+
+
         if not raw:
-            js = self.load_js(script_name)
+            js += self.load_js(script_name)
         else:
-            js = script_name
+            js += script_name
 
         if replace is not None:
             assert type(replace) == dict, "Unexpected replace type of {}".format(type(replace))
