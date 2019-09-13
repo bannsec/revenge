@@ -18,8 +18,8 @@ function stalker_follow(tid) {
     }
 
     // This is automagically called when unloading a script in python
-    // TODO: Handle if this is already set?
-    rpc.exports["dispose"] = function () { Stalker.unfollow(tid); }
+    //rpc.exports["dispose"] = function () { Stalker.unfollow(tid); }
+    dispose_push( function () { Stalker.unfollow(tid); } )
 
     Stalker.follow(tid, {
         events: {

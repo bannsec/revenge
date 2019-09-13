@@ -73,3 +73,21 @@ def test_process_run_script_generic_include_js():
 
     process.quit()
 
+def test_process_run_script_generic_include_js_dispose():
+
+    process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+
+    mem1 = process.memory.alloc(8)
+    mem2 = process.memory.alloc(8)
+
+    mem1.int32 = 0
+    mem2.int32 = 0
+
+    script = """dispose_push(function () {{ {}.writeS32(1337); }}); dispose_push(function () {{ {}.writeS32(1337); }});""".format(mem1.address.js, mem2.address.js)
+
+    process.run_script_generic(script, raw=True, unload=True, include_js="dispose.js")
+
+    assert mem1.int32 == 1337
+    assert mem2.int32 == 1337
+
+    process.quit()
