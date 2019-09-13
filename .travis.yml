@@ -52,7 +52,7 @@ matrix:
               - docker build -t bannsec/revenge -f $DOCKERFILE .
           script:
               - docker run -dit --rm --network host --privileged bannsec/revenge_testenv_android-27_default_x86_64 /opt/emulator/emulator @test -no-window -no-accel
-              - docker run -it --rm --privileged --network host --cap-add ALL -e TRAVIS_BRANCH=$TRAVIS_BRANCH -e COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN bannsec/revenge bash -c 'cd /opt/revenge && ./test_android.sh'
+              - docker run -it --rm --privileged --network host --cap-add ALL -e TRAVIS=1 -e TRAVIS_BRANCH=$TRAVIS_BRANCH -e COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN bannsec/revenge bash -c 'cd /opt/revenge && ./test_android.sh'
                 #- docker run -it --rm --privileged --network host --cap-add ALL -e TRAVIS_BRANCH=$TRAVIS_BRANCH -e COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN bannsec/revenge bash -c 'cd /opt/revenge && ./test.sh && if [ ! -z "$COVERALLS_REPO_TOKEN" ]; then coveralls; fi'
 env:
     global:
