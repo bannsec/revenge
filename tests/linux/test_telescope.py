@@ -129,5 +129,4 @@ def test_telescope_js_basic():
     assert scope['next']['next']['type'] == 'instruction'
     assert common.auto_int(scope['next']['next']['instruction']['address']) == common.auto_int(telescope.symbols['main'].address)
 
-    assert False
     process.quit()
