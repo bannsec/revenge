@@ -2,7 +2,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
-from .. import common, types
+from .. import common, types, exceptions
 
 class MemoryRange(object):
 
@@ -93,3 +93,18 @@ class MemoryRange(object):
     @base.setter
     def base(self, base):
         self.__base = types.Pointer(common.auto_int(base))
+
+    @classmethod
+    def _from_frida_find_json(klass, process, d):
+        """Build this MemoryRange directly from Frida dictionary object.
+
+        This is returned from Process.findRangeByAddress(address) and others"""
+        #    process, base, size, protection, file=None
+        
+        if not isinstance(d, dict):
+            error = "d must be the dictionary object returned from frida."
+            logger.error(error)
+            raise exceptions.RevengeInvalidArgumentType(error)
+
+        return klass(process, base=d['base'], size=d['size'],
+                protection=d['protection'], file=d.get('file', None))
