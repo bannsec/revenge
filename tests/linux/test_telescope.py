@@ -127,6 +127,99 @@ def test_telescope_js_basic():
     assert scope['next']['mem_range']['protection'] == 'rwx'
     assert common.auto_int(scope['next']['thing']) == common.auto_int(telescope.symbols['main'].address)
     assert scope['next']['next']['type'] == 'instruction'
-    assert common.auto_int(scope['next']['next']['instruction']['address']) == common.auto_int(telescope.symbols['main'].address)
+    assert common.auto_int(scope['next']['next']['thing']['address']) == common.auto_int(telescope.symbols['main'].address)
+
+    process.quit()
+
+def test_telescope_class():
+
+    process = revenge.Process(telescope_path, resume=True, verbose=False)
+    telescope = process.modules['telescope']
+
+    # Make sure to sleep until we're done executing main
+    while telescope.symbols['string3_uninit_ptr'].memory.pointer == 0:
+        time.sleep(0.01)
+    
+    scope = types.Telescope(process, telescope.symbols['string1'])
+    assert isinstance(scope.memory_range, revenge.memory.MemoryRange)
+    assert os.path.basename(scope.memory_range.file) ==  'telescope'
+    assert scope.type == "int"
+    assert scope.next.thing == "This is a test"
+    assert scope.next.type == "string"
+    str(scope)
+    repr(scope)
+
+    scope = types.Telescope(process, telescope.symbols['string2'])
+    assert isinstance(scope.memory_range, revenge.memory.MemoryRange)
+    assert os.path.basename(scope.memory_range.file) ==  'telescope'
+    assert scope.type == "int"
+    assert scope.next.type == "int"
+    assert scope.next.next.type == "string"
+    assert scope.next.next.thing == "This is a test"
+    str(scope)
+    repr(scope)
+
+    scope = types.Telescope(process, telescope.symbols['string1_ptr'])
+    assert isinstance(scope.memory_range, revenge.memory.MemoryRange)
+    assert os.path.basename(scope.memory_range.file) ==  'telescope'
+    assert scope.type == "int"
+    assert scope.next.type == "int"
+    assert scope.next.next.type == "string"
+    assert scope.next.next.thing == "This is a test"
+    str(scope)
+    repr(scope)
+
+    scope = types.Telescope(process, telescope.symbols['string2_ptr'])
+    assert isinstance(scope.memory_range, revenge.memory.MemoryRange)
+    assert os.path.basename(scope.memory_range.file) ==  'telescope'
+    assert scope.type == "int"
+    assert scope.next.type == "int"
+    assert scope.next.next.type == "int"
+    assert scope.next.next.next.type == "string"
+    assert scope.next.next.next.thing == "This is a test"
+    str(scope)
+    repr(scope)
+
+    scope = types.Telescope(process, telescope.symbols['string3_uninit_ptr'])
+    assert isinstance(scope.memory_range, revenge.memory.MemoryRange)
+    assert os.path.basename(scope.memory_range.file) ==  'telescope'
+    assert scope.type == "int"
+    assert scope.next.type == "int"
+    assert scope.next.next.type == "string"
+    assert "stack" in scope.next.next.thing
+    str(scope)
+    repr(scope)
+
+    scope = types.Telescope(process, telescope.symbols['random_int'])
+    assert isinstance(scope.memory_range, revenge.memory.MemoryRange)
+    assert os.path.basename(scope.memory_range.file) ==  'telescope'
+    assert scope.type == "int"
+    assert scope.next.type == "int"
+    assert scope.next.thing & 0xffff == 1337
+    str(scope)
+    repr(scope)
+
+    scope = types.Telescope(process, telescope.symbols['random_int_ptr'])
+    assert isinstance(scope.memory_range, revenge.memory.MemoryRange)
+    assert os.path.basename(scope.memory_range.file) ==  'telescope'
+    assert scope.type == "int"
+    assert scope.next.type == "int"
+    assert scope.next.next.type == "int"
+    assert scope.next.next.thing & 0xffff == 1337
+    str(scope)
+    repr(scope)
+
+    scope = types.Telescope(process, telescope.symbols['pointer_to_main'])
+    assert isinstance(scope.memory_range, revenge.memory.MemoryRange)
+    assert os.path.basename(scope.memory_range.file) ==  'telescope'
+    assert scope.type == "int"
+    assert scope.next.type == "int"
+    assert scope.next.memory_range.executable == True
+    assert scope.next.next.type == "instruction"
+    assert isinstance(scope.next.next.thing, revenge.tracer.AssemblyInstruction)
+    assert scope.next.next.thing.mnemonic == "push"
+    assert scope.next.next.thing.operands[0]['value'] == "rbp"
+    str(scope)
+    repr(scope)
 
     process.quit()

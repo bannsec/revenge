@@ -68,7 +68,10 @@ function telescope(v) {
     if ( scope["mem_range"].protection[2] === "x" ) {
         scope["next"] = {
             "type": "instruction",
-            "instruction": Instruction.parse(ptr(v)),
+            "thing": Instruction.parse(ptr(v)),
+            "telescope": true,
+            "next": null,
+            "mem_range": null,
         }
         return scope;
     }

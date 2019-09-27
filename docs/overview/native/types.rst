@@ -87,3 +87,26 @@ Examples
     # want to wrap it as a pointer.
     func = process.memory[<something>]
     func(types.Pointer(my_struct))
+
+Telescope
+=========
+The :class:`~revenge.types.Telescope` class is a meta-ish class that holds
+other types. Specifically, it's goal is to address the question of how to
+describe and handle the concept of "telescoping" variables. With this in mind,
+often you do not create this directly, but will get it from certain tracer
+techniques.
+
+Interaction with this class is effectively using the ``thing`` and ``next``
+properties. Where ``thing`` is a holder for whatever the current thing is and
+``next`` is the next one. Also, ``type`` will help inform you what to expect in
+the variable.
+
+Example
+-------
+
+.. code-block:: python3
+    
+    # Telescope down into address 0x12345
+    scope = revenge.types(process, 0x12345)
+    scope.thing
+    scope.next

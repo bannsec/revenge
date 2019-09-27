@@ -48,20 +48,29 @@ class AssemblyBlock(object):
 class AssemblyInstruction(object):
     """Represents an assembly instruction."""
 
-    def __init__(self, process, address):
+    def __init__(self, process, address=None):
         """
 
         Args:
             process: Process object
-            address (int): Address for this instruction. Will load from this address.
+            address (int, optional): Address for this instruction. Will load
+                from this address.
         """
 
         self._process = process
         self.address = address
 
-    def _load_from_address(self):
-        inst = self._process.run_script_generic("""send(Instruction.parse({}));""".format(self.address.js), raw=True, unload=True)[0][0]
+    @classmethod
+    def from_frida_dict(klass, process, d):
+        """Builds this assembly instruction from a frida dictionary, ala Instruction.parse()"""
+        instruction = klass(process)
+        instruction._parse_instruction(d)
+        return instruction
 
+    def _parse_instruction(self, inst):
+        """Given an instruction dict as returned from Frida, parse it into this object."""
+
+        self.__address = types.Pointer(common.auto_int(inst['address']))
         self.__address_next = types.Pointer(common.auto_int(inst['next']))
         self.__size = inst['size']
         self.__mnemonic = inst['mnemonic']
@@ -70,6 +79,10 @@ class AssemblyInstruction(object):
         self.__registers_read = inst['regsRead']
         self.__registers_written = inst['regsWritten']
         self.__groups = inst['groups']
+
+    def _load_from_address(self):
+        inst = self._process.run_script_generic("""send(Instruction.parse({}));""".format(self.address.js), raw=True, unload=True)[0][0]
+        self._parse_instruction(inst)
 
     def __str__(self):
         return "{address} {mnemonic: <20}{args}".format(
@@ -143,5 +156,8 @@ class AssemblyInstruction(object):
 
     @address.setter
     def address(self, address):
+        if address is None:
+            self.__address = None
+            return
         self.__address = types.Pointer(common.auto_int(address))
         self._load_from_address()

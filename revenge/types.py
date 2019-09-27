@@ -496,6 +496,12 @@ class Telescope(BasicBasic):
 
     @classmethod
     def from_dict(klass, process, d):
+        """Creates a new Telescope instance from the given dictionary.
+
+        Args:
+            process (revenge.Process): revenge Process object
+            d (dict): Dictionary object returned from telescope.js call.
+        """
         telescope = klass(process)
         telescope._parse_dict(d)
         return telescope
@@ -510,6 +516,8 @@ class Telescope(BasicBasic):
         # Sometimes we get ints returned as string hex rep
         if self.type == "int":
             thing = common.auto_int(thing)
+        elif self.type == "instruction":
+            thing = AssemblyInstruction.from_frida_dict(self._process, thing)
         self.__thing = thing
 
     @property
@@ -572,4 +580,5 @@ all_types = frida_types + (Struct, Padding, StringUTF8, StringUTF16)
 from .memory import MemoryBytes, MemoryRange
 from .process import Process
 from .symbols import Symbol
+from .tracer import AssemblyInstruction
 from . import common
