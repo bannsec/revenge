@@ -81,7 +81,7 @@ class Java:
             logger.error("Invalid klass type of {}".format(type(klass)))
             return
 
-        logger.warning("There's currently a bug in this from frida server version 12.6.12 - current. If this fails to work for you, install server version 12.6.11 via android = revenge.device_types.AndroidDevice(type='usb', frida_server_release='12.6.11')")
+        logger.warning("There's currently a bug in this from frida server version 12.6.12 - current. If this fails to work for you, install server version 12.6.11 via android = revenge.devices.AndroidDevice(type='usb', frida_server_release='12.6.11')")
 
         if invalidate_cache:
             self._active_handles[klass_name] = []

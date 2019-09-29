@@ -7,10 +7,10 @@ import os
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "bins")
 
-from revenge import Process, types, common, device_types
+from revenge import Process, types, common, devices
 from revenge.java.java_class import JavaClass
 
-android = device_types.AndroidDevice(type="usb")
+android = devices.AndroidDevice(type="usb")
 android._wait_for_frida_server()
 
 veryandroidso = os.path.join(bin_location, "ooo.defcon2019.quals.veryandroidoso.apk")

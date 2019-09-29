@@ -1,7 +1,7 @@
 Devices
 =======
 
-.. automodule:: revenge.device_types
+.. automodule:: revenge.devices
     :members:
     :undoc-members:
     :show-inheritance:

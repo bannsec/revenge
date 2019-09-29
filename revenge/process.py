@@ -35,7 +35,7 @@ class Process(object):
             verbose (bool, optional): Enable verbose logging
             load_symbols (list, optional): Only load symbols from those modules
                 in the list. Saves some startup time. Can use glob ('libc*')
-            device (revenge.device_types.*, optional): Define what device
+            device (revenge.devices.*, optional): Define what device
                 to connect to.
         """
 
@@ -52,7 +52,7 @@ class Process(object):
         self.__bits = None
         self._spawn_target = None
         self.verbose = verbose
-        self.device = device or device_types.LocalDevice()
+        self.device = device or devices.LocalDevice()
         self.target = target
 
         if not isinstance(load_symbols, (list, type, type(None))):
@@ -470,7 +470,7 @@ class Process(object):
 
         # TODO: Android processes we attach to can't getModuleByName for their file name...
         # Maybe use "app_process64" instead... Or resolve the first module and go with that..
-        if isinstance(self.device, device_types.AndroidDevice):
+        if isinstance(self.device, devices.AndroidDevice):
             return "ELF"
 
         # TODO: Update this with other formats. PE/COFF/MACHO/etc
@@ -569,13 +569,13 @@ class Process(object):
 
     @device.setter
     def device(self, device):
-        assert isinstance(device, device_types.BaseDevice), "Device must be an instantiation of one of the devices defined in revenge.device_types."
+        assert isinstance(device, devices.BaseDevice), "Device must be an instantiation of one of the devices defined in revenge.devices."
         self.__device = device
         """
-        if isinstance(device, device_types.LocalDevice):
+        if isinstance(device, devices.LocalDevice):
             self.__device = device.device
 
-        elif isinstance(device, device_types.AndroidDevice):
+        elif isinstance(device, devices.AndroidDevice):
             self.__device = device.device
 
         else:
@@ -598,7 +598,7 @@ class Process(object):
         return lambda *args, **kwargs: BatchContext(self, *args, **kwargs)
 
 
-from . import common, types, config, device_types
+from . import common, types, config, devices
 from .memory import Memory
 from .threads import Threads
 from .tracer import Tracer

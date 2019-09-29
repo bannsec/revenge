@@ -7,9 +7,9 @@ import os
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "bins")
 
-from revenge import Process, types, common, device_types
+from revenge import Process, types, common, devices
 
-android = device_types.AndroidDevice(type="usb")
+android = devices.AndroidDevice(type="usb")
 android._wait_for_frida_server()
 calc = android.spawn("*calc*", gated=False, load_symbols=[])
 

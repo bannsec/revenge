@@ -3,7 +3,7 @@ Setup
 =====
 
 Initially setting up ``revenge`` to work with an android emulator involves
-using the device_types. For this doc, I'll assume that you already have an
+using the devices. For this doc, I'll assume that you already have an
 android running, in either emulator or physical form.
 
 .. note::
@@ -23,14 +23,14 @@ Examples
 
 .. code-block:: python3
 
-    from revenge import device_types
+    from revenge import devices
 
     # Connect to the first usb device adb finds
-    android = device_types.AndroidDevice(type="usb")
+    android = devices.AndroidDevice(type="usb")
     "<AndroidDevice emulator-5554>"
 
     # Connect to device with the given id
-    android = device_types.AndroidDevice(id="emulator-5554")
+    android = devices.AndroidDevice(id="emulator-5554")
     "<AndroidDevice emulator-5554>"
 
 Installing/Removing APKs
@@ -66,7 +66,7 @@ List Processes/Applications
 You can list both running processes and running applications. Applications have
 their own class.
 
-:class:`revenge.device_types.android.applications.AndroidApplications`
+:class:`revenge.devices.android.applications.AndroidApplications`
 
 Examples
 --------
