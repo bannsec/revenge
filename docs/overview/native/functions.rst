@@ -127,3 +127,53 @@ Examples
     # Or just analyze one instruction at a time
     process.memory['a.out:main'].instruction
     """<AssemblyInstruction 0x804843a lea ecx, [esp + 4]>"""
+
+Building Functions With C
+=========================
+As of ``frida`` version 12.7, there is now support for injecting code simply as
+C. The backend of ``frida`` takes care of compiling it and injecting.
+``revenge`` now exports this in a super easy to use way through the
+:meth:`~revenge.memory.Memory.create_c_function` method.
+
+``revenge`` extends this also by making it easier to perform function calls
+anywhere in process space. It does this by creating a run-time function
+defition based on the current known address of the function. See example.
+
+Examples
+--------
+
+    .. code-block:: python3
+
+        add = process.memory.create_c_function(r"""
+            int eq(int x, int y) { 
+                return x==y;
+            }""")
+
+        assert add(4,1) == 5
+
+        #
+        # Runtime function calling 
+        #
+
+        # Suppose we want to call strlen, we need to export it as a callable
+        # function. Since we're compiling C code, the compiler has no idea
+        # where this function really is, and will throw an exception. However,
+        # revenge allows you to easily tell the compiler where it is and run as
+        # if you compiled with the application itself.
+
+        # Grab the strlen address
+        strlen = process.memory[':strlen']
+
+        # Setup strlen's argument and return types
+        strlen.argument_types = types.StringUTF8
+        strlen.return_type = types.Int
+
+        # Main difference is that we're adding a keyword arg to say
+        # "export/link in strlen here". So long as you've defined the
+        # MemoryBytes object, this can be anywhere, not just exported symbols.
+
+        my_strlen = process.memory.create_c_function(r"""
+            int my_strlen(char *s) { return strlen(s); }
+            """, strlen=strlen)
+
+        assert my_strlen("blerg") == 5

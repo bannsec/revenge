@@ -3,7 +3,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import json
-from .. import common, types
+from .. import common, types, exceptions
 
 class MemoryBytes(object):
     """Meta-class used for resolving bytes into something else."""
@@ -705,7 +705,42 @@ class MemoryBytes(object):
                 member._process = self._process # Just in case for sizeof
                 addr += member.sizeof
 
+    @property
+    def name(self):
+        """str: Descriptive name for this address. Optional."""
 
+        try:
+            return self.__name
+        except AttributeError:
+            return None
+
+    @name.setter
+    def name(self, name):
+        if not isinstance(name, (str, type(None))): raise exceptions.RevengeInvalidArgumentType("name must be of type str.")
+        self.__name = name
+
+    @property
+    def _dynamic_assembly_call_str(self):
+        """str: Return C code for a dynamic function call to this address."""
+
+        if self.name is None:
+            logger.error("Must have set name before calling this.")
+            return
+
+        template = "{ret_type} (*{func_name})({func_args}) = ({ret_type} (*)({func_args})) {addr};"
+
+        ret_type = self.return_type.ctype
+        func_name = self.name
+        func_args = ', '.join(arg.ctype for arg in self.argument_types) if self.argument_types is not None else ""
+
+        template = template.format(
+                ret_type = ret_type,
+                func_name = func_name,
+                func_args = func_args,
+                addr = hex(self.address),
+                )
+
+        return template
 
 #
 # Doc Updates

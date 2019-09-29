@@ -623,7 +623,57 @@ def test_memory_write():
     assert abs(ui64.double - x) < 0.0001
     assert isinstance(ui64.double, types.Double)
 
+def test_memory_create_c_function():
+    process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+
+    #
+    # Raw Function
+    #
+
+    function_add = r"""int add(int x, int y) { return x+y; }"""
+    add = process.memory.create_c_function(function_add)
+    assert add(5,6) == 11
+
+    eq = process.memory.create_c_function("int eq(int x, int y) { return x==y; }")
+    assert eq(1,1) == 1
+    assert eq(1,0) == 0
+    assert eq(1,-1) == 0
+    assert eq(-4, -4) == 1
+
+    add_float = process.memory.create_c_function("float add_float(float x, float y) { return x+y; }")
+    add_float.return_type
+    assert add_float(types.Float(1.1), types.Float(2.2)) - 3.3 < 0.001
+
+    #
+    # Requiring exported call
+    #
+
+    function_strstr = r"""void * my_strstr(char *haystack, char *needle) { return strstr(haystack, needle); }"""
+    strstr = process.memory[':strstr']
+    strstr.argument_types = types.StringUTF8, types.StringUTF8
+
+    # Make sure we dynamically create the call
+    my_strstr = process.memory.create_c_function(function_strstr, strstr=strstr)
+    my_string = process.memory.alloc_string("This is my string")
+    out = my_strstr(my_string, "my")
+    assert process.memory[out].string_utf8 == "my string"
+
+    process.quit()
+
+def test_memorybytes_dynamic_assembly_call_str():
+
+    process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+    strlen = process.memory[':strlen']
+    strlen.name = 'strlen'
+    strlen.argument_types = types.StringUTF8
+    strlen.return_type = types.StringUTF8
+
+    assert strlen._dynamic_assembly_call_str.startswith('char * (*strlen)(char *) = (char * (*)(char *)) 0x')
+    assert strlen._dynamic_assembly_call_str.endswith(';')
+
+    process.quit()
+
 if __name__ == '__main__':
-    test_memory_breakpoint()
+    test_memory_create_c_function()
     #test_memory_read_int()
     #test_memory_write()

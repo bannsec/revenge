@@ -21,6 +21,32 @@ basic_one_path = os.path.join(bin_location, "basic_one")
 basic_one_ia32_path = os.path.join(bin_location, "basic_one_ia32")
 basic_struct_path = os.path.join(bin_location, "basic_struct")
 
+def test_ctypes():
+    process = revenge.Process(basic_struct_path, resume=False, verbose=False)
+
+    assert types.Int8.ctype == "char"
+    assert types.UInt8.ctype == "unsigned char"
+    assert types.Char.ctype == "char"
+    assert types.UChar.ctype == "unsigned char"
+    assert types.Int16.ctype == "short"
+    assert types.UInt16.ctype == "unsigned short"
+    assert types.Short.ctype == "short"
+    assert types.UShort.ctype == "unsigned short"
+    assert types.Int32.ctype == "int"
+    assert types.UInt32.ctype == "unsigned int"
+    assert types.Int.ctype == "int"
+    assert types.UInt.ctype == "unsigned int"
+    assert types.Int64.ctype == "long"
+    assert types.UInt64.ctype == "unsigned long"
+    assert types.Long.ctype == "long"
+    assert types.ULong.ctype == "unsigned long"
+    assert types.Float.ctype == "float"
+    assert types.Double.ctype == "double"
+    assert types.Pointer.ctype == "void *"
+    assert types.StringUTF8.ctype == "char *"
+
+    process.quit()
+
 def test_struct_calling():
     basic_struct = revenge.Process(basic_struct_path, resume=False, verbose=False)
     basic_struct_module = basic_struct.modules['basic_struct']

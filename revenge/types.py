@@ -110,30 +110,37 @@ class FloatBasic:
 
 class Int8(Basic, int):
     type = "int8"
+    ctype = "char"
     sizeof = 1
 
 class UInt8(Basic, int):
     type = "uint8"
+    ctype = "unsigned char"
     sizeof = 1
 
 class Int16(Basic, int):
     type = "int16"
+    ctype = "short"
     sizeof = 2
 
 class UInt16(Basic, int):
     type = "uint16"
+    ctype = "unsigned short"
     sizeof = 2
 
 class Int32(Basic, int):
     type = "int32"
+    ctype = "int"
     sizeof = 4
 
 class UInt32(Basic, int):
     type = "uint32"
+    ctype = "unsigned int"
     sizeof = 4
 
 class Int64(Basic, int):
     type = "int64"
+    ctype = "long"
     sizeof = 8
 
     @property
@@ -142,6 +149,7 @@ class Int64(Basic, int):
 
 class UInt64(Basic, int):
     type = "uint64"
+    ctype = "unsigned long"
     sizeof = 8
 
     @property
@@ -174,6 +182,7 @@ class ULong(UInt64):
 
 class Float(FloatBasic, float):
     type = "float"
+    ctype = "float"
     sizeof = 4
 
     @property
@@ -182,10 +191,14 @@ class Float(FloatBasic, float):
 
 class Double(Float):
     type = "double"
+    ctype = "double"
     sizeof = 8
 
 class Pointer(UInt64):
     type = "pointer"
+    ctype = "void *"
+    # Handle recursing down into sub object to get ctype
+    # i.e.: char *
     
     @property
     @require_process
@@ -217,6 +230,7 @@ class Padding(BasicBasic):
 
 class StringUTF8(BasicBasic, str):
     type = 'utf8'
+    ctype = "char *"
     sizeof = Pointer.sizeof
 
     @property
