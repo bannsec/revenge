@@ -100,6 +100,9 @@ class Threads(object):
             try:
                 return next(thread for thread in self.threads if thread.id == elm)
             except StopIteration:
+                # If this is the Frida thread, it will be hidden. Create a dummy one
+                if self._process.run_script_generic(r"""send(Process.getCurrentThreadId())""", unload=True, raw=True)[0][0] == elm:
+                    return Thread(self._process, {'id': elm, 'state': 'waiting', 'context': {'pc': '0'}})
                 logger.error("Invalid thread id selected.")
 
         else:

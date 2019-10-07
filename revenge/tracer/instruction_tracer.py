@@ -2,7 +2,6 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import multiprocessing
 import time
 import json
 import collections
@@ -98,9 +97,17 @@ class TraceItem(object):
 
 
 class Trace(object):
-    """Keeps information about a Trace."""
     
     def __init__(self, process, tid, script, callback=None):
+        """Keeps information about a Trace.
+        
+        Args:
+            process (revenge.Proces): revenge process object
+            tid (int): Thread ID for this trace
+            script: The associated script of this trace from run_script_generic
+            callback (callable, optional): A callable to call when new trace
+                items are collected
+        """
         self._process = process
         self._trace = []
         self._tid = tid
