@@ -23,6 +23,7 @@ an issue ticket to my `github <https://github.com/bannsec/revenge>`_.
     overview/philosophy
     overview/native/index
     overview/release_notes
+    overview/writeups
 
 .. toctree::
     :maxdepth: 1
