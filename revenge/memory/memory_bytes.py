@@ -748,5 +748,5 @@ class MemoryBytes(object):
 MemoryBytes.implementation.__doc__ = MemoryBytes.replace.__doc__
 
 
-from ..tracer.assembly_instruction import AssemblyInstruction, AssemblyBlock
+from ..cpu.assembly import AssemblyInstruction, AssemblyBlock
 from ..native_exception import NativeException

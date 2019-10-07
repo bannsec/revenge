@@ -216,7 +216,7 @@ def test_telescope_class():
     assert scope.next.type == "int"
     assert scope.next.memory_range.executable == True
     assert scope.next.next.type == "instruction"
-    assert isinstance(scope.next.next.thing, revenge.tracer.AssemblyInstruction)
+    assert isinstance(scope.next.next.thing, revenge.cpu.assembly.AssemblyInstruction)
     assert scope.next.next.thing.mnemonic == "push"
     assert scope.next.next.thing.operands[0]['value'] == "rbp"
     str(scope)

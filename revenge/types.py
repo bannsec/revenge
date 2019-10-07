@@ -594,5 +594,5 @@ all_types = frida_types + (Struct, Padding, StringUTF8, StringUTF16)
 from .memory import MemoryBytes, MemoryRange
 from .process import Process
 from .symbols import Symbol
-from .tracer import AssemblyInstruction
+from .cpu.assembly import AssemblyInstruction
 from . import common

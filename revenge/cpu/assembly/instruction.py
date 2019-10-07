@@ -2,12 +2,9 @@
 import logging
 logger = logging.getLogger(__name__)
 
-from termcolor import cprint, colored
 import re
-
+from termcolor import cprint, colored
 from prettytable import PrettyTable
-
-from .. import types, common
 
 class AssemblyBlock(object):
     """Represents an assembly block."""
@@ -161,3 +158,5 @@ class AssemblyInstruction(object):
             return
         self.__address = types.Pointer(common.auto_int(address))
         self._load_from_address()
+
+from ... import types, common
