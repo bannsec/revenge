@@ -12,7 +12,7 @@ class Thread(object):
     def __init__(self, process, info):
         self._process = process
         self._info = info
-        self.context = Context(self._process, **self._info['context'])
+        self.context = CPUContext(self._process, **self._info['context'])
 
     def __repr__(self):
         attrs = ['Thread', hex(self.id), '@', hex(self.pc), self.state, self.module]
@@ -111,4 +111,4 @@ class Threads(object):
         threads = self._process.run_script_generic("""send(Process.enumerateThreadsSync());""", raw=True, unload=True)[0][0]
         return [Thread(self._process, thread) for thread in threads]
 
-from .tracer.contexts import Context
+from .cpu import CPUContext

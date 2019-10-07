@@ -6,7 +6,7 @@ logger = logging.getLogger(__name__)
 from .x64 import X64Context
 from .x86 import X86Context
 
-def Context(process, *args, **kwargs):
+def CPUContext(process, *args, **kwargs):
     """Build context from args. Will auto discover context type.
     
     Example:

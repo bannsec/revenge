@@ -34,7 +34,7 @@ class NativeException(object):
         """Represent a native CPU exception.
         
         Args:
-            context: Frida-util cpu context
+            context: revenge cpu context
             backtrace: native backtrace object
             type (str): What type of exception is this.
             memory_operation (str, optional): Type of memory operation
@@ -136,7 +136,7 @@ class NativeException(object):
         
         self.__memory_operation = memory_operation
 
-from .tracer.contexts import Context as CPUContext
+from .cpu import CPUContext
 from . import common
 
 NativeException.type.__doc__ += ', '.join(NativeException.TYPES)

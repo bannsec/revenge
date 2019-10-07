@@ -5,7 +5,7 @@ logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
 import os
-from revenge.tracer import contexts
+from revenge.cpu import contexts
 import revenge
 types = revenge.types
 

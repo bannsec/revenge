@@ -28,7 +28,7 @@ def test_arithmetic():
     assert p.modules[e.address].name == 'exceptions'
     assert p.memory.describe_address(e.address).startswith("exceptions:do_arithmetic")
     assert isinstance(e.backtrace, revenge.native_exception.NativeBacktrace)
-    assert isinstance(e.context, revenge.tracer.contexts.x64.X64Context)
+    assert isinstance(e.context, revenge.cpu.contexts.x64.X64Context)
 
     # If we handled exception correctly, process should still be in good state
     assert not isinstance(do_good, revenge.native_exception.NativeException)
@@ -49,7 +49,7 @@ def test_illegal_instruction():
     # This abort is run by throwing the signal from libc
     assert 'libc' in p.modules[e.address].name 
     assert isinstance(e.backtrace, revenge.native_exception.NativeBacktrace)
-    assert isinstance(e.context, revenge.tracer.contexts.x64.X64Context)
+    assert isinstance(e.context, revenge.cpu.contexts.x64.X64Context)
 
     # If we handled exception correctly, process should still be in good state
     assert not isinstance(do_good, revenge.native_exception.NativeException)
@@ -70,7 +70,7 @@ def test_abort():
     # This abort is run by throwing the signal from libc
     assert 'libc' in p.modules[e.address].name 
     assert isinstance(e.backtrace, revenge.native_exception.NativeBacktrace)
-    assert isinstance(e.context, revenge.tracer.contexts.x64.X64Context)
+    assert isinstance(e.context, revenge.cpu.contexts.x64.X64Context)
 
     # If we handled exception correctly, process should still be in good state
     assert not isinstance(do_good, revenge.native_exception.NativeException)
@@ -92,7 +92,7 @@ def test_access_violation():
     assert 'exceptions' in p.modules[e.address].name 
     assert p.memory.describe_address(e.address).startswith("exceptions:do_access_violation")
     assert isinstance(e.backtrace, revenge.native_exception.NativeBacktrace)
-    assert isinstance(e.context, revenge.tracer.contexts.x64.X64Context)
+    assert isinstance(e.context, revenge.cpu.contexts.x64.X64Context)
 
     # If we handled exception correctly, process should still be in good state
     assert not isinstance(do_good, revenge.native_exception.NativeException)
@@ -114,7 +114,7 @@ def test_access_violation_read():
     assert p.modules[e.address].name == 'exceptions'
     assert p.memory.describe_address(e.address).startswith("exceptions:do_access_read_violation")
     assert isinstance(e.backtrace, revenge.native_exception.NativeBacktrace)
-    assert isinstance(e.context, revenge.tracer.contexts.x64.X64Context)
+    assert isinstance(e.context, revenge.cpu.contexts.x64.X64Context)
 
     assert e.memory_address == 0x666
     assert e.memory_operation == 'read'
@@ -140,7 +140,7 @@ def test_access_violation_write():
     assert p.modules[e.address].name == 'exceptions'
     assert p.memory.describe_address(e.address).startswith("exceptions:do_access_write_violation")
     assert isinstance(e.backtrace, revenge.native_exception.NativeBacktrace)
-    assert isinstance(e.context, revenge.tracer.contexts.x64.X64Context)
+    assert isinstance(e.context, revenge.cpu.contexts.x64.X64Context)
 
     assert e.memory_address == 0x666
     assert e.memory_operation == 'write'
@@ -164,7 +164,7 @@ def test_access_violation_execute():
     assert p.modules[e.address] is None
     assert p.memory.describe_address(e.address) == "0x666"
     assert isinstance(e.backtrace, revenge.native_exception.NativeBacktrace)
-    assert isinstance(e.context, revenge.tracer.contexts.x64.X64Context)
+    assert isinstance(e.context, revenge.cpu.contexts.x64.X64Context)
 
     assert e.memory_address == 0x666
     assert e.memory_operation == 'execute'
@@ -189,7 +189,7 @@ def test_int3():
     assert p.modules[e.address].name == 'exceptions'
     assert p.memory.describe_address(e.address).startswith("exceptions:do_int3")
     assert isinstance(e.backtrace, revenge.native_exception.NativeBacktrace)
-    assert isinstance(e.context, revenge.tracer.contexts.x64.X64Context)
+    assert isinstance(e.context, revenge.cpu.contexts.x64.X64Context)
 
     # If we handled exception correctly, process should still be in good state
     assert not isinstance(do_good, revenge.native_exception.NativeException)
@@ -211,7 +211,7 @@ def test_sigsys():
     assert 'libc' in p.modules[e.address].name
     assert p.memory.describe_address(e.address).startswith("libc")
     assert isinstance(e.backtrace, revenge.native_exception.NativeBacktrace)
-    assert isinstance(e.context, revenge.tracer.contexts.x64.X64Context)
+    assert isinstance(e.context, revenge.cpu.contexts.x64.X64Context)
 
     # If we handled exception correctly, process should still be in good state
     assert not isinstance(do_good, revenge.native_exception.NativeException)
