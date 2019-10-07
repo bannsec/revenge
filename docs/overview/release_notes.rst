@@ -2,6 +2,23 @@
 Release Notes
 =============
 
+Version 0.13
+============
+
+- Implemented Frida's new ``CModule`` support as
+  :meth:`~revenge.memory.Memory.create_c_function`.
+    - Also added support to make calling dynamic functions easier by passing them
+      as kwargs to the constructor. See examples in code doc.
+- Added ``js_include`` option to :meth:`~revenge.Process.run_script_generic` to
+  enable javascript library/code reuse type things
+- Implemented ``telescope.js`` and :class:`~revenge.types.Telescope` for
+  initial telescoping variable support
+- ``revenge.device_types`` is now called :mod:`~revenge.devices`.
+- Added :meth:`~revenge.Process.quit` to enable closing the process explicitly.
+- Travis test cases are a bit more stable now.
+- Implemented :meth:`~revenge.memory.MemoryRange._from_frida_find_json` to
+  allow for loading of MemoryRange objects directly from Frida json.
+
 Version 0.12
 ============
 
