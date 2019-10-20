@@ -30,6 +30,65 @@ basic_one_string_addr = 0x724
 basic_open_func_addr = 0x64A
 
 basic_one_ia32_path = os.path.join(bin_location, "basic_one_ia32")
+basic_spawn_path = os.path.join(bin_location, "basic_spawn")
+
+def test_process_spawn_argv():
+    # TODO: Add envp tests when implemented
+
+    argc = []
+    argv = []
+    done = []
+
+    def argc_on_msg(x,y):
+        argc.append(x['payload'])
+
+    def argv_on_msg(x,y):
+        argv.append(x['payload'])
+
+    def done_on_msg(x,y):
+        done.append(x['payload'])
+
+    basic_spawn = revenge.Process([basic_spawn_path,'one','two','three'], resume=False, verbose=False)
+    symbols = basic_spawn.modules['basic_spawn'].symbols
+    
+    echo_argc = symbols['echo_argc'].memory
+    echo_argc.return_type = types.Int32
+    echo_argc.argument_types = types.Int32
+    echo_argc.replace_on_message = argc_on_msg
+    echo_argc.replace = "function (s) { send(s); return original(s); }"
+
+    echo_argv = symbols['echo_argv'].memory
+    echo_argv.return_type = types.Pointer
+    echo_argv.argument_types = types.Pointer
+    echo_argv.replace_on_message = argv_on_msg
+    echo_argv.replace = """function (s) {
+        var i = s;
+        var j = i.readPointer();
+
+        while ( j != 0) {
+            send(j.readUtf8String());
+            i = i.add(8);
+            j = i.readPointer();
+        }
+        return original(s);
+    }
+    """
+
+    d = symbols['done'].memory
+    d.replace_on_message = done_on_msg
+    d.replace = "function () { send(1); return; }"
+
+    basic_spawn.memory[basic_spawn.entrypoint].breakpoint = False
+
+    # Make sure we're done first
+    while done == []:
+        continue
+
+    assert argc[0] == 4 
+    assert os.path.basename(argv[0]) == "basic_spawn"
+    assert argv[1:] == ["one", "two", "three"]
+
+    basic_spawn.quit()
 
 def test_process_arch():
     basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
@@ -91,3 +150,7 @@ def test_process_run_script_generic_include_js_dispose():
     assert mem2.int32 == 1337
 
     process.quit()
+
+
+if __name__ == '__main__':
+    test_process_spawn_argv()

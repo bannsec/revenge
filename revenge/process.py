@@ -30,7 +30,8 @@ class Process(object):
         """
 
         Args:
-            target (str, int): File name or pid to attach to.
+            target (str, int, list): File name or pid to attach to. If target
+                is a list, it will be set as argv.
             resume (bool, optional): Resume the binary if need be after loading?
             verbose (bool, optional): Enable verbose logging
             load_symbols (list, optional): Only load symbols from those modules
@@ -131,7 +132,7 @@ class Process(object):
                 self.memory[addr].breakpoint = False
 
             # Remove function replacements
-            for addr in self.memory._active_replacements:
+            for addr in copy(self.memory._active_replacements):
                 self.memory[addr].replace = None
 
             # Remove any instruction traces
@@ -212,7 +213,7 @@ class Process(object):
 
         if self._spawn_target is not None:
             print("Spawning file\t\t\t... ", end='', flush=True)
-            self._spawned_pid = self.device.device.spawn(self._spawn_target)
+            self._spawned_pid = self.device.device.spawn(self._spawn_target, argv=self.argv)
             cprint("[ DONE ]", "green")
 
         print('Attaching to the session\t... ', end='', flush=True)
@@ -398,6 +399,16 @@ class Process(object):
     ############
 
     @property
+    def argv(self):
+        """list: argv for this process instantitation."""
+        return self.__argv
+
+    @argv.setter
+    def argv(self, argv):
+        if not isinstance(argv, (list, tuple)): raise RevengeInvalidArgumentType("argv must be list or tuple type.")
+        self.__argv = argv
+
+    @property
     def device_platform(self):
         """Wrapper to discover the device's platform."""
 
@@ -534,11 +545,23 @@ class Process(object):
 
     @target.setter
     def target(self, target):
+
+        # target set will implicitly set argv
+        if isinstance(target, (list, tuple)):
+            self.argv = list(target)
+            target = target[0]
+
+        else:
+            # Place holder until we resolve target
+            self.argv = [target]
+
+
         # Check if this is a pid
         try:
             p = next(x for x in self.device.device.enumerate_processes() if x.pid == common.auto_int(target))
             target = p.pid
             self.__file_name = p.name
+            self.argv[0] = p.name
 
         except (StopIteration, ValueError):
             pass
@@ -547,6 +570,7 @@ class Process(object):
             full_path = os.path.abspath(target)
             self.__file_name = os.path.basename(full_path)
 
+            # If this string points to an actual file, we will launch it later
             if os.path.isfile(full_path):
                 self._spawn_target = full_path
             
