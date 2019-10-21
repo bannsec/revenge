@@ -17,8 +17,8 @@ Just Show Me
     # Load up /bin/ls, but don't let it continue
     p = Process("/bin/ls", resume=False)
 
-    # Optionally, specify argv
-    p = Process(["/bin/ls", ".."], resume=False)
+    # Optionally, specify argv and envp
+    p = Process(["/bin/ls", ".."], envp={'var1':'val1'})
 
     # Print out some basic info about the running process
     print(p.threads)

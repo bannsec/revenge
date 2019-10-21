@@ -108,6 +108,8 @@ class BatchContext(object):
         into the thread and executed sequentially.
         """
 
+        logger.warning("Frida broke their own functionality here since version 12.7.10. If you want to use this, please 'pip install -U frida==12.7.9'")
+
         self._process = process
         # Queue of things to send
         self.queue = []

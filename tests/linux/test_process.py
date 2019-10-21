@@ -33,10 +33,10 @@ basic_one_ia32_path = os.path.join(bin_location, "basic_one_ia32")
 basic_spawn_path = os.path.join(bin_location, "basic_spawn")
 
 def test_process_spawn_argv():
-    # TODO: Add envp tests when implemented
 
     argc = []
     argv = []
+    envp = []
     done = []
 
     def argc_on_msg(x,y):
@@ -45,10 +45,14 @@ def test_process_spawn_argv():
     def argv_on_msg(x,y):
         argv.append(x['payload'])
 
+    def envp_on_msg(x,y):
+        envp.append(x['payload'])
+
     def done_on_msg(x,y):
         done.append(x['payload'])
 
-    basic_spawn = revenge.Process([basic_spawn_path,'one','two','three'], resume=False, verbose=False)
+    basic_spawn = revenge.Process([basic_spawn_path,'one','two','three'],
+            resume=False, verbose=False, envp={'MYTESTVAR':'1337'})
     symbols = basic_spawn.modules['basic_spawn'].symbols
     
     echo_argc = symbols['echo_argc'].memory
@@ -74,6 +78,23 @@ def test_process_spawn_argv():
     }
     """
 
+    echo_envp = symbols['echo_envp'].memory
+    echo_envp.return_type = types.Pointer
+    echo_envp.argument_types = types.Pointer
+    echo_envp.replace_on_message = envp_on_msg
+    echo_envp.replace = """function (s) {
+        var i = s;
+        var j = i.readPointer();
+
+        while ( j != 0) {
+            send(j.readUtf8String());
+            i = i.add(8);
+            j = i.readPointer();
+        }
+        return original(s);
+    }
+    """
+
     d = symbols['done'].memory
     d.replace_on_message = done_on_msg
     d.replace = "function () { send(1); return; }"
@@ -87,6 +108,7 @@ def test_process_spawn_argv():
     assert argc[0] == 4 
     assert os.path.basename(argv[0]) == "basic_spawn"
     assert argv[1:] == ["one", "two", "three"]
+    assert any(x == "MYTESTVAR=1337" for x in envp)
 
     basic_spawn.quit()
 

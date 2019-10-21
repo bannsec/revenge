@@ -26,7 +26,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 class Process(object):
 
     def __init__(self, target, resume=False, verbose=False, load_symbols=None,
-            device=None):
+            device=None, envp=None):
         """
 
         Args:
@@ -38,6 +38,9 @@ class Process(object):
                 in the list. Saves some startup time. Can use glob ('libc*')
             device (revenge.devices.*, optional): Define what device
                 to connect to.
+            envp (dict, optional): Specify what you want the environment
+                pointer list to look like. Defaults to whatever the current
+                envp is.
         """
 
         # Just variable to ensure we don't garbage collect
@@ -54,6 +57,7 @@ class Process(object):
         self._spawn_target = None
         self.verbose = verbose
         self.device = device or devices.LocalDevice()
+        self._envp = envp
         self.target = target
 
         if not isinstance(load_symbols, (list, type, type(None))):
@@ -213,7 +217,7 @@ class Process(object):
 
         if self._spawn_target is not None:
             print("Spawning file\t\t\t... ", end='', flush=True)
-            self._spawned_pid = self.device.device.spawn(self._spawn_target, argv=self.argv)
+            self._spawned_pid = self.device.device.spawn(self._spawn_target, argv=self.argv, envp=self._envp)
             cprint("[ DONE ]", "green")
 
         print('Attaching to the session\t... ', end='', flush=True)
@@ -621,6 +625,20 @@ class Process(object):
         """
         return lambda *args, **kwargs: BatchContext(self, *args, **kwargs)
 
+    @property
+    def _envp(self):
+        """dict: This holds the USER SPECIFIED environment variables. If you
+        do not specify envp, this will be empty but your program will still
+        have the default environment."""
+        return self.__envp
+
+    @_envp.setter
+    def _envp(self, envp):
+        if not isinstance(envp, (dict, type(None))):
+            raise RevengeInvalidArgumentType("_envp must be instance of dict or None. Got type {}".format(type(envp)))
+
+        self.__envp = envp
+
 
 from . import common, types, config, devices
 from .memory import Memory
@@ -629,6 +647,7 @@ from .tracer import Tracer
 from .modules import Modules
 from .java import Java
 from .contexts import BatchContext
+from .exceptions import *
 
 # Doc fixups
 Process.BatchContext.__doc__ += BatchContext.__init__.__doc__
