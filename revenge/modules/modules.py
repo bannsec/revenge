@@ -57,7 +57,12 @@ class Modules(object):
                 "FUNCTION_OFFSET_HERE": offset,
                 }
 
-        return types.Pointer(common.auto_int(self._process.run_script_generic("resolve_location_address.js", replace=replace_vars, unload=True)[0][0]))
+        location_resolved = self._process.run_script_generic("resolve_location_address.js", replace=replace_vars, unload=True)[0]
+
+        if location_resolved == []:
+            raise RevengeSymbolLookupFailure("Cannot resolve symbol.")
+
+        return types.Pointer(common.auto_int(location_resolved[0]))
 
     def load_library(self, library):
         """Dynamically load a library into the program.

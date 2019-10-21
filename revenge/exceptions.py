@@ -11,3 +11,6 @@ class RevengeProcessRequiredError(RevengeError):
 
 class RevengeInvalidArgumentType(RevengeError):
     pass
+
+class RevengeSymbolLookupFailure(RevengeError):
+    pass
