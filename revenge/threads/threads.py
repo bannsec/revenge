@@ -41,6 +41,45 @@ class Threads(object):
         else:
             logger.error("Not sure how to handle this.")
 
+
+    def create(self, callback):
+        """Create and start a new thread on the given callback.
+
+        Args:
+            callback: Pointer to function to start the thread on. This can be
+                created via CModule, NativeCallback or use an existing
+                function in the binary
+
+        Returns:
+            revenge.threads.Thread: The new thread that was created or None if either the thread create failed or the thread finished before this method returned.
+
+        Example:
+            .. code-block:: python3
+
+                # Create a stupid callback that just spins
+                func = process.memory.create_c_function("void func() { while ( 1 ) { ; } }")
+
+                # Start the thread
+                t = process.threads.create(func.address)
+                assert isinstance(t, revenge.threads.thread.Thread)
+
+                # View it running
+                print(process.threads)
+        """
+
+        pre = set([t.id for t in self])
+        create_thread(self._process, callback)
+        post = set([t.id for t in self])
+
+        diff = post.difference(pre)
+        if diff != {}:
+            diff = list(diff)
+            if len(diff) != 1:
+                logger.warning("More than one thread has been created... Returning first.")
+
+            return self[diff[0]]
+
+
     @property
     def threads(self):
         """Current snapshop of active threads."""
@@ -48,3 +87,4 @@ class Threads(object):
         return [Thread(self._process, thread) for thread in threads]
 
 from . import Thread
+from .create import create_thread

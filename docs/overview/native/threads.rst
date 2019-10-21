@@ -41,3 +41,23 @@ Tracing
 =======
 
 Please see `tracing <tracing.html>`_ for more information.
+
+Creating
+========
+
+You can easily create new threads using :func:`~revenge.threads.Threads.create`.
+
+Examples
+--------
+
+.. code-block:: python3
+
+    # Create a stupid callback that just spins
+    func = process.memory.create_c_function("void func() { while ( 1 ) { ; } }")
+
+    # Start the thread
+    t = process.threads.create(func.address)
+    assert isinstance(t, revenge.threads.thread.Thread)
+
+    # View it running
+    print(process.threads)

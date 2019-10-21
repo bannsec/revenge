@@ -14,3 +14,6 @@ class RevengeInvalidArgumentType(RevengeError):
 
 class RevengeSymbolLookupFailure(RevengeError):
     pass
+
+class RevengeThreadCreateError(RevengeError):
+    pass

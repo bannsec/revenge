@@ -17,6 +17,27 @@ bin_location = os.path.join(here, "bins")
 basic_threads_path = os.path.join(bin_location, "basic_threads")
 basic_threads_after_create = 0x7df
 
+def test_thread_create_linux():
+
+    process = revenge.Process(basic_threads_path, resume=False, verbose=False)
+
+    # Create and set an int
+    a = process.memory.alloc(8)
+    a.int64 = 0
+
+    # Create the cmodule function that will set this variable
+    func = process.memory.create_c_function("void func() {{ long *x = (long *){}; while ( 1 ) {{ *x = 1337; }} }}".format(hex(a.address)))
+
+    # Kick off the thread
+    t = process.threads.create(func.address)
+
+    # Wait for it (super fast likely)
+    while a.int64 == 0: pass
+
+    assert a.int64 == 1337
+
+    process.quit()
+
 def test_frida_thread_dummy():
 
     process = revenge.Process(basic_threads_path, resume=False, verbose=False, load_symbols='basic_threads')
