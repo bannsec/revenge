@@ -74,7 +74,11 @@ class Threads(object):
         diff = post.difference(pre)
         if diff != {}:
             diff = list(diff)
-            if len(diff) != 1:
+
+            if len(diff) == 0:
+                # It may just already be done... Not necessarily an error
+                return
+            elif len(diff) > 1:
                 logger.warning("More than one thread has been created... Returning first.")
 
             return self[diff[0]]
