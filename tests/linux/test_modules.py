@@ -25,6 +25,19 @@ basic_one_ia32_nopie_path = os.path.join(bin_location, "basic_one_ia32_nopie")
 
 chess_path = os.path.join(bin_location, "ChessAI.so")
 
+def test_memory_symbol_resolve():
+    process = revenge.Process(basic_one_path, resume=False, verbose=False)
+
+    strlen = process.memory[':strlen']
+    strlen2 = process.memory['strlen']
+
+    assert strlen.address == strlen2.address
+
+    strlen3 = process.memory['strlen+0xf']
+    assert strlen.address + 0xf == strlen3.address
+
+    process.quit()
+
 def test_load_library():
     process = revenge.Process(basic_one_path, resume=False, verbose=False)
 

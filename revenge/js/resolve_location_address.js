@@ -9,9 +9,10 @@ if ( module == "" ) {
 }
 
 if ( symbol != "" ) {
-    var func_ptr = Module.getExportByName(module, symbol);
+    var func_ptr = Module.getExportByName(module, symbol).add(offset);
 } else {
-    var func_ptr = ptr(Number(Module.getBaseAddress(module)) + offset)
+    //var func_ptr = ptr(Number(Module.getBaseAddress(module)) + offset)
+    var func_ptr = Module.getBaseAddress(module).add(offset);
 }
 
 send(func_ptr)

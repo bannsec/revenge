@@ -29,6 +29,8 @@ class Modules(object):
         
         Examples:
             resolve_symbol(":strlen") -> returns address of strlen resolved globally.
+            resolve_symbol("strlen") -> equivalent to above
+            resolve_symbol("strlen+0xf") -> strlen offset by 0xf
             resolve_symbol("a.out:main") -> returns address of main resolved to a.out.
             resolve_symbol(0x12345) -> returns symbol at that address.
         

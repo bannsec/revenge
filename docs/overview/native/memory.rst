@@ -25,7 +25,7 @@ Examples
     process = revenge.Process("/bin/ls", resume=False, verbose=False)
 
     # Resolve strlen from libc
-    strlen = process.memory[':strlen']
+    strlen = process.memory['strlen']
 
     # Resolve symbol test from the main binary
     t = process.memory['bin:test']

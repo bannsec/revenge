@@ -45,16 +45,25 @@ def parse_location_string(s):
 
     assert type(s) == str, "Unexpected argument type of {}".format(type(s))
 
-    module, offset_or_symbol = s.split(":")
+    if ":" in s:
+        module, offset_or_symbol = s.split(":")
+    else:
+        module = ""
+        offset_or_symbol = s
     
     try:
-        offset = hex(int(offset_or_symbol,0))
+        offset = int(offset_or_symbol,0)
         symbol = ""
     except ValueError:
-        offset = "0"
+        offset = 0
         symbol = offset_or_symbol
 
-    return module, offset, symbol
+    # This must be a specified offset
+    if "+" in symbol:
+        symbol, more_offset = symbol.split("+")
+        offset += int(more_offset,0)
+
+    return module, hex(offset), symbol
 
 def load_file(process, file_path):
     """Attempt to load the file with file_path. Use local loading if connection is local, and remote otherwise."""
