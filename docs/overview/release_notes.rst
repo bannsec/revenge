@@ -2,13 +2,28 @@
 Release Notes
 =============
 
+Version 0.14
+============
+
+- argv and envp options added to :class:`~revenge.Process` spawning
+- Added :meth:`revenge.threads.Threads.create` to simplify kicking off a thread
+- Simplified symbol resolution, you can now use ``process.memory['symbol']``
+  directly as well as ``process.memory['symbol+offset']``
+- threads is now a submodule
+- Can now create dummy thread for hidden Frida thread
+- CPUContexts have been moved to :mod:`revenge.cpu.contexts`
+- Tracer assembly has been moved to :mod:`revenge.cpu.assembly`
+
+
 Version 0.13
 ============
 
 - Implemented Frida's new ``CModule`` support as
   :meth:`~revenge.memory.Memory.create_c_function`.
-    - Also added support to make calling dynamic functions easier by passing them
-      as kwargs to the constructor. See examples in code doc.
+
+  - Also added support to make calling dynamic functions easier by passing them
+    as kwargs to the constructor. See examples in code doc.
+
 - Added ``js_include`` option to :meth:`~revenge.Process.run_script_generic` to
   enable javascript library/code reuse type things
 - Implemented ``telescope.js`` and :class:`~revenge.types.Telescope` for

@@ -5,6 +5,7 @@ Native
     :glob:
     :caption: Native
 
+    cpu
     devices
     exceptions
     process

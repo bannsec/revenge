@@ -41,6 +41,15 @@ class Process(object):
             envp (dict, optional): Specify what you want the environment
                 pointer list to look like. Defaults to whatever the current
                 envp is.
+
+        Examples:
+            .. code-block:: python3
+
+                # Kick off ls
+                p = revenge.Process("/bin/ls")
+
+                # Kick off ls for /tmp with custom environment
+                p = revenge.Process(["/bin/ls","/tmp/"], envp={'var1':'thing1'})
         """
 
         # Just variable to ensure we don't garbage collect
@@ -642,6 +651,7 @@ from .exceptions import *
 
 # Doc fixups
 Process.BatchContext.__doc__ += BatchContext.__init__.__doc__
+Process.__doc__ = Process.__init__.__doc__
 
 
 def sigint_handler(sig, frame):
