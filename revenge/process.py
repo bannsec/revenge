@@ -202,15 +202,6 @@ class Process(object):
         self.session.detach()
 
     
-    #######################
-    # On Message Handlers #
-    #######################
-
-    def on_message(self, message, data=None):
-        """Generic on message handler."""
-        print("Caught message", message, data)
-
-
     def start_session(self):
 
         self._spawned_pid = None
