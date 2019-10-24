@@ -27,8 +27,8 @@ def create_pthread(process, callback):
     ret = pthread_create(pthread_id_cache[process].address, 0, callback, 0);
 
     if ret != 0:
-        # TODO: Resolve the errno
-        err = "pthread_create failed!"
+        e = NativeError(process, abs(ret))
+        err = "pthread_create failed! " + str(e)
         logger.error(err)
         raise RevengeThreadCreateError(err)
 
@@ -38,3 +38,4 @@ except:
     init()
 
 from ... import types
+from ...native_error import NativeError

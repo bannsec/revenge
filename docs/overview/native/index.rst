@@ -12,6 +12,7 @@ threading, and any other things that are going to be common among any platform.
     :hidden:
 
     debugging
+    errors
     exceptions
     functions
     memory

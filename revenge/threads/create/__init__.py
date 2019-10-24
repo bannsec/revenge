@@ -6,7 +6,7 @@ def create_thread(process, callback):
 
     # What type of things do we have to work with?
     try:
-        process.memory[':pthread_create']
+        process.memory['pthread_create']
         return create_pthread(process, callback)
     except RevengeSymbolLookupFailure:
         pass

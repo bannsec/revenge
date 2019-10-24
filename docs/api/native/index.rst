@@ -7,6 +7,7 @@ Native
 
     cpu
     devices
+    errors
     exceptions
     process
     memory

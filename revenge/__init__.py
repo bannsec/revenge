@@ -9,3 +9,4 @@ if sys.version_info[0] < 3:
 
 from .process import Process
 from . import symbols
+from .native_error import NativeError
