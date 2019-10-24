@@ -6,11 +6,11 @@ import time
 import json
 import collections
 from termcolor import cprint, colored
-
 from prettytable import PrettyTable
 
-from .. import types, common
-from ..threads import Thread
+from ... import types, common
+from ...threads import Thread
+from .. import Technique
 
 class TraceItem(object):
 
@@ -132,7 +132,7 @@ class Trace(object):
             # Until then, calling unfollow and not unloading the script seems to be OK.
             #time.sleep(1)
             #self._script[0].unload()
-            self._process.tracer._active_instruction_traces.pop(self._tid)
+            self._process.techniques._active_stalks.pop(self._tid)
             self._script = None
 
     def wait_for(self, address):
@@ -193,15 +193,15 @@ class Trace(object):
 
         raise Exception("Unhandled getitem type of {}".format(type(item)))
 
-class InstructionTracer(object):
+class InstructionTracer(Technique):
+    TYPE = "stalk"
 
-    def __init__(self, process, threads=None, from_modules=None, call=False,
-            ret=False, exec=False, block=False, compile=False, callback=None):
+    def __init__(self, process, from_modules=None, call=False, ret=False,
+                 exec=False, block=False, compile=False, callback=None):
         """
 
         Args:
             process: Base process instantiation
-            threads (list, optional): What threads to trace. If None, it will trace all threads.
             from_modules (list, optional): Restrict trace returns to those that start from one of the listed modules.
             call (bool, optional): Trace calls
             ret (bool, optional): Trace rets
@@ -221,12 +221,12 @@ class InstructionTracer(object):
             #raise Exception(error)
 
         self._process = process
-        self.call= call
+        self.call = call
         self.ret = ret
         self.exec = exec
         self.block = block
         self.compile = compile
-        self.threads = threads
+        self.threads = None
         self._script = {}
         self._from_modules = from_modules
         self.callback = callback
@@ -237,7 +237,7 @@ class InstructionTracer(object):
         # get information while still being stopped.
         self.traces = {}
 
-        self._start()
+        #self._start()
 
     def _on_message(self, m, d):
         try:
@@ -248,6 +248,10 @@ class InstructionTracer(object):
 
         for x in payload:
             self.traces[x['tid']].append(x)
+
+    def apply(self, threads=None):
+        self.threads = threads
+        self._start()
 
     def _start(self):
 
@@ -264,7 +268,12 @@ class InstructionTracer(object):
             s = "stalker_follow({})".format(thread.id)
             self._process.run_script_generic(s, raw=True, include_js=("dispose.js", "stalk.js"), replace=replace, unload=False, on_message=self._on_message, runtime='v8')
             self.traces[thread.id] = Trace(self._process, thread.id, self._process._scripts.pop(0), callback=self.callback)
-            self._process.tracer._active_instruction_traces[thread.id] = self.traces[thread.id]
+            self._process.techniques._active_stalks[thread.id] = self.traces[thread.id]
+
+    def remove(self):
+        for thread in self.threads:
+            if thread.trace is not None:
+                thread.trace.stop()
 
     def __repr__(self):
         attrs = ["InstructionTracer"]
@@ -312,7 +321,7 @@ class InstructionTracer(object):
 
         # Make sure the threads aren't already being traced
         for thread in threads:
-            if thread.id in self._process.tracer._active_instruction_traces:
+            if thread.id in self._process.techniques._active_stalks:
                 error = "Cannot have more than one trace on the same thread at a time. Stop the existing trace with: process.threads[{}].trace.stop()".format(thread.id)
                 logger.error(error)
                 raise Exception(error)
@@ -349,4 +358,6 @@ class InstructionTracer(object):
         
         self.__from_modules = new_modules
 
-from ..modules import Module
+InstructionTracer.__doc__ = InstructionTracer.__init__.__doc__
+
+from ...modules import Module

@@ -75,8 +75,8 @@ class Process(object):
 
         self.memory = Memory(self)
         self.threads = Threads(self)
-        self.tracer = Tracer(self)
         self.modules = Modules(self)
+        self.techniques = Techniques(self)
 
         atexit.register(self._at_exit)
         self.start_session()
@@ -643,16 +643,15 @@ class Process(object):
 from . import common, types, config, devices
 from .memory import Memory
 from .threads import Threads
-from .tracer import Tracer
 from .modules import Modules
 from .java import Java
 from .contexts import BatchContext
 from .exceptions import *
+from .techniques import Techniques
 
 # Doc fixups
 Process.BatchContext.__doc__ += BatchContext.__init__.__doc__
 Process.__doc__ = Process.__init__.__doc__
-
 
 def sigint_handler(sig, frame):
     sys.exit()

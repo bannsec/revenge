@@ -9,7 +9,7 @@ import revenge
 types = revenge.types
 
 here = os.path.dirname(os.path.abspath(__file__))
-bin_location = os.path.join(here, "..", "bins")
+bin_location = os.path.join(here, "..", "..", "bins")
 
 def test_assembly_instruction_amd64():
     basic_one = revenge.Process(os.path.join(bin_location, 'basic_one'), resume=False, verbose=False, load_symbols='basic_one')

@@ -12,10 +12,10 @@ types = revenge.types
 import time
 from copy import copy
 
-from revenge.tracer.instruction_tracer import TraceItem, Trace
+from revenge.techniques.tracer.instruction_tracer import TraceItem, Trace
 
 here = os.path.dirname(os.path.abspath(__file__))
-bin_location = os.path.join(here, "..", "bins")
+bin_location = os.path.join(here, "..", "..", "bins")
 
 # 
 # Basic One
@@ -35,7 +35,8 @@ def test_basic_one_trace_slice():
 
     basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
     
-    t = basic_one.tracer.instructions(call=True, ret=True, exec=True, from_modules=['basic_one'])
+    t = basic_one.techniques.InstructionTracer(call=True, ret=True, exec=True, from_modules=['basic_one'])
+    t.apply()
     t2 = list(t)[0]
     
     basic_one.memory[basic_one.entrypoint].breakpoint = False
@@ -53,7 +54,8 @@ def test_basic_one_trace_specify_from_modules():
 
     basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
     
-    t = basic_one.tracer.instructions(exec=True, from_modules=['basic_one'])
+    t = basic_one.techniques.InstructionTracer(exec=True, from_modules=['basic_one'])
+    t.apply()
     t2 = list(t)[0]
     
     basic_one.memory[basic_one.entrypoint].breakpoint = False
@@ -79,6 +81,7 @@ def test_basic_one_trace_specify_from_modules():
     with pytest.raises(Exception):
         t._from_modules = [1.12]
 
+    t.remove()
     basic_one.quit()
 
 def test_basic_one_trace_thread_int():
@@ -87,23 +90,28 @@ def test_basic_one_trace_thread_int():
 
     thread = list(basic_one.threads)[0]
 
-    t = basic_one.tracer.instructions(exec=True, threads=[thread.id])
+    t = basic_one.techniques.InstructionTracer(exec=True)
+    t.apply([thread.id])
     str(t)
     t2 = list(t)[0]
     while len(t2) < 15:
         time.sleep(0.1)
 
     with pytest.raises(Exception):
-        basic_one.tracer.instructions(exec=True, threads=[12.12])
+        t3 = basic_one.techniques.InstructionTracer(exec=True)
+        t3.apply([12.12])
+
 
     # Testing exception for attempting to create another trace on a thread that is already being traced
     with pytest.raises(Exception):
-        basic_one.tracer.instructions(exec=True)
+        t3 = basic_one.techniques.InstructionTracer(exec=True)
+        t3.apply()
 
     t2.stop()
 
     # This should not raise an exception now
-    t = basic_one.tracer.instructions(exec=True)
+    t = basic_one.techniques.InstructionTracer(exec=True)
+    t.apply()
 
     basic_one.quit()
 
@@ -113,7 +121,9 @@ def test_basic_one_trace_thread():
 
     thread = list(basic_one.threads)[0]
 
-    t = basic_one.tracer.instructions(exec=True, threads=[thread])
+    t = basic_one.techniques.InstructionTracer(exec=True)
+    t.apply([thread])
+
     t2 = list(t)[0]
     while len(t2) < 15:
         time.sleep(0.1)
@@ -121,7 +131,8 @@ def test_basic_one_trace_thread():
     t2.stop()
 
     time.sleep(0.3)
-    t = basic_one.tracer.instructions(exec=True, threads=thread)
+    t = basic_one.techniques.InstructionTracer(exec=True)
+    t.apply(thread)
     t2 = list(t)[0]
     basic_one.memory[basic_one.entrypoint].breakpoint = False
     t2.wait_for('basic_one:0x692') # final ret
@@ -136,17 +147,18 @@ def test_basic_one_trace_thread():
 def test_basic_one_trace_add_remove():
 
     basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
-    t = basic_one.tracer.instructions(call=True, ret=True)
+    t = basic_one.techniques.InstructionTracer(call=True, ret=True)
+    t.apply()
     tid = list(t)[0]._tid
 
-    assert tid in basic_one.tracer._active_instruction_traces
-    assert basic_one.tracer._active_instruction_traces[tid] is list(t)[0]
-    assert basic_one.tracer._active_instruction_traces[tid]._script is not None
+    assert tid in basic_one.techniques._active_stalks
+    assert basic_one.techniques._active_stalks[tid] is list(t)[0]
+    assert basic_one.techniques._active_stalks[tid]._script is not None
 
-    t2 = basic_one.tracer._active_instruction_traces[tid]
+    t2 = basic_one.techniques._active_stalks[tid]
     t2.stop()
 
-    assert tid not in basic_one.tracer._active_instruction_traces
+    assert tid not in basic_one.techniques._active_stalks
     assert list(t)[0]._script is None
 
     # This should just do nothing
@@ -157,7 +169,8 @@ def test_basic_one_trace_add_remove():
 def test_basic_one_trace_instructions_call_ret():
 
     basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
-    t = basic_one.tracer.instructions(call=True, ret=True)
+    t = basic_one.techniques.InstructionTracer(call=True, ret=True)
+    t.apply()
     t2 = list(t)[0]
 
     module = basic_one.modules['basic_one']
@@ -230,7 +243,8 @@ def test_basic_one_trace_instructions_call_ret():
 def test_basic_one_trace_instructions_exec():
 
     basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
-    t = basic_one.tracer.instructions(exec=True)
+    t = basic_one.techniques.InstructionTracer(exec=True)
+    t.apply()
     t2 = list(t)[0]
 
     module = basic_one.modules['basic_one']
@@ -375,7 +389,9 @@ def test_basic_one_traceitem():
     basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
     module = basic_one.modules['basic_one']
 
-    t = basic_one.tracer.instructions()
+    t = basic_one.techniques.InstructionTracer()
+    t.apply()
+
     tid = list(t)[0]._tid
 
     for i in trace_items:

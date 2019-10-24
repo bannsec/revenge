@@ -5,7 +5,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 import typing
-import frida
 import colorama
 colorama.init()
 

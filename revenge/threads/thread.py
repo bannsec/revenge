@@ -65,7 +65,7 @@ class Thread(object):
     @property
     def trace(self):
         """revenge.tracer.instruction_tracer.Trace: Returns Trace object if this thread is currently being traced, otherwise None."""
-        if self.id in self._process.tracer._active_instruction_traces:
-            return self._process.tracer._active_instruction_traces[self.id]
+        if self.id in self._process.techniques._active_stalks:
+            return self._process.techniques._active_stalks[self.id]
 
 from ..cpu import CPUContext

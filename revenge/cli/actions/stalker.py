@@ -63,8 +63,7 @@ class ActionStalker:
         def stalk_cb(tid, ti):
             print(ti)
         
-        trace = self._process.tracer.instructions(
-                threads = self.tid,
+        trace = self._process.techniques.InstructionTracer(
                 from_modules = self.from_modules,
                 call = self.call,
                 ret = self.ret,
@@ -73,6 +72,8 @@ class ActionStalker:
                 compile = self.compile,
                 callback = stalk_cb,
                 )
+
+        trace.apply(self.tid)
 
         # Make sure we're not blocking
         for addr in list(self._process.memory._active_breakpoints):

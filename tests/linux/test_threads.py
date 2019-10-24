@@ -56,13 +56,15 @@ def test_thread_tracing_indicator():
 
     assert th.trace is None
 
-    t = process.tracer.instructions(exec=True)
+    t = process.techniques.InstructionTracer(exec=True)
+    t.apply()
     t2 = list(t)[0]
 
     assert th.trace is t2
     assert "tracing" in repr(th)
 
-    th.trace.stop()
+    #th.trace.stop()
+    t.remove()
     assert th.trace is None
     assert "tracing" not in repr(th)
 

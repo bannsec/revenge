@@ -25,7 +25,11 @@ Examples
 
     # Possible tracing options are: call, ret, block, exec, compile
     # Default is False for all of them, so specify any combination
-    trace = process.tracer.instructions(call=True, ret=True)
+    trace = process.techniques.InstructionTracer(call=True, ret=True)
+
+    # Since trace is a technique, you must apply it
+    # By default, trace will apply to all threads if not given any arguments
+    trace.apply()
 
     t = list(trace)[0]
 
@@ -52,8 +56,8 @@ Examples
     for i in t:
         print(i)
 
-    # Stop the trace so you can run a different one
-    t.stop()
+    # Remove the trace so you can run a different one
+    trace.remove()
 
     # Take a slice of the trace
     t2 = t[12:24]
