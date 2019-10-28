@@ -239,7 +239,7 @@ class InstructionTracer(Technique):
         self._script = {}
         self._from_modules = from_modules
         self.callback = callback
-        self._exclude_ranges = exclude_ranges
+        self._exclude_ranges = exclude_ranges or []
 
         # IMPORTANT: It's important to keep a local pointer to this trace. It's
         # possible for trace messages to come in after officially stopping the
@@ -283,6 +283,10 @@ class InstructionTracer(Technique):
         for thread in self.threads:
             if thread.trace is not None:
                 thread.trace.stop()
+
+    def _technique_code_range(self, range):
+        # We want to ignore anything we know to not be target code.
+        self._exclude_ranges.append( [ range.base, range.base + range.size ])
 
     def __repr__(self):
         attrs = ["InstructionTracer"]
