@@ -31,6 +31,28 @@ item_compile = {'tid': 16050, 'type': 'compile', 'from_ip': '0x7f1154c799de', 'f
 item_exec = {'tid': 16050, 'type': 'exec', 'from_ip': '0x7f1154c799de', 'from_module': 'libc-2.27.so'}
 trace_items = [item_call, item_ret, item_block, item_compile, item_exec]
 
+def test_trace_exclude_ranges():
+
+    p = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+
+    # Create a thread that will just spin
+    m = p.memory.alloc(8)
+    m.int64 = 0
+    func = p.memory.create_c_function(""" void func() {{ while ( *(void *){} == 0 ) {{ ; }} }}""".format(hex(m.address)))
+
+    # Start-er up
+    t = p.threads.create(func.address)
+
+    # Kick off thread, explicitly ignoring the thread code itself
+    trace = p.techniques.InstructionTracer(exec=True, exclude_ranges=[[func.address, func.address + 0x100]]); trace.apply(t); m.int64 = 1
+
+    time.sleep(0.2)
+    
+    # We should have nothing in our trace, since we excluded it all
+    assert len(t.trace) == 0
+
+    p.quit()
+
 def test_basic_one_trace_slice():
 
     basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')

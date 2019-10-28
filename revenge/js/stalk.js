@@ -6,10 +6,24 @@
 //var threads = Process.enumerateThreadsSync()
 //for (var i=0; i < threads.length; i++) {
 
+function stalker_is_in_range(ranges, val) {
+    var range;
+    for (var i=0; i < ranges.length; i++) {
+        range = ranges[i];
+        if ( val >= range[0]  && val <= range[1] )
+            return true;
+    }
+    return false;
+}
 
 function stalker_follow(tid) {
     var module_map = new ModuleMap();
     var include_from = FROM_MODULES_HERE
+    var exclude_ranges = Array();
+
+    EXCLUDE_RANGES_HERE.forEach(function (item) {
+        exclude_ranges.push(Array( eval(item[0]), eval(item[1])))
+    })
 
     // Unfollow must be called from the source script doing the stalking. Thus, RPC.
     rpc.exports["unfollow"] = function () {
@@ -18,7 +32,6 @@ function stalker_follow(tid) {
     }
 
     // This is automagically called when unloading a script in python
-    //rpc.exports["dispose"] = function () { Stalker.unfollow(tid); }
     dispose_push( function () { Stalker.unfollow(tid); } )
 
     Stalker.follow(tid, {
@@ -34,12 +47,15 @@ function stalker_follow(tid) {
         },
 
         onReceive: function (events) {
-            //return send(Stalker.parse(events, {annotate: true, stringify: true}));
-            //send(Stalker.parse(events, {annotate: true, stringify: true}));
-            
+
             var filtered_events = [];
 
             Stalker.parse(events, {annotate: true, stringify: true}).forEach(function x(event) { 
+
+                // Handle exclude ranges
+                if ( stalker_is_in_range(exclude_ranges, ptr(event[1]))) {
+                    return;
+                }
                 
                 //
                 // Module filtering
