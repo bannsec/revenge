@@ -22,6 +22,21 @@ class Technique(object):
         """Removes this technique."""
         raise NotImplementedError("Remove MUST be implemented by the Technique.")
 
+    def _technique_code_range(self, range):
+        """Called to inform Technique of known source (non-target binary) range.
+
+        Args:
+            range (revenge.memory.memory_range.MemoryRange): Object describing
+                the range we expect to be ours.
+
+        This is not required to be implemented. However, for stalking it may
+        be beneficial to know when we have wandered into un-interesting (read:
+        non-target) code.
+
+        This can be called multiple times, with other MemoryRange objects.
+        """
+        return        
+
 
 class Techniques(object):
     def __init__(self, process):

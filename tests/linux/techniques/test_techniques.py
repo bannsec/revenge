@@ -34,4 +34,9 @@ def test_techniques_basic():
     # Just make sure we're populating at least
     assert p.techniques.InstructionTracer is not None
 
+    # Try giving a memory map range
+    range = p.memory.maps[p.memory['strlen'].address]
+    tech = p.techniques.InstructionTracer(exec=True)
+    tech._technique_code_range(tech)
+
     p.quit()
