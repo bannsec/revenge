@@ -218,7 +218,7 @@ class InstructionTracer(Technique):
             .. code-block:: python3
 
                 # Trace all instructions in process except for those in a given range
-                trace = process.techniques.InstructionTracer(exec=True, exclude_ranges=[0x12345, 0x424242])
+                trace = process.techniques.InstructionTracer(exec=True, exclude_ranges=[[0x12345, 0x424242]])
         """
 
         assert callable(callback) or callback is None, "Invalid type for callback of {}".format(type(callback))
@@ -270,7 +270,7 @@ class InstructionTracer(Technique):
             "STALK_EXEC": json.dumps(self.exec),
             "STALK_BLOCK": json.dumps(self.block),
             "STALK_COMPILE": json.dumps(self.compile),
-            "EXCLUDE_RANGES_HERE": json.dumps(self._exclude_ranges),
+            "EXCLUDE_RANGES_HERE": json.dumps(self._exclude_ranges_js),
         }
 
         for thread in self.threads:
@@ -375,19 +375,22 @@ class InstructionTracer(Technique):
     def _exclude_ranges(self, ranges):
         if ranges is None:
             self.__exclude_ranges = []
-            return
 
-        if not isinstance(ranges, (list, tuple)):
+        elif not isinstance(ranges, (list, tuple)):
             raise RevengeInvalidArgumentType("_exclude_ranges must be a tuple or list of lists.")
 
-        new_ranges = []
+        else:
+            self.__exclude_ranges = ranges
 
-        # Make sure the ranges list are ptrs
-        for low, high in ranges:
-            new_ranges.append([types.Pointer(low).js, types.Pointer(high).js])
+    @property
+    def _exclude_ranges_js(self):
+        ranges = []
+        
+        # Turn ranges into ptrs
+        for low, high in self._exclude_ranges:
+            ranges.append([types.Pointer(low).js, types.Pointer(high).js])
 
-        self.__exclude_ranges = new_ranges
-
+        return ranges
 
 InstructionTracer.__doc__ = InstructionTracer.__init__.__doc__
 
