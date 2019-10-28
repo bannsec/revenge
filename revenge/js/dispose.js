@@ -1,5 +1,7 @@
 
 /*
+ * dispose.js
+ *
  * Library to handle adding multiple dispose events
  */
 
@@ -17,4 +19,7 @@ rpc.exports["dispose"] = function () {
     for (var i=0; i < dispose_array.length; i++)  dispose_array[i]();
 }
 
+/*
+ * End of dispose.js
+ */
 

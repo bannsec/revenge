@@ -378,6 +378,13 @@ class Process(object):
             time.sleep(0.01)
         
         if unload:
+            # TODO: Maybe not do this for every unload? Not sure performance impact...
+            try:
+                script.exports.dispose()
+            except frida.core.RPCException as e:
+                # We're OK if this didn't exist.
+                if "unable to find method" not in e.args[0]:
+                    raise
             script.unload()
         else:
             # Inserting instead of appending since earlier scripts need to be unloaded later

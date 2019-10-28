@@ -32,6 +32,43 @@ basic_open_func_addr = 0x64A
 basic_one_ia32_path = os.path.join(bin_location, "basic_one_ia32")
 basic_spawn_path = os.path.join(bin_location, "basic_spawn")
 
+def test_send_batch_js_include():
+
+    messages = []
+
+    def on_message(x,y):
+        # Can't += due to variable scope
+        for i in x["payload"]:
+            messages.append(i)
+
+    process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+
+    #
+    # Test drain interval (500ms)
+    #
+
+    process.run_script_generic(r"""send_batch(1); send_batch(2); send_batch(3);""",
+            include_js=['dispose.js', 'send_batch.js'], raw=True, unload=False,
+            timeout=0, on_message=on_message)
+
+    # Enough time for drain
+    time.sleep(0.6)
+    assert set(messages) == set([1,2,3])    
+
+    messages = []
+
+    #
+    # Test dispose before drain
+    #
+
+    process.run_script_generic(r"""send_batch(1); send_batch(2); send_batch(3);""",
+            include_js=['dispose.js', 'send_batch.js'], raw=True, unload=True,
+            on_message=on_message)
+
+    assert set(messages) == set([1,2,3])    
+
+    process.quit()
+
 def test_process_spawn_argv():
 
     argc = []
@@ -175,4 +212,4 @@ def test_process_run_script_generic_include_js_dispose():
 
 
 if __name__ == '__main__':
-    test_process_spawn_argv()
+    test_send_batch_js_include()
