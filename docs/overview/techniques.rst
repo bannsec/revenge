@@ -49,3 +49,18 @@ Implemented Techniques
 ======================
 
 For a list of techniques and more information, see :ref:`techniques`.
+
+How To Create a Technique
+=========================
+
+Creating a new technique is relatively strait forward:
+
+#. Create a new submodule in ``revenge/techniques``
+#. Create your technique class by extending ``revenge.techniques.Technique``
+#. Implement ``apply`` and ``remove`` methods
+#. Make sure ``TYPE`` is defined in your class
+#. In the ``__init__.py``, be sure that you expose the ``Technique`` you
+   created. It can be any name, so long as the class instantiator is visible.
+#. docs and tests
+
+``revenge`` will auto-discover the technique at runtime and expose it.
