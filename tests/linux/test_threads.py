@@ -6,6 +6,8 @@ logger = logging.getLogger(__name__)
 
 import os
 import revenge
+types = revenge.types
+
 import time
 
 amd64_regs = ['pc', 'sp', 'rax', 'rbx', 'rcx', 'rdx', 'rsp', 'rbp', 'rdi', 'rsi', 'r8', 'r9', 'r10', 'r11', 'r12', 'r13', 'r14', 'r15', 'rip']
@@ -16,6 +18,28 @@ bin_location = os.path.join(here, "bins")
 
 basic_threads_path = os.path.join(bin_location, "basic_threads")
 basic_threads_after_create = 0x7df
+
+def test_thread_join_linux():
+
+    process = revenge.Process(basic_threads_path, resume=False, verbose=False)
+
+    malloc = process.memory['malloc']
+    malloc.argument_types = types.Int
+    malloc.return_type = types.Pointer
+
+    func = process.memory.create_c_function("void *func() { return (void *)1337; }")
+    t = process.threads.create(func.address)
+    assert t.join() == 1337
+
+    func = process.memory.create_c_function("void* func() { double d=1337; double *dp = malloc(sizeof(double)); *dp = d; return (void *)dp; }", malloc=malloc)
+    t = process.threads.create(func.address)
+    assert process.memory[t.join()].double == 1337.0
+
+    func = process.memory.create_c_function("void* func() { float f=1337; float *fp = malloc(sizeof(float)); *fp = f; return (void *)fp; }", malloc=malloc)
+    t = process.threads.create(func.address)
+    assert process.memory[t.join()].float == 1337.0
+
+    process.quit()
 
 def test_thread_create_linux():
 
@@ -127,3 +151,6 @@ def test_thread_getitem():
     assert util.threads[b'blerg'] is None
 
     util.quit()
+
+if __name__ == '__main__':
+    test_thread_join_linux()

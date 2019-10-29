@@ -37,6 +37,6 @@ def test_techniques_basic():
     # Try giving a memory map range
     range = p.memory.maps[p.memory['strlen'].address]
     tech = p.techniques.InstructionTracer(exec=True)
-    tech._technique_code_range(tech)
+    tech._technique_code_range(range)
 
     p.quit()

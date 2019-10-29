@@ -65,6 +65,9 @@ class Threads(object):
 
                 # View it running
                 print(process.threads)
+
+                # Grab the return value (in this case the thread won't end though)
+                return_val = t.join()
         """
 
         pre = set([t.id for t in self])
@@ -77,17 +80,18 @@ class Threads(object):
 
             if len(diff) == 0:
                 # It may just already be done... Not necessarily an error
-                return
+                # Create a mock thread
+                new_thread = Thread(self._process, {'context': {'pc': "0x0"}, 'id': 0, 'state': 'completed'})
             elif len(diff) > 1:
                 logger.warning("More than one thread has been created... Returning first.")
 
-            new_thread = self[diff[0]]
+            else:
+                new_thread = self[diff[0]]
 
             if self._process.device_platform == 'linux':
                 new_thread.pthread_id = out
 
             return new_thread
-
 
     @property
     def threads(self):

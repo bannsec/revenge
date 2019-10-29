@@ -61,3 +61,14 @@ Examples
 
     # View it running
     print(process.threads)
+
+Return Values
+=============
+
+Thread return values are handled by ``revenge`` in the same way the native
+operating system does. Specifically, you can call
+:meth:`~revenge.threads.Thread.join` to get the return value.
+
+Note, if you're attempting to return something outside a standard integer (such
+as a double or float), you will need to malloc space yourself and save off the
+value in there, then return the pointer to that space instead.

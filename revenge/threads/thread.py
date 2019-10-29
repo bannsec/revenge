@@ -3,14 +3,32 @@ logger = logging.getLogger(__name__)
 
 from prettytable import PrettyTable
 
-from .. import common
+from .. import common, types
 
 class Thread(object):
 
     def __init__(self, process, info):
         self._process = process
+        self.pthread_id = None
         self._info = info
         self.context = CPUContext(self._process, **self._info['context'])
+
+    def join(self):
+        """Traditional thread join. Wait for thread to exit and return the thread's return value."""
+
+        if self.pthread_id is not None:
+            # TODO: pthread_out cache pool
+            # TODO: generalize memory cache pools
+            pthread_join = self._process.memory['pthread_join']
+            pthread_join.argument_types = types.Int64, types.Pointer
+            pthread_out = self._process.memory.alloc(8)
+            pthread_join(self.pthread_id, pthread_out.address)
+            val = pthread_out.cast(types.Pointer)
+            pthread_out.free()
+            return val
+
+        else:
+            logger.error("Thread join not yet supported on {}".format(self.device_platform))
 
     def __repr__(self):
         attrs = ['Thread', hex(self.id), '@', hex(self.pc), self.state, self.module]
