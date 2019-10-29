@@ -36,6 +36,9 @@ def test_thread_create_linux():
 
     assert a.int64 == 1337
 
+    # Make sure we have a pthread_id
+    assert t.pthread_id is not None
+
     process.quit()
 
 def test_frida_thread_dummy():

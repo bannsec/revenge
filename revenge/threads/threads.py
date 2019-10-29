@@ -68,7 +68,7 @@ class Threads(object):
         """
 
         pre = set([t.id for t in self])
-        create_thread(self._process, callback)
+        out = create_thread(self._process, callback)
         post = set([t.id for t in self])
 
         diff = post.difference(pre)
@@ -81,7 +81,12 @@ class Threads(object):
             elif len(diff) > 1:
                 logger.warning("More than one thread has been created... Returning first.")
 
-            return self[diff[0]]
+            new_thread = self[diff[0]]
+
+            if self._process.device_platform == 'linux':
+                new_thread.pthread_id = out
+
+            return new_thread
 
 
     @property

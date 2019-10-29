@@ -32,6 +32,9 @@ def create_pthread(process, callback):
         logger.error(err)
         raise RevengeThreadCreateError(err)
 
+    # Return the pthread id
+    return process.memory[pthread_id_cache[process].address].int64
+
 try:
     pthread_id_cache
 except:
