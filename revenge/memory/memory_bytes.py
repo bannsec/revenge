@@ -123,6 +123,7 @@ class MemoryBytes(object):
 
         # Resolve args to memory strings and such if needed
         args_resolved = []
+        args_types = []
         to_free = []
 
         for arg in args:
@@ -132,6 +133,8 @@ class MemoryBytes(object):
                 arg_type = self.argument_types[len(args_resolved)]
             except (IndexError, TypeError):
                 arg_type = types.Pointer
+
+            args_types.append(arg_type)
 
             if type(arg) is MemoryBytes:
                 arg = arg.address
@@ -167,39 +170,54 @@ class MemoryBytes(object):
         if len(stalkers) > 1:
             raise RevengeInvalidArgumentType("Can only use one stalker technique at a time. Discovered: " + ', '.join(stalker.__class__.__name__ for stalker in stalkers))
 
-        tmp_mem = self._process.memory.alloc(8)
-        tmp_mem.int64 = 0
+        # cache_hash key == address:arg1:arg2:arg3
+        cache_hash = hex(self.address) + ":" + ":".join(arg.__name__ for arg in args_types)
 
-        malloc = self._process.memory['malloc']
-        malloc.argument_types = types.Int
-        malloc.return_type = types.Pointer
+        if cache_hash in self._process.memory._thread_call_cache:
+            # popping so we don't accidentally use this at the same time as another call
+            cache = self._process.memory._thread_call_cache.pop(cache_hash)
 
-        if self.return_type not in [types.Double, types.Float]:
-            func_body = "return (void *) me({func_args});".format(func_args =', '.join(args_resolved))
         else:
-            func_body = "{ret_type} *ptr = malloc(sizeof({ret_type})); *ptr = me({func_args}); return (void *)ptr;".format(
-                    func_args = ', '.join(args_resolved),
-                    ret_type = self.return_type.ctype,
-                    )
+            # Create a cache entry
 
-        # Create a new thread for this
-        tmp_func = self._process.memory.create_c_function("""void* func() {{ int volatile * const mem_addr = (int *){mem_addr}; while ( *mem_addr == 0 ) {{ ; }}; {func_body} }}""".format(
-                mem_addr = hex(tmp_mem.address),
-                func_body = func_body,
-                ),
-            me=self,
-            malloc=malloc,
-            )
+            tmp_mem = self._process.memory.alloc(8)
+            tmp_mem.int64 = 0
+
+            malloc = self._process.memory['malloc']
+            malloc.argument_types = types.Int
+            malloc.return_type = types.Pointer
+
+            if self.return_type not in [types.Double, types.Float]:
+                func_body = "return (void *) me({func_args});".format(func_args =', '.join(args_resolved))
+            else:
+                func_body = "{ret_type} *ptr = malloc(sizeof({ret_type})); *ptr = me({func_args}); return (void *)ptr;".format(
+                        func_args = ', '.join(args_resolved),
+                        ret_type = self.return_type.ctype,
+                        )
+
+            # Create a new thread for this
+            tmp_func = self._process.memory.create_c_function("""void* func() {{ int volatile * const mem_addr = (int *){mem_addr}; while ( *mem_addr == 0 ) {{ ; }}; *mem_addr = 0; {func_body} }}""".format(
+                    mem_addr = hex(tmp_mem.address),
+                    func_body = func_body,
+                    ),
+                me=self,
+                malloc=malloc,
+                )
+
+            cache = {
+                "mem_block": tmp_mem,
+                "func": tmp_func,
+            }
         
-        tmp_thread = self._process.threads.create(tmp_func)
+        tmp_thread = self._process.threads.create(cache["func"])
 
         for technique in replacers + stalkers:
             # Can't use memory.maps since frida it hiding it from us
-            technique._technique_code_range(MemoryRange(self._process, tmp_func.address, 0x1000, 'rwx'))
+            technique._technique_code_range(MemoryRange(self._process, cache["func"].address, 0x1000, 'rwx'))
             technique.apply(tmp_thread)
 
         # Let the thread run
-        tmp_mem.int64 = 1
+        cache["mem_block"].int64 = 1
 
         # Get the return value
         if self.return_type not in [types.Double, types.Float]:
@@ -213,10 +231,12 @@ class MemoryBytes(object):
         for technique in replacers + stalkers:
             technique.remove()
 
+        # Push the cache entry back
+        self._process.memory._thread_call_cache[cache_hash] = cache
+
         return return_val
 
         # TODO: Cleanup stuff after calling
-        # TODO: Implement replacers
         # TODO: Create cache for functions are thread-ized
         # TODO: Create cache for tmp_mem vars
         # TODO: Validate that the things in techniques are indeed techniques

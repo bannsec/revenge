@@ -56,7 +56,10 @@ def test_memory_call_as_thread():
     strlen.return_type = types.Int
 
     assert strlen._call_as_thread(mystr) == 5
+    assert strlen._call_as_thread(mystr) == 5 # Uses cache
     assert strlen._call_as_thread("blerg") == 5
+    assert len(p.memory._thread_call_cache) == 1
+    assert list(p.memory._thread_call_cache.keys())[0].startswith(hex(strlen.address))
 
     # Test implicit argument type as Pointer
     strlen = p.memory['strlen']

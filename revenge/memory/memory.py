@@ -44,6 +44,9 @@ class Memory(object):
         # key == address of replaced function, value = tuple: what it's being replaced with, script so we can unload later
         self._active_replacements = {}
 
+        # key == hash (see MemoryBytes), value = dict of cache values
+        self._thread_call_cache = {}
+
 
     def alloc(self, size):
         """Allocate size bytes of memory and get a MemoryBytes object back to use it.
