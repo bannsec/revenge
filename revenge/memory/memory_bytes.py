@@ -125,7 +125,7 @@ class MemoryBytes(object):
         if not isinstance(techniques, (list, tuple)):
             techniques = [techniques]
 
-        if not all(issubclass(tech, Technique) for tech in techniques):
+        if not all(isinstance(tech, Technique) for tech in techniques):
             raise RevengeInvalidArgumentType("Discovered non-technique in techniques argument.")
 
         # Resolve args to memory strings and such if needed
@@ -149,20 +149,23 @@ class MemoryBytes(object):
             # Make temporary string first
             if type(arg) in [types.StringUTF16, types.StringUTF8]:
                 s = self._process.memory.alloc_string(arg)
-                args_resolved.append("(void *) " + hex(s.address))
+                #args_resolved.append("(void *) " + hex(s.address))
+                args_resolved.append(s.address)
                 to_free.append(s)
 
             # Make temporary string in memory
             elif type(arg) in [str, bytes]:
                 s = self._process.memory.alloc_string(arg)
-                args_resolved.append("(void *) " + hex(s.address))
+                #args_resolved.append("(void *) " + hex(s.address))
+                args_resolved.append(s.address)
                 to_free.append(s)
 
             elif isinstance(arg, int):
                 if arg_type is types.Pointer:
-                    args_resolved.append("(void *) " + hex(arg))
+                    #args_resolved.append("(void *) " + hex(arg))
+                    args_resolved.append(arg)
                 else:
-                    args_resolved.append(hex(arg))
+                    args_resolved.append(arg)
 
             elif isinstance(arg, types.all_types):
                 args_resolved.append(arg)
@@ -194,11 +197,17 @@ class MemoryBytes(object):
             malloc.argument_types = types.Int
             malloc.return_type = types.Pointer
 
+            # Allocate heap memory for function arguments so we can reuse the CModule
+            # TODO: Determine correct size for allocations?
+            func_args_alloc = [self._process.memory.alloc(16) for _ in args]
+
+            func_args = ', '.join("*("+t.ctype+"*)" + hex(arg.address) for arg, t in zip(func_args_alloc, args_types))
+
             if self.return_type not in [types.Double, types.Float]:
-                func_body = "return (void *) me({func_args});".format(func_args =', '.join(args_resolved))
+                func_body = "return (void *) me({func_args});".format(func_args=func_args)
             else:
                 func_body = "{ret_type} *ptr = malloc(sizeof({ret_type})); *ptr = me({func_args}); return (void *)ptr;".format(
-                        func_args = ', '.join(args_resolved),
+                        func_args=func_args,
                         ret_type = self.return_type.ctype,
                         )
 
@@ -214,8 +223,13 @@ class MemoryBytes(object):
             cache = {
                 "mem_block": tmp_mem,
                 "func": tmp_func,
+                "func_args_alloc": func_args_alloc,
             }
         
+        # Write in the variables for the function
+        for arg,t,alloc in zip(args_resolved, args_types, cache["func_args_alloc"]):
+            self._process.memory[alloc.address] = t(arg)
+
         tmp_thread = self._process.threads.create(cache["func"])
 
         for technique in replacers + stalkers:
@@ -240,6 +254,15 @@ class MemoryBytes(object):
 
         # Push the cache entry back
         self._process.memory._thread_call_cache[cache_hash] = cache
+
+        # Free stuff up
+        for alloc in to_free:
+            # If we dynamically allocated something but we're in a context, we
+            # cannot free it yet.  Warn the user.
+            if kwargs.get("context", None) is not None:
+                logger.warning("Not freeing dynamically allocated memory due to use of context. This will cause a memory leak!!")
+            else:
+                alloc.free()
 
         return return_val
 

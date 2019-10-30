@@ -76,15 +76,20 @@ def test_memory_call_as_thread():
 
     atof = p.memory['atof']
     atof.return_type = types.Double
-    assert atof("12.123") == 12.123
+    assert atof._call_as_thread("12.123") == 12.123
+    assert atof._call_as_thread("42.42") == 42.42
 
     strtof = p.memory['strtof']
     strtof.return_type = types.Float
-    assert abs(strtof("12.123",0) - 12.123) < 0.001
+    assert abs(strtof._call_as_thread("12.123",0) - 12.123) < 0.001
 
     with pytest.raises(RevengeInvalidArgumentType):
         # Not valid atm
         strlen._call_as_thread("blerg", context=1)
+
+    with pytest.raises(RevengeInvalidArgumentType):
+        # Not a valid technique
+        strlen._call_as_thread("blerg", techniques=1)
 
     p.quit()
 
