@@ -4,7 +4,8 @@ logger = logging.getLogger(__name__)
 
 import json
 import time
-from .. import common, types, exceptions
+from .. import common, types
+from ..exceptions import *
 
 class MemoryBytes(object):
     """Meta-class used for resolving bytes into something else."""
@@ -116,10 +117,16 @@ class MemoryBytes(object):
     def _call_as_thread(self, *args, **kwargs):
         """This is meant to be called by __call__ handler. Don't call directly unless you know what you're doing."""
 
+        if "context" in kwargs:
+            raise RevengeInvalidArgumentType("Cannot use context with thread calling at the moment.")
+
         techniques = kwargs.get('techniques', [])
 
         if not isinstance(techniques, (list, tuple)):
             techniques = [techniques]
+
+        if not all(issubclass(tech, Technique) for tech in techniques):
+            raise RevengeInvalidArgumentType("Discovered non-technique in techniques argument.")
 
         # Resolve args to memory strings and such if needed
         args_resolved = []
@@ -236,10 +243,6 @@ class MemoryBytes(object):
 
         return return_val
 
-        # TODO: Cleanup stuff after calling
-        # TODO: Create cache for functions are thread-ized
-        # TODO: Create cache for tmp_mem vars
-        # TODO: Validate that the things in techniques are indeed techniques
         # TODO: Implement variables for CModules thing (hard-code heap variable addresses into CModule function so I can re-use without all the setup next time around)
         # TODO: Implement return types from stalker replacement
         # TODO: Clean-up memory allocations
@@ -853,7 +856,7 @@ class MemoryBytes(object):
 
     @name.setter
     def name(self, name):
-        if not isinstance(name, (str, type(None))): raise exceptions.RevengeInvalidArgumentType("name must be of type str.")
+        if not isinstance(name, (str, type(None))): raise RevengeInvalidArgumentType("name must be of type str.")
         self.__name = name
 
     @property
@@ -888,3 +891,4 @@ MemoryBytes.implementation.__doc__ = MemoryBytes.replace.__doc__
 from ..cpu.assembly import AssemblyInstruction, AssemblyBlock
 from ..native_exception import NativeException
 from .memory_range import MemoryRange
+from ..techniques import Technique

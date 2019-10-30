@@ -11,9 +11,12 @@ import time
 from copy import copy
 import re
 
+import pytest
+
 import revenge
 from revenge.memory import MemoryRange
 types = revenge.types
+from revenge.exceptions import *
 
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "bins")
@@ -78,6 +81,10 @@ def test_memory_call_as_thread():
     strtof = p.memory['strtof']
     strtof.return_type = types.Float
     assert abs(strtof("12.123",0) - 12.123) < 0.001
+
+    with pytest.raises(RevengeInvalidArgumentType):
+        # Not valid atm
+        strlen._call_as_thread("blerg", context=1)
 
     p.quit()
 
