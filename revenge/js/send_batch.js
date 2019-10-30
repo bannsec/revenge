@@ -12,7 +12,7 @@
  */
 
 var send_batch_buf = Array();
-var send_batch_ms = 500;
+var send_batch_ms = 250;
 
 function send_batch(thing) {
     send_batch_buf.push(thing);

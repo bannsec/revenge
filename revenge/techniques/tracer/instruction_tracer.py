@@ -255,7 +255,9 @@ class InstructionTracer(Technique):
             raise
 
         for x in payload:
-            self.traces[x['tid']].append(x)
+            #self.traces[x['tid']].append(x)
+            for y in x:
+                self.traces[y['tid']].append(y)
 
     def apply(self, threads=None):
         self.threads = threads
@@ -275,7 +277,7 @@ class InstructionTracer(Technique):
 
         for thread in self.threads:
             s = "stalker_follow({})".format(thread.id)
-            self._process.run_script_generic(s, raw=True, include_js=("dispose.js", "stalk.js"), replace=replace, unload=False, on_message=self._on_message, runtime='v8')
+            self._process.run_script_generic(s, raw=True, include_js=("dispose.js", "send_batch.js", "stalk.js"), replace=replace, unload=False, on_message=self._on_message, runtime='v8')
             self.traces[thread.id] = Trace(self._process, thread.id, self._process._scripts.pop(0), callback=self.callback)
             self._process.techniques._active_stalks[thread.id] = self.traces[thread.id]
 

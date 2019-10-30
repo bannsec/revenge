@@ -3,6 +3,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import json
+import time
 from .. import common, types, exceptions
 
 class MemoryBytes(object):
@@ -112,6 +113,118 @@ class MemoryBytes(object):
         else:
             logger.error("Unhandled memory cast type of {}".format(cast_type))
 
+    def _call_as_thread(self, *args, **kwargs):
+        """This is meant to be called by __call__ handler. Don't call directly unless you know what you're doing."""
+
+        techniques = kwargs.get('techniques', [])
+
+        if not isinstance(techniques, (list, tuple)):
+            techniques = [techniques]
+
+        # Resolve args to memory strings and such if needed
+        args_resolved = []
+        to_free = []
+
+        for arg in args:
+
+            # Grab what type this should be
+            try:
+                arg_type = self.argument_types[len(args_resolved)]
+            except (IndexError, TypeError):
+                arg_type = types.Pointer
+
+            if type(arg) is MemoryBytes:
+                arg = arg.address
+
+            # Make temporary string first
+            if type(arg) in [types.StringUTF16, types.StringUTF8]:
+                s = self._process.memory.alloc_string(arg)
+                args_resolved.append("(void *) " + hex(s.address))
+                to_free.append(s)
+
+            # Make temporary string in memory
+            elif type(arg) in [str, bytes]:
+                s = self._process.memory.alloc_string(arg)
+                args_resolved.append("(void *) " + hex(s.address))
+                to_free.append(s)
+
+            elif isinstance(arg, int):
+                if arg_type is types.Pointer:
+                    args_resolved.append("(void *) " + hex(arg))
+                else:
+                    args_resolved.append(hex(arg))
+
+            elif isinstance(arg, types.all_types):
+                args_resolved.append(arg)
+
+            else:
+                logger.error("Unexpected argument type of {}".format(type(arg)))
+                return None
+
+        stalkers = [tech for tech in techniques if tech.TYPE == "stalk"]
+        replacers = [tech for tech in techniques if tech.TYPE == "replace"]
+
+        if len(stalkers) > 1:
+            raise RevengeInvalidArgumentType("Can only use one stalker technique at a time. Discovered: " + ', '.join(stalker.__class__.__name__ for stalker in stalkers))
+
+        tmp_mem = self._process.memory.alloc(8)
+        tmp_mem.int64 = 0
+
+        malloc = self._process.memory['malloc']
+        malloc.argument_types = types.Int
+        malloc.return_type = types.Pointer
+
+        if self.return_type not in [types.Double, types.Float]:
+            func_body = "return (void *) me({func_args});".format(func_args =', '.join(args_resolved))
+        else:
+            func_body = "{ret_type} *ptr = malloc(sizeof({ret_type})); *ptr = me({func_args}); return (void *)ptr;".format(
+                    func_args = ', '.join(args_resolved),
+                    ret_type = self.return_type.ctype,
+                    )
+
+        # Create a new thread for this
+        tmp_func = self._process.memory.create_c_function("""void* func() {{ int volatile * const mem_addr = (int *){mem_addr}; while ( *mem_addr == 0 ) {{ ; }}; {func_body} }}""".format(
+                mem_addr = hex(tmp_mem.address),
+                func_body = func_body,
+                ),
+            me=self,
+            malloc=malloc,
+            )
+        
+        tmp_thread = self._process.threads.create(tmp_func)
+
+        for technique in replacers + stalkers:
+            # Can't use memory.maps since frida it hiding it from us
+            technique._technique_code_range(MemoryRange(self._process, tmp_func.address, 0x1000, 'rwx'))
+            technique.apply(tmp_thread)
+
+        # Let the thread run
+        tmp_mem.int64 = 1
+
+        # Get the return value
+        if self.return_type not in [types.Double, types.Float]:
+            return_val = self.return_type(tmp_thread.join())
+        else:
+            return_ptr = tmp_thread.join()
+            return_val = self._process.memory[return_ptr].cast(self.return_type)
+            self._process.memory['free'](return_ptr)
+
+        # Remove techniques
+        for technique in replacers + stalkers:
+            technique.remove()
+
+        return return_val
+
+        # TODO: Cleanup stuff after calling
+        # TODO: Implement replacers
+        # TODO: Create cache for functions are thread-ized
+        # TODO: Create cache for tmp_mem vars
+        # TODO: Validate that the things in techniques are indeed techniques
+        # TODO: Implement variables for CModules thing (hard-code heap variable addresses into CModule function so I can re-use without all the setup next time around)
+        # TODO: Implement return types from stalker replacement
+        # TODO: Clean-up memory allocations
+        # TODO: more tests/docs
+
 
     def __repr__(self):
         attrs = ['MemoryBytes', hex(self.address)]
@@ -132,6 +245,10 @@ class MemoryBytes(object):
         """
 
         # Generically use pointers and figure it out later
+
+        # Use different calling method if we're using techniques
+        if "techniques" in kwargs:
+            return self._call_as_thread(*args, **kwargs)
 
         # Resolve args to memory strings and such if needed
         args_resolved = []
@@ -750,3 +867,4 @@ MemoryBytes.implementation.__doc__ = MemoryBytes.replace.__doc__
 
 from ..cpu.assembly import AssemblyInstruction, AssemblyBlock
 from ..native_exception import NativeException
+from .memory_range import MemoryRange

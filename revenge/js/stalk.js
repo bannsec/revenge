@@ -1,10 +1,9 @@
 
-////
-// Basic stalker
-///
-
-//var threads = Process.enumerateThreadsSync()
-//for (var i=0; i < threads.length; i++) {
+/* 
+ * Basic stalker
+ *
+ * requires: dispose.js, batch_send.js
+ */
 
 function stalker_is_in_range(ranges, val) {
     var range;
@@ -33,6 +32,11 @@ function stalker_follow(tid) {
 
     // This is automagically called when unloading a script in python
     dispose_push( function () { Stalker.unfollow(tid); } )
+
+    // TODO: What should this actually be?
+    // also, lower this back down when Stalker starts draining properly again
+    Stalker.queueCapacity = 1048576; // 32768; //65536;
+    //Stalker.queueDrainInterval = 10;
 
     Stalker.follow(tid, {
         events: {
@@ -134,7 +138,8 @@ function stalker_follow(tid) {
             });
 
             if ( filtered_events.length != 0 ) {
-                send(filtered_events);
+                send_batch(filtered_events);
+                //send(filtered_events);
             }
         }
     })

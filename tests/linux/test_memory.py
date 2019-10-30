@@ -46,6 +46,38 @@ basic_two_d_addr = 0x201018
 
 basic_looper_path = os.path.join(bin_location, "basic_looper")
 
+def test_memory_call_as_thread():
+    p = revenge.Process(basic_one_path, resume=False, verbose=False)
+
+    mystr = p.memory.alloc_string("blerg")
+
+    strlen = p.memory['strlen']
+    strlen.argument_types = types.Pointer
+    strlen.return_type = types.Int
+
+    assert strlen._call_as_thread(mystr) == 5
+    assert strlen._call_as_thread("blerg") == 5
+
+    # Test implicit argument type as Pointer
+    strlen = p.memory['strlen']
+    strlen.return_type = types.Int
+    assert strlen._call_as_thread(mystr) == 5
+    strlen.argument_types = []
+    assert strlen._call_as_thread(mystr) == 5
+
+    time = p.memory['time']
+    assert abs(time(0) - time._call_as_thread(0)) < 2
+
+    atof = p.memory['atof']
+    atof.return_type = types.Double
+    assert atof("12.123") == 12.123
+
+    strtof = p.memory['strtof']
+    strtof.return_type = types.Float
+    assert abs(strtof("12.123",0) - 12.123) < 0.001
+
+    p.quit()
+
 def test_memory_cast_struct(caplog):
     process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
     basic_one_module = process.modules['basic_one']
@@ -674,6 +706,7 @@ def test_memorybytes_dynamic_assembly_call_str():
     process.quit()
 
 if __name__ == '__main__':
-    test_memory_create_c_function()
+    test_memory_call_as_thread()
+    #test_memory_create_c_function()
     #test_memory_read_int()
     #test_memory_write()
