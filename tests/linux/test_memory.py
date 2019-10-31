@@ -27,6 +27,8 @@ bin_location = os.path.join(here, "bins")
 
 basic_one_path = os.path.join(bin_location, "basic_one")
 
+crackme_count_path = os.path.join(bin_location, "crackme_count")
+
 util = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 basic_one_module = util.modules['basic_one']
 basic_one_i8_addr = basic_one_module.symbols['i8'].address
@@ -48,6 +50,47 @@ basic_two_f_addr = 0x201010
 basic_two_d_addr = 0x201018
 
 basic_looper_path = os.path.join(bin_location, "basic_looper")
+
+def test_memory_call_with_technique():
+    p = revenge.Process(crackme_count_path, resume=False, verbose=False)
+
+    win = p.memory['crackme_count:win']
+    win_ret = win.address + 0x78
+
+    # First time around we're seeing setup instructions too..
+    win._call_as_thread('bbbb')
+    
+    trace = p.techniques.InstructionTracer(exec=True)
+    assert win('bbbb', techniques=trace) == 0
+    t1 = list(trace)[0]
+    t1.wait_for(win_ret)
+    assert len(t1) > 0
+
+    trace = p.techniques.InstructionTracer(exec=True)
+    assert win('fbbb', techniques=trace) == 0
+    t2 = list(trace)[0]
+    t2.wait_for(win_ret)
+    assert len(t2) > len(t1)
+
+    trace = p.techniques.InstructionTracer(exec=True)
+    assert win('flbb', techniques=trace) == 0
+    t3 = list(trace)[0]
+    t3.wait_for(win_ret)
+    assert len(t3) > len(t2)
+
+    trace = p.techniques.InstructionTracer(exec=True)
+    assert win('flab', techniques=trace) == 0
+    t4 = list(trace)[0]
+    t4.wait_for(win_ret)
+    assert len(t4) > len(t3)
+
+    trace = p.techniques.InstructionTracer(exec=True)
+    assert win('flag', techniques=trace) == 1
+    t5 = list(trace)[0]
+    t5.wait_for(win_ret)
+    assert len(t5) > len(t4)
+
+    p.quit()
 
 def test_memory_call_as_thread():
     p = revenge.Process(basic_one_path, resume=False, verbose=False)
