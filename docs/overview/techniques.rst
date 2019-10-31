@@ -45,6 +45,16 @@ usage remains the same. The steps are:
    apply function
 #. (optionally) :meth:`~revenge.techniques.Technique.remove` the technique at some point.
 
+Techniques for specific calls
+-----------------------------
+
+It's possible to apply a technique for specific calls. For instance, where you
+would use a native call to a function like ``time(0)``, you can also provide a
+``techniques`` argument with a single (or list) of techniques to apply to the
+specific call.
+
+Details can be found under :class:`~revenge.memory.MemoryBytes` documentation.
+
 Implemented Techniques
 ======================
 

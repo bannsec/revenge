@@ -17,6 +17,17 @@ class MemoryBytes(object):
             process: Util object
             address (int): Starting address of the memory location.
             address_stop (int, optional): Optional stopping memory location.
+
+        Examples:
+            .. code-block:: python3
+
+                # Trace specifically the function "win"
+                win = process.memory['a.out:win']
+                trace = process.techniques.InstructionTracer(exec=True)
+                
+                # This will populate the trace
+                win("input", techniques=trace)
+                print(trace)
         """
         self._process = process
         self.address = address
@@ -909,6 +920,7 @@ class MemoryBytes(object):
 # Doc Updates
 #
 MemoryBytes.implementation.__doc__ = MemoryBytes.replace.__doc__
+MemoryBytes.__doc__ = MemoryBytes.__init__.__doc__
 
 
 from ..cpu.assembly import AssemblyInstruction, AssemblyBlock
