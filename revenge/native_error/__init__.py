@@ -23,7 +23,7 @@ class NativeError(object):
                 print(e)
                 "Success"
 
-                e.description == "Success"
+                assert e.description == "Success"
         """
         self._process = process
         self.errno = errno

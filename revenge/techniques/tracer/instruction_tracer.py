@@ -220,15 +220,34 @@ class NativeInstructionTracer(Technique):
         Examples:
             .. code-block:: python3
 
+                #
                 # Trace all instructions in process except for those in a given range
+                # Apply this to the entire program execution
+                #
+
                 trace = process.techniques.NativeInstructionTracer(exec=True, exclude_ranges=[[0x12345, 0x424242]])
 
+                # Apply this to the whole program and run
+                trace.apply()
+                process.memory[process.entrypoint].breakpoint = False
+
+                # Print out the trace
+                print(trace)
+
+                #
                 # Trace only blocks starting from a given function call downwards.
+                # Utilize this technique only on a specific call, rather than full program execution
+                #
+
                 trace = process.techniques.NativeInstructionTracer(exec=True, include_function='my_func')
                 # or
                 my_func = process.memory['my_func']
                 trace = process.techniques.NativeInstructionTracer(exec=True, include_function=my_func)
 
+                my_func(1,2,3, techniques=trace)
+
+                # Trace object should be populated now
+                print(trace)
         """
 
         assert callable(callback) or callback is None, "Invalid type for callback of {}".format(type(callback))

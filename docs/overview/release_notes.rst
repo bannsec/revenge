@@ -2,6 +2,40 @@
 Release Notes
 =============
 
+Version 0.15
+============
+
+- Implemented ability to call native function in it's own thread, instead of
+  from frida's core thread
+  
+  - This will be done transparently, but can be done manually by calling
+    :meth:`revenge.memory.MemoryBytes._call_as_thread`
+- Implemented :ref:`techniques-page` to make common sets of actions more
+  generic
+- ``InstructionTracer`` is now
+  :class:`~revenge.techniques.tracer.NativeInstructionTracer`
+- :class:`~revenge.techniques.tracer.NativeInstructionTracer`
+  now supports two new options
+
+  - ``include_function`` allows you to specify a specific function to trace.
+    This will cause revenge to ignore any trace before or after that function
+    call.
+  - ``exclude_ranges`` allows you to specify ranges of memory to be ignored
+    from the trace
+- Created :class:`~revenge.native_error.NativeError` class to generically
+  handle ``errno``.
+- :class:`~revenge.techniques.Technique` mixin now also has optional method of
+  :meth:`~revenge.techniques.Technique._technique_code_range` that will get
+  passed any known revenge/frida specific code ranges that can be ignored
+- :class:`~revenge.threads.Thread` changes
+
+  - Implemented :meth:`~revenge.threads.Thread.join` to allow for retrieving
+    thread exit codes
+  - Threads will now have `pthread_id` attribute if they were spawned on Linux.
+  - Bugfix in :meth:`~revenge.threads.Threads.create`
+- Implemented ``batch_send`` js include to make it easier to handle pushing
+  lots of data back
+
 Version 0.14
 ============
 
