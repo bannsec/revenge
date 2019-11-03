@@ -193,7 +193,7 @@ class Trace(object):
 
         raise Exception("Unhandled getitem type of {}".format(type(item)))
 
-class InstructionTracer(Technique):
+class NativeInstructionTracer(Technique):
     TYPE = "stalk"
 
     def __init__(self, process, from_modules=None, call=False, ret=False,
@@ -221,13 +221,13 @@ class InstructionTracer(Technique):
             .. code-block:: python3
 
                 # Trace all instructions in process except for those in a given range
-                trace = process.techniques.InstructionTracer(exec=True, exclude_ranges=[[0x12345, 0x424242]])
+                trace = process.techniques.NativeInstructionTracer(exec=True, exclude_ranges=[[0x12345, 0x424242]])
 
                 # Trace only blocks starting from a given function call downwards.
-                trace = process.techniques.InstructionTracer(exec=True, include_function='my_func')
+                trace = process.techniques.NativeInstructionTracer(exec=True, include_function='my_func')
                 # or
                 my_func = process.memory['my_func']
-                trace = process.techniques.InstructionTracer(exec=True, include_function=my_func)
+                trace = process.techniques.NativeInstructionTracer(exec=True, include_function=my_func)
 
         """
 
@@ -302,7 +302,7 @@ class InstructionTracer(Technique):
         self._exclude_ranges.append( [ range.base, range.base + range.size ])
 
     def __repr__(self):
-        attrs = ["InstructionTracer"]
+        attrs = ["NativeInstructionTracer"]
         attrs += [str(len(self.threads)), 'threads']
 
         return "<{}>".format(' '.join(attrs))
@@ -438,7 +438,7 @@ class InstructionTracer(Technique):
         self.__include_function = function
 
 
-InstructionTracer.__doc__ = InstructionTracer.__init__.__doc__
+NativeInstructionTracer.__doc__ = NativeInstructionTracer.__init__.__doc__
 
 from ...modules import Module
 from ...exceptions import *

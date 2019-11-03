@@ -43,7 +43,7 @@ def test_trace_include_function():
     # Testing block
     #
 
-    trace = p.techniques.InstructionTracer(call=True, block=True, include_function=win)
+    trace = p.techniques.NativeInstructionTracer(call=True, block=True, include_function=win)
     assert win("flag", techniques=trace) == 1
 
     trace = list(trace)[0]
@@ -73,7 +73,7 @@ def test_trace_include_function():
     # Testing exec
     #
 
-    trace = p.techniques.InstructionTracer(exec=True, include_function=win)
+    trace = p.techniques.NativeInstructionTracer(exec=True, include_function=win)
     assert win("flag", techniques=trace) == 1
 
     trace = list(trace)[0]
@@ -133,7 +133,7 @@ def test_trace_include_function():
     main = p.memory['crackme_count:main']
     plt_puts = p.memory['crackme_count:plt.puts']
 
-    trace = p.techniques.InstructionTracer(call=True, include_function=main)
+    trace = p.techniques.NativeInstructionTracer(call=True, include_function=main)
     main(2, argv, techniques=trace)
     trace = list(trace)[0]
 
@@ -171,7 +171,7 @@ def test_trace_exclude_ranges():
     t = p.threads.create(func.address)
 
     # Kick off thread, explicitly ignoring the thread code itself
-    trace = p.techniques.InstructionTracer(exec=True, exclude_ranges=[[func.address, func.address + 0x100]]); trace.apply(t); m.int64 = 1
+    trace = p.techniques.NativeInstructionTracer(exec=True, exclude_ranges=[[func.address, func.address + 0x100]]); trace.apply(t); m.int64 = 1
 
     time.sleep(0.2)
     
@@ -184,7 +184,7 @@ def test_basic_one_trace_slice():
 
     basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
     
-    t = basic_one.techniques.InstructionTracer(call=True, ret=True, exec=True, from_modules=['basic_one'])
+    t = basic_one.techniques.NativeInstructionTracer(call=True, ret=True, exec=True, from_modules=['basic_one'])
     t.apply()
     t2 = list(t)[0]
     
@@ -203,7 +203,7 @@ def test_basic_one_trace_specify_from_modules():
 
     basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
     
-    t = basic_one.techniques.InstructionTracer(exec=True, from_modules=['basic_one'])
+    t = basic_one.techniques.NativeInstructionTracer(exec=True, from_modules=['basic_one'])
     t.apply()
     t2 = list(t)[0]
     
@@ -239,7 +239,7 @@ def test_basic_one_trace_thread_int():
 
     thread = list(basic_one.threads)[0]
 
-    t = basic_one.techniques.InstructionTracer(exec=True)
+    t = basic_one.techniques.NativeInstructionTracer(exec=True)
     t.apply([thread.id])
     str(t)
     t2 = list(t)[0]
@@ -247,19 +247,19 @@ def test_basic_one_trace_thread_int():
         time.sleep(0.1)
 
     with pytest.raises(Exception):
-        t3 = basic_one.techniques.InstructionTracer(exec=True)
+        t3 = basic_one.techniques.NativeInstructionTracer(exec=True)
         t3.apply([12.12])
 
 
     # Testing exception for attempting to create another trace on a thread that is already being traced
     with pytest.raises(Exception):
-        t3 = basic_one.techniques.InstructionTracer(exec=True)
+        t3 = basic_one.techniques.NativeInstructionTracer(exec=True)
         t3.apply()
 
     t2.stop()
 
     # This should not raise an exception now
-    t = basic_one.techniques.InstructionTracer(exec=True)
+    t = basic_one.techniques.NativeInstructionTracer(exec=True)
     t.apply()
 
     basic_one.quit()
@@ -270,7 +270,7 @@ def test_basic_one_trace_thread():
 
     thread = list(basic_one.threads)[0]
 
-    t = basic_one.techniques.InstructionTracer(exec=True)
+    t = basic_one.techniques.NativeInstructionTracer(exec=True)
     t.apply([thread])
 
     t2 = list(t)[0]
@@ -280,7 +280,7 @@ def test_basic_one_trace_thread():
     t2.stop()
 
     time.sleep(0.3)
-    t = basic_one.techniques.InstructionTracer(exec=True)
+    t = basic_one.techniques.NativeInstructionTracer(exec=True)
     t.apply(thread)
     t2 = list(t)[0]
     basic_one.memory[basic_one.entrypoint].breakpoint = False
@@ -296,7 +296,7 @@ def test_basic_one_trace_thread():
 def test_basic_one_trace_add_remove():
 
     basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
-    t = basic_one.techniques.InstructionTracer(call=True, ret=True)
+    t = basic_one.techniques.NativeInstructionTracer(call=True, ret=True)
     t.apply()
     tid = list(t)[0]._tid
 
@@ -318,7 +318,7 @@ def test_basic_one_trace_add_remove():
 def test_basic_one_trace_instructions_call_ret():
 
     basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
-    t = basic_one.techniques.InstructionTracer(call=True, ret=True)
+    t = basic_one.techniques.NativeInstructionTracer(call=True, ret=True)
     t.apply()
     t2 = list(t)[0]
 
@@ -392,7 +392,7 @@ def test_basic_one_trace_instructions_call_ret():
 def test_basic_one_trace_instructions_exec():
 
     basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
-    t = basic_one.techniques.InstructionTracer(exec=True)
+    t = basic_one.techniques.NativeInstructionTracer(exec=True)
     t.apply()
     t2 = list(t)[0]
 
@@ -538,7 +538,7 @@ def test_basic_one_traceitem():
     basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
     module = basic_one.modules['basic_one']
 
-    t = basic_one.techniques.InstructionTracer()
+    t = basic_one.techniques.NativeInstructionTracer()
     t.apply()
 
     tid = list(t)[0]._tid

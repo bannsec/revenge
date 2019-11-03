@@ -60,31 +60,31 @@ def test_memory_call_with_technique():
     # First time around we're seeing setup instructions too..
     win._call_as_thread('bbbb')
     
-    trace = p.techniques.InstructionTracer(exec=True)
+    trace = p.techniques.NativeInstructionTracer(exec=True)
     assert win('bbbb', techniques=trace) == 0
     t1 = list(trace)[0]
     t1.wait_for(win_ret)
     assert len(t1) > 0
 
-    trace = p.techniques.InstructionTracer(exec=True)
+    trace = p.techniques.NativeInstructionTracer(exec=True)
     assert win('fbbb', techniques=trace) == 0
     t2 = list(trace)[0]
     t2.wait_for(win_ret)
     assert len(t2) > len(t1)
 
-    trace = p.techniques.InstructionTracer(exec=True)
+    trace = p.techniques.NativeInstructionTracer(exec=True)
     assert win('flbb', techniques=trace) == 0
     t3 = list(trace)[0]
     t3.wait_for(win_ret)
     assert len(t3) > len(t2)
 
-    trace = p.techniques.InstructionTracer(exec=True)
+    trace = p.techniques.NativeInstructionTracer(exec=True)
     assert win('flab', techniques=trace) == 0
     t4 = list(trace)[0]
     t4.wait_for(win_ret)
     assert len(t4) > len(t3)
 
-    trace = p.techniques.InstructionTracer(exec=True)
+    trace = p.techniques.NativeInstructionTracer(exec=True)
     assert win('flag', techniques=trace) == 1
     t5 = list(trace)[0]
     t5.wait_for(win_ret)

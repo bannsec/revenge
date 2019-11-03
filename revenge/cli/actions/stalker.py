@@ -63,7 +63,7 @@ class ActionStalker:
         def stalk_cb(tid, ti):
             print(ti)
         
-        trace = self._process.techniques.InstructionTracer(
+        trace = self._process.techniques.NativeInstructionTracer(
                 from_modules = self.from_modules,
                 call = self.call,
                 ret = self.ret,

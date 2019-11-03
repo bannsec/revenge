@@ -23,7 +23,7 @@ class MemoryBytes(object):
 
                 # Trace specifically the function "win"
                 win = process.memory['a.out:win']
-                trace = process.techniques.InstructionTracer(exec=True)
+                trace = process.techniques.NativeInstructionTracer(exec=True)
                 
                 # This will populate the trace
                 win("input", techniques=trace)

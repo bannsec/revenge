@@ -83,7 +83,7 @@ def test_thread_tracing_indicator():
 
     assert th.trace is None
 
-    t = process.techniques.InstructionTracer(exec=True)
+    t = process.techniques.NativeInstructionTracer(exec=True)
     t.apply()
     t2 = list(t)[0]
 

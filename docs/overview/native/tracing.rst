@@ -28,7 +28,7 @@ Examples
 
     # Possible tracing options are: call, ret, block, exec, compile
     # Default is False for all of them, so specify any combination
-    trace = process.techniques.InstructionTracer(call=True, ret=True)
+    trace = process.techniques.NativeInstructionTracer(call=True, ret=True)
 
     # Since trace is a technique, you must apply it
     # By default, trace will apply to all threads if not given any arguments

@@ -4,7 +4,7 @@ Stalk Techniques
 .. toctree::
     :maxdepth: 1
 
-    InstructionTracer
+    NativeInstructionTracer
 
 About
 -----
