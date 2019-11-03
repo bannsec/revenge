@@ -31,6 +31,133 @@ item_compile = {'tid': 16050, 'type': 'compile', 'from_ip': '0x7f1154c799de', 'f
 item_exec = {'tid': 16050, 'type': 'exec', 'from_ip': '0x7f1154c799de', 'from_module': 'libc-2.27.so'}
 trace_items = [item_call, item_ret, item_block, item_compile, item_exec]
 
+crackme_count_path = os.path.join(bin_location, "crackme_count")
+
+def test_trace_include_function():
+
+    p = revenge.Process(crackme_count_path, resume=False, verbose=False)
+
+    win = p.memory['crackme_count:win']
+
+    #
+    # Testing block
+    #
+
+    trace = p.techniques.InstructionTracer(call=True, block=True, include_function=win)
+    assert win("flag", techniques=trace) == 1
+
+    trace = list(trace)[0]
+
+    # Wait for ret
+    trace.wait_for(win.address+0x78)
+
+    correct = [
+        ['block', win.address, win.address+0x13],
+        ['block', win.address+0x1a, win.address+0x29],
+        ['block', win.address+0x30, win.address+0x3f],
+        ['block', win.address+0x46, win.address+0x55],
+        ['block', win.address+0x5c, win.address+0x6b],
+        ['block', win.address+0x72, p.memory['crackme_count:main'].address],
+        ['ret', win.address+0x78, None]
+    ]
+
+    assert len(trace) == 7
+
+    for (type, from_ip, to_ip), t in zip(correct, trace):
+        assert t.type == type
+        assert t.from_ip == from_ip
+        if to_ip is not None:
+            assert t.to_ip == to_ip
+
+    #
+    # Testing exec
+    #
+
+    trace = p.techniques.InstructionTracer(exec=True, include_function=win)
+    assert win("flag", techniques=trace) == 1
+
+    trace = list(trace)[0]
+
+    # Wait for ret
+    trace.wait_for(win.address+0x78)
+
+    correct = [
+        ["exec",  win.address, None],
+        ["exec",  win.address+0x1, None],
+        ["exec",  win.address+0x4, None],
+        ["exec",  win.address+0x8, None],
+        ["exec",  win.address+0xc, None],
+        ["exec",  win.address+0xf, None],
+        ["exec",  win.address+0x11, None],
+        ["exec",  win.address+0x1a, None],
+        ["exec",  win.address+0x1e, None],
+        ["exec",  win.address+0x22, None],
+        ["exec",  win.address+0x25, None],
+        ["exec",  win.address+0x27, None],
+        ["exec",  win.address+0x30, None],
+        ["exec",  win.address+0x34, None],
+        ["exec",  win.address+0x38, None],
+        ["exec",  win.address+0x3b, None],
+        ["exec",  win.address+0x3d, None],
+        ["exec",  win.address+0x46, None],
+        ["exec",  win.address+0x4a, None],
+        ["exec",  win.address+0x4e, None],
+        ["exec",  win.address+0x51, None],
+        ["exec",  win.address+0x53, None],
+        ["exec",  win.address+0x5c, None],
+        ["exec",  win.address+0x60, None],
+        ["exec",  win.address+0x64, None],
+        ["exec",  win.address+0x67, None],
+        ["exec",  win.address+0x69, None],
+        ["exec",  win.address+0x72, None],
+        ["exec",  win.address+0x77, None],
+        ["exec",  win.address+0x78, None],
+        ["ret", win.address++0x78, None],
+    ]
+
+    assert len(trace) == 31
+
+    for (type, from_ip, to_ip), t in zip(correct, trace):
+        assert t.type == type
+        assert t.from_ip == from_ip
+        if to_ip is not None:
+            assert t.to_ip == to_ip
+
+    #
+    # Testing call
+    #
+
+    # Setup mock main() call
+    argv = p.memory.alloc(16)
+    p.memory[argv.address+8] = p.memory.alloc_string(types.StringUTF8("flag")).address
+    main = p.memory['crackme_count:main']
+    plt_puts = p.memory['crackme_count:plt.puts']
+
+    trace = p.techniques.InstructionTracer(call=True, include_function=main)
+    main(2, argv, techniques=trace)
+    trace = list(trace)[0]
+
+    # Main ret
+    trace.wait_for(main.address+0x46)
+
+    correct = [
+        ["call",  main.address+0x1d, win.address],
+        ["ret",  win.address+0x78, main.address+0x22],
+        ["call",  main.address+0x2d, plt_puts.address],
+    ]
+
+    # Actual depth will depend on libc of the system running the test..
+
+    assert len(trace) > 5
+
+    for (type, from_ip, to_ip), t in zip(correct, trace):
+        assert t.type == type
+        assert t.from_ip == from_ip
+        if to_ip is not None:
+            assert t.to_ip == to_ip
+
+    p.quit()
+
 def test_trace_exclude_ranges():
 
     p = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')

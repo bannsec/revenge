@@ -198,7 +198,7 @@ class InstructionTracer(Technique):
 
     def __init__(self, process, from_modules=None, call=False, ret=False,
                  exec=False, block=False, compile=False, callback=None,
-                 exclude_ranges=None):
+                 exclude_ranges=None, include_function=None):
         """
 
         Args:
@@ -213,12 +213,22 @@ class InstructionTracer(Technique):
                 instructions as they come in. First arg will be the thread id.
             exclude_ranges (list, optional): [low, high] range pairs to exclude
                 any trace items from.
+            include_function (optional): resolvable function name or
+                memorybytes object. starts tracing when function is entered
+                and stops tracing when function is exited (call/ret)
 
         Examples:
             .. code-block:: python3
 
                 # Trace all instructions in process except for those in a given range
                 trace = process.techniques.InstructionTracer(exec=True, exclude_ranges=[[0x12345, 0x424242]])
+
+                # Trace only blocks starting from a given function call downwards.
+                trace = process.techniques.InstructionTracer(exec=True, include_function='my_func')
+                # or
+                my_func = process.memory['my_func']
+                trace = process.techniques.InstructionTracer(exec=True, include_function=my_func)
+
         """
 
         assert callable(callback) or callback is None, "Invalid type for callback of {}".format(type(callback))
@@ -227,7 +237,6 @@ class InstructionTracer(Technique):
         if not any((call, ret, exec, block, compile)):
             error = "You didn't select any action to trace!"
             logger.error(error)
-            #raise Exception(error)
 
         self._process = process
         self.call = call
@@ -240,6 +249,7 @@ class InstructionTracer(Technique):
         self._from_modules = from_modules
         self.callback = callback
         self._exclude_ranges = exclude_ranges or []
+        self._include_function = include_function
 
         # IMPORTANT: It's important to keep a local pointer to this trace. It's
         # possible for trace messages to come in after officially stopping the
@@ -273,6 +283,7 @@ class InstructionTracer(Technique):
             "STALK_BLOCK": json.dumps(self.block),
             "STALK_COMPILE": json.dumps(self.compile),
             "EXCLUDE_RANGES_HERE": json.dumps(self._exclude_ranges_js),
+            "INCLUDE_FUNCTION_HERE": self._include_function.address.js if self._include_function is not None else "null",
         }
 
         for thread in self.threads:
@@ -398,7 +409,37 @@ class InstructionTracer(Technique):
 
         return ranges
 
+    @property
+    def _include_function(self):
+        """revenge.memory.MemoryBytes: Function that we should specifically trace."""
+        return self.__include_function
+
+    @_include_function.setter
+    def _include_function(self, function):
+
+        if function is None:
+            self.__include_function = None
+            return
+
+        # Assume we need to resolve this
+        if isinstance(function, str):
+            f = self._process.memory[function]
+
+            if f is None:
+                logger.error("Couldn't resolve {}".format(function))
+                return
+
+            function = f
+
+        if not isinstance(function, MemoryBytes):
+            logger.error("Unhandled function of {}".format(function))
+            return
+
+        self.__include_function = function
+
+
 InstructionTracer.__doc__ = InstructionTracer.__init__.__doc__
 
 from ...modules import Module
 from ...exceptions import *
+from ...memory.memory_bytes import MemoryBytes

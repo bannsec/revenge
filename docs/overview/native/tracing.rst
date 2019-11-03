@@ -10,6 +10,9 @@ With that in mind, there will be a few different built-in tracers to run.
     You can only have one trace running per-thread at a time! This is a
     function of of DBI works, and not a limitation with revenge specifically.
 
+Tracing is now considered a ``Technique``. See :ref:`techniques-page` for more
+information
+
 Instruction Tracing
 ===================
 

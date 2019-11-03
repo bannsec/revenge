@@ -15,9 +15,53 @@ function stalker_is_in_range(ranges, val) {
     return false;
 }
 
+function stalker_is_in_include_function(include_function, event) {
+    var ip = include_function;
+    var type = event[0];
+    var inside = stalker_is_in_include_function.inside || false;
+    var inside_depth_floor = stalker_is_in_include_function.inside_depth_floor;
+
+    if ( type == 'call' ) {
+        var call_target = ptr(event[2]);
+
+        // We're stepping into this function
+        if ( ! inside && call_target.compare(ip) == 0 ) {
+            stalker_is_in_include_function.inside = true;
+            stalker_is_in_include_function.inside_depth_floor = Number(event[3]);
+        }
+    } else if ( type == 'ret' ) {
+        var current_depth = Number(event[3]);
+
+        // If we're inside and about to step out
+        if ( inside && current_depth == inside_depth_floor + 1 ) {
+            // Set outside, but still return this as being inside
+            stalker_is_in_include_function.inside = false;
+        }
+    }
+
+    return inside;
+}
+
+// This function handles implicitly adding event depth based on previous depths
+function event_get_depth(event) {
+    var depth = event_get_depth.depth || 0;
+
+    if ( event[0] == 'call' ) {
+        depth = Number(event[3]) + 1;
+        event_get_depth.depth = depth;
+
+    } else if ( event[0] == 'ret' ) {
+        depth = Number(event[3]) - 1;
+        event_get_depth.depth = depth;
+    }
+
+    return event_get_depth.depth;
+}
+
 function stalker_follow(tid) {
     var module_map = new ModuleMap();
     var include_from = FROM_MODULES_HERE
+    var include_function = INCLUDE_FUNCTION_HERE;
     var exclude_ranges = Array();
 
     EXCLUDE_RANGES_HERE.forEach(function (item) {
@@ -37,17 +81,14 @@ function stalker_follow(tid) {
     // also, lower this back down when Stalker starts draining properly again
     Stalker.queueCapacity = 1048576; // 32768; //65536;
     //Stalker.queueDrainInterval = 10;
-
+    
     Stalker.follow(tid, {
         events: {
-            call: STALK_CALL, // CALL instructions
-
-            // Other events:
-            ret: STALK_RET, // RET instructions
-            exec: STALK_EXEC, // all instructions: not recommended as it's
-                         //                   a lot of data
-            block: STALK_BLOCK, // block executed: coarse execution trace
-            compile: STALK_COMPILE // block compiled: useful for coverage
+            call: STALK_CALL || include_function !== null,  // CALL instructions
+            ret: STALK_RET || include_function !== null,    // RET instructions
+            exec: STALK_EXEC,                               // all instructions: not recommended as it's a lot of data
+            block: STALK_BLOCK,                             // block executed: coarse execution trace
+            compile: STALK_COMPILE                          // block compiled: useful for coverage
         },
 
         onReceive: function (events) {
@@ -55,6 +96,13 @@ function stalker_follow(tid) {
             var filtered_events = [];
 
             Stalker.parse(events, {annotate: true, stringify: true}).forEach(function x(event) { 
+
+                var depth = event_get_depth(event);
+
+                // Handle include function
+                if ( include_function !== null && ! stalker_is_in_include_function(include_function, event) ) {
+                    return;
+                }
 
                 // Handle exclude ranges
                 if ( stalker_is_in_range(exclude_ranges, ptr(event[1]))) {
@@ -90,10 +138,10 @@ function stalker_follow(tid) {
                     event_dict['type']        = 'call';
                     event_dict['from_ip']     = event[1];
                     event_dict['to_ip']       = event[2];
-                    event_dict['depth']       = event[3];
+                    event_dict['depth']       = Number(event[3]);
                     event_dict['from_module'] = from_module;
                     event_dict['to_module']   = to_module;
-
+                    
                 } else if ( event[0] == 'ret' ) {
                     
                     var to_module   = module_map.findName(ptr(event[2]));
@@ -101,7 +149,7 @@ function stalker_follow(tid) {
                     event_dict['type']        = 'ret';
                     event_dict['from_ip']     = event[1];
                     event_dict['to_ip']       = event[2];
-                    event_dict['depth']       = event[3];
+                    event_dict['depth']       = Number(event[3]);
                     event_dict['from_module'] = from_module;
                     event_dict['to_module']   = to_module;
 
@@ -111,6 +159,7 @@ function stalker_follow(tid) {
                     event_dict['type']        = 'exec';
                     event_dict['from_ip']     = event[1];
                     event_dict['from_module'] = from_module;
+                    event_dict['depth']       = depth;
 
                 } else if ( event[0] == 'block' ) {
 
@@ -121,6 +170,7 @@ function stalker_follow(tid) {
                     event_dict['to_ip']       = event[2];
                     event_dict['from_module'] = from_module;
                     event_dict['to_module']   = to_module;
+                    event_dict['depth']       = depth;
                     
                 } else if ( event[0] == 'compile' ) {
 
@@ -131,6 +181,7 @@ function stalker_follow(tid) {
                     event_dict['to_ip']       = event[2];
                     event_dict['from_module'] = from_module;
                     event_dict['to_module']   = to_module;
+                    event_dict['depth']       = depth;
 
                 }
 

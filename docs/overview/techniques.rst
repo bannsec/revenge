@@ -1,3 +1,5 @@
+.. _techniques-page:
+
 ==========
 Techniques
 ==========
