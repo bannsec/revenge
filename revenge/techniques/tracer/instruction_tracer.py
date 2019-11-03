@@ -244,7 +244,7 @@ class NativeInstructionTracer(Technique):
         self.exec = exec
         self.block = block
         self.compile = compile
-        self.threads = None
+        self.threads = []
         self._script = {}
         self._from_modules = from_modules
         self.callback = callback

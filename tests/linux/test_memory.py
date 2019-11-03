@@ -64,30 +64,35 @@ def test_memory_call_with_technique():
     assert win('bbbb', techniques=trace) == 0
     t1 = list(trace)[0]
     t1.wait_for(win_ret)
+    time.sleep(0.1)
     assert len(t1) > 0
 
     trace = p.techniques.NativeInstructionTracer(exec=True)
     assert win('fbbb', techniques=trace) == 0
     t2 = list(trace)[0]
     t2.wait_for(win_ret)
+    time.sleep(0.1)
     assert len(t2) > len(t1)
 
     trace = p.techniques.NativeInstructionTracer(exec=True)
     assert win('flbb', techniques=trace) == 0
     t3 = list(trace)[0]
     t3.wait_for(win_ret)
+    time.sleep(0.1)
     assert len(t3) > len(t2)
 
     trace = p.techniques.NativeInstructionTracer(exec=True)
     assert win('flab', techniques=trace) == 0
     t4 = list(trace)[0]
     t4.wait_for(win_ret)
+    time.sleep(0.1)
     assert len(t4) > len(t3)
 
     trace = p.techniques.NativeInstructionTracer(exec=True)
     assert win('flag', techniques=trace) == 1
     t5 = list(trace)[0]
     t5.wait_for(win_ret)
+    time.sleep(0.1)
     assert len(t5) > len(t4)
 
     p.quit()
