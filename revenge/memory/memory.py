@@ -44,6 +44,9 @@ class Memory(object):
         # key == address of replaced function, value = tuple: what it's being replaced with, script so we can unload later
         self._active_replacements = {}
 
+        # key == address of onEnter function, value = tuple: what it's being hooked with, script so we can unload later
+        self._active_on_enter = {}
+
         # key == hash (see MemoryBytes), value = dict of cache values
         self._thread_call_cache = {}
 

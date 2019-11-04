@@ -148,6 +148,10 @@ class Process(object):
             for addr in copy(self.memory._active_replacements):
                 self.memory[addr].replace = None
 
+            # Remove any on_enter interceptors
+            for addr in copy(self.memory._active_on_enter):
+                self.memory[addr].on_enter = None
+
             # Remove any instruction traces
             for t in self.threads:
                 if t.trace is not None:

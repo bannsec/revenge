@@ -399,6 +399,13 @@ class MemoryBytes(object):
             self._process.memory._active_replacements[self.address][1][0].unload()
             self._process.memory._active_replacements.pop(self.address)
 
+    def _remove_on_enter(self):
+        """Reverts any on_enter hook of this function."""
+
+        if self.address in self._process.memory._active_on_enter:
+            self._process.memory._active_on_enter[self.address][1][0].unload()
+            self._process.memory._active_on_enter.pop(self.address)
+
     @property
     def replace_on_message(self):
         """callable: Optional callable to be called if/when something inside the function replace sends data back.
@@ -545,6 +552,61 @@ class MemoryBytes(object):
 
         else:
             logger.error("Invalid replacement type of {}".format(type(replace)))
+
+    @property
+    def on_enter(self):
+        """Hook the entrance of this function from Frida's onEnter.
+
+        Special variables available for on_enter/on_exit
+            - this.returnAddress (where does this call return to)
+            - this.context (CPU registers)
+            - this.errno (Any Unix errno set)
+            - this.lastError (Any Windows error set)
+            - this.threadId (Current thread number)
+            - depth (relative call depth)
+
+            You can also store your own information in "this." if need be.
+        
+        Examples:
+            .. code-block:: python3
+
+                # Attaching to malloc calls to return their amount
+                malloc = process.memory['malloc']
+                malloc.replace_on_message = common.on_msg_print
+                malloc.on_enter = \"\"\"function (args) { send(args[0]); }\"\"\"
+                malloc(12) # Should get a message printed out about this malloc call
+        """
+        try:
+            return self._process.memory._active_on_enter[self.address][0]
+        except:
+            return None
+
+    @on_enter.setter
+    def on_enter(self, on_enter):
+
+        self._remove_on_enter()
+
+        if on_enter is None:
+            return
+
+        #
+        # Setup js hook
+        #
+
+        if isinstance(on_enter, str):
+
+            self._process.run_script_generic("""var listener = Interceptor.attach({this_func}, {{onEnter: {on_enter}}});""".format(
+                        this_func = self.address.js,
+                        on_enter = on_enter,
+                    ),
+                    raw=True, unload=False,
+                    on_message=self.replace_on_message)
+            script = self._process._scripts.pop(0)
+            self._process.memory._active_on_enter[self.address] = (on_enter, script)
+
+        else:
+            logger.error("Invalid on_enter type of {}".format(type(on_enter)))
+
 
     @property
     def implementation(self):

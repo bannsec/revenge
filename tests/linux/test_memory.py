@@ -51,6 +51,33 @@ basic_two_d_addr = 0x201018
 
 basic_looper_path = os.path.join(bin_location, "basic_looper")
 
+def test_memory_bytes_on_enter():
+    p = revenge.Process(crackme_count_path, resume=False, verbose=False)
+
+    l = []
+
+    def on_msg(x,y):
+        l.append(x['payload'])
+
+    puts = p.memory['puts']
+    puts.replace_on_message = on_msg
+    puts.on_enter = """function (args) { send(args[0].readUtf8String()) }"""
+
+    puts("Hello world!")
+    while l == []:
+        pass
+
+    assert l == ["Hello world!"]
+
+    puts.on_enter = None
+    l = []
+
+    puts("Goodbye world!")
+    time.sleep(0.1)
+    assert l == []
+
+    p.quit()
+
 def test_memory_call_with_technique():
     p = revenge.Process(crackme_count_path, resume=False, verbose=False)
 

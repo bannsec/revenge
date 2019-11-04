@@ -79,6 +79,12 @@ replace_on_message. That variable needs to be a callable that takes in at least
 one argument (the return from the script). Otherwise, all return sends will
 simply be ignored.
 
+Sometimes it's easier to just attach to the entry or exit of the function
+rather than replacing it. You can do this via the ``on_enter`` method, in the
+same way as you would for ``replace``. The only difference is that you do not
+have to worry about calling the function, as that will be done automatically
+after your code completes.
+
 Examples
 --------
 
@@ -97,6 +103,8 @@ Examples
 More examples in the code.
 
 :meth:`revenge.memory.MemoryBytes.replace`
+
+:meth:`revenge.memory.MemoryBytes.on_enter`
 
 Disassembly
 ===========
