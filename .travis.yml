@@ -4,6 +4,7 @@ services:
     - docker
 python:
     - 3.6
+dist: bionic
 matrix:
     include:
 
@@ -14,7 +15,6 @@ matrix:
           name: "Linux"
           env:
               - DOCKERFILE=Dockerfile
-          dist: trusty
           android:
               components:
                   - tools
@@ -22,7 +22,7 @@ matrix:
               - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
               - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
               - sudo apt-get update
-              - sudo apt-get -y install docker-ce
+              - sudo apt-get -y install docker-ce qemu-kvm libvirt-bin ubuntu-vm-builder bridge-utils
           install:
               - docker build -t bannsec/revenge -f $DOCKERFILE .
           script:
@@ -33,25 +33,43 @@ matrix:
         #
         - os: linux
           name: "Android: system-images;android-27;default;x86_64"
-          language: android
           env:
               - DOCKERFILE=Dockerfile
               - ANDROID_HOME=/usr/local/android-sdk
               - QEMU_AUDIO_DRV=none
               - TOOLS=${ANDROID_HOME}/tools
-          dist: trusty
-          android:
-              components:
-                  - tools
           before_install:
               - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
               - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
               - sudo apt-get update
-              - sudo apt-get -y install docker-ce
+              - sudo apt-get -y install docker-ce qemu-kvm libvirt-bin ubuntu-vm-builder bridge-utils cpu-checker
+              - sudo kvm-ok
           install:
               - docker build -t bannsec/revenge -f $DOCKERFILE .
           script:
-              - docker run -dit --rm --network host --privileged bannsec/revenge_testenv_android-27_default_x86_64 /opt/emulator/emulator @test -no-window -no-accel
+              - docker run -dit --rm --network host --privileged --device /dev/kvm bannsec/revenge_testenv_android-27_default_x86_64 /opt/emulator/emulator @test -no-window -no-snapshot -camera-back none -camera-front none -selinux permissive -qemu -m 2048
+              - docker run -it --rm --privileged --network host --cap-add ALL -e TRAVIS=1 -e TRAVIS_BRANCH=$TRAVIS_BRANCH -e COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN -e COVERALLS_PARALLEL=True -e TRAVIS_JOB_ID=$TRAVIS_JOB_ID bannsec/revenge bash -c 'cd /opt/revenge && ./test_android.sh && if [ ! -z "$COVERALLS_REPO_TOKEN" ]; then coveralls; fi'
+
+        #
+        # Android API 29
+        #
+        - os: linux
+          name: "Android: system-images;android-29;default;x86_64"
+          env:
+              - DOCKERFILE=Dockerfile
+              - ANDROID_HOME=/usr/local/android-sdk
+              - QEMU_AUDIO_DRV=none
+              - TOOLS=${ANDROID_HOME}/tools
+          before_install:
+              - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+              - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+              - sudo apt-get update
+              - sudo apt-get -y install docker-ce qemu-kvm libvirt-bin ubuntu-vm-builder bridge-utils cpu-checker
+              - sudo kvm-ok
+          install:
+              - docker build -t bannsec/revenge -f $DOCKERFILE .
+          script:
+              - docker run -dit --rm --network host --privileged --device /dev/kvm bannsec/revenge_testenv_android-29_default_x86_64 /opt/emulator/emulator @test -no-window -verbose -no-snapshot -camera-back none -camera-front none -selinux permissive -qemu -m 2048
               - docker run -it --rm --privileged --network host --cap-add ALL -e TRAVIS=1 -e TRAVIS_BRANCH=$TRAVIS_BRANCH -e COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN -e COVERALLS_PARALLEL=True -e TRAVIS_JOB_ID=$TRAVIS_JOB_ID bannsec/revenge bash -c 'cd /opt/revenge && ./test_android.sh && if [ ! -z "$COVERALLS_REPO_TOKEN" ]; then coveralls; fi'
 
 env:
