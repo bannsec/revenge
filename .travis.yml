@@ -26,10 +26,10 @@ matrix:
           install:
               - docker build -t bannsec/revenge -f $DOCKERFILE .
           script:
-              - docker run -it --rm --privileged --network host --cap-add ALL -e TRAVIS_BRANCH=$TRAVIS_BRANCH -e COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN bannsec/revenge bash -c 'cd /opt/revenge && ./test_linux.sh && if [ ! -z "$COVERALLS_REPO_TOKEN" ]; then coveralls; fi'
+              - docker run -it --rm --privileged --network host --cap-add ALL -e TRAVIS_BRANCH=$TRAVIS_BRANCH -e COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN -e COVERALLS_PARALLEL=True -e TRAVIS_JOB_ID=$TRAVIS_JOB_ID bannsec/revenge bash -c 'cd /opt/revenge && ./test_linux.sh && if [ ! -z "$COVERALLS_REPO_TOKEN" ]; then coveralls; fi'
 
         #
-        # Android
+        # Android API 27
         #
         - os: linux
           name: "Android: system-images;android-27;default;x86_64"
@@ -52,10 +52,12 @@ matrix:
               - docker build -t bannsec/revenge -f $DOCKERFILE .
           script:
               - docker run -dit --rm --network host --privileged bannsec/revenge_testenv_android-27_default_x86_64 /opt/emulator/emulator @test -no-window -no-accel
-              - docker run -it --rm --privileged --network host --cap-add ALL -e TRAVIS=1 -e TRAVIS_BRANCH=$TRAVIS_BRANCH -e COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN bannsec/revenge bash -c 'cd /opt/revenge && ./test_android.sh'
-                #- docker run -it --rm --privileged --network host --cap-add ALL -e TRAVIS_BRANCH=$TRAVIS_BRANCH -e COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN bannsec/revenge bash -c 'cd /opt/revenge && ./test.sh && if [ ! -z "$COVERALLS_REPO_TOKEN" ]; then coveralls; fi'
+              - docker run -it --rm --privileged --network host --cap-add ALL -e TRAVIS=1 -e TRAVIS_BRANCH=$TRAVIS_BRANCH -e COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN -e COVERALLS_PARALLEL=True -e TRAVIS_JOB_ID=$TRAVIS_JOB_ID bannsec/revenge bash -c 'cd /opt/revenge && ./test_android.sh && if [ ! -z "$COVERALLS_REPO_TOKEN" ]; then coveralls; fi'
+
 env:
     global:
         secure: DSXns4hOc8LSs6vsId086QB1iE8uaFb8ggQVLjy93kFD0zTwpHWHi1uxVoxHdT8pTv4DpGWAfUT+Ltxtji2dbmWhGxuQ9TSDRxnsdDlRCx00KsN7CvxkjPeTIgQmSTvhvMBBWUIJrCmF9x9G3L5aN4lxvLiY92d7gTjn7DbyPwyfFE51LvfRPyu+1/chKks/+QVj5CYGV5etEEZ69pLJvoYdm60VdBLxwzwfKsYbVtssoGthCXbCx+UrH1zLit+aLt5De61QsIXcIRpWcHL5hBJEillHJO62XzE923Gw7xZHi8EY8bjOaiCVpq0xnI6Tntvt/qaAE11xPE1A2pFKMcIjlnRIKaUA3IwazB7mzJwf33SXfPEipDECza/E4Piuw313iBwNq6A9yWF+AOVsQi7W4OiWcgNP4rJ5PKQYC4SUPLA9MXlh3HzFQy1zi8x7pC4HrgZKoWs7YjJ7G1lrfz3arADMGDyZwxV/A0NoJ30CrYwhiT0V5FGwp78040ap3n3bYs6KP4NMMBBVgl2Xy3vnFZxOX3yIDA/kc0bMqgExx1BRp95mIiv4ykTDF4DDra1PGOMoCSDEEvU4W9nRm6LLdHjtd4W2KFp8dVWqpOs9YMfJStDmVOu9kiII1cf9bUE+UD+iGYeXKcrQRARYfkiCAYLDXxOhglkaZl+hr1M=
+notifications:
+    webhooks: https://coveralls.io/webhook?repo_token=$COVERALLS_REPO_TOKEN
 
 # https://travis-ci.org/ankidroid/Anki-Android/jobs/516486608/config

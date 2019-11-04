@@ -15,7 +15,7 @@ android._wait_for_frida_server()
 
 veryandroidso = os.path.join(bin_location, "ooo.defcon2019.quals.veryandroidoso.apk")
 
-calc = android.spawn("*calc*", gated=False, load_symbols=[])
+email = android.spawn("com.android.email", gated=False, load_symbols=[])
 
 def test_is_safe_method_name():
     assert not JavaClass._is_safe_method_name("test$100")
@@ -87,23 +87,23 @@ def test_find_active_instance():
     p.quit()
 
 def test_basic():
-    calc = android.attach("*calc*", load_symbols=[])
-    calc_classes = calc.java.classes
-    jclass = calc_classes[5]
+    email = android.attach("com.android.email", load_symbols=[])
+    email_classes = email.java.classes
+    jclass = email_classes[5]
     repr(jclass)
     str(jclass)
 
 def test_call():
-    calc = android.attach("*calc*", load_symbols=[])
-    calc_classes = calc.java.classes
-    log = calc_classes['android.util.Log']
+    email = android.attach("com.android.email", load_symbols=[])
+    email_classes = email.java.classes
+    log = email_classes['android.util.Log']
     x = log('test')
     assert str(x) == "Java.use('android.util.Log').$new('test')"
 
 def test_methods():
-    calc = android.attach("*calc*", load_symbols=[])
-    calc_classes = calc.java.classes
-    log = calc_classes['android.util.Log']
+    email = android.attach("com.android.email", load_symbols=[])
+    email_classes = email.java.classes
+    log = email_classes['android.util.Log']
     x = log.w("test1", "test2")
     assert str(x) == "Java.use('android.util.Log').w('test1','test2')"
 
@@ -111,13 +111,13 @@ def test_methods():
     assert str(x) == "Java.use('android.util.Log').w.s('test1','test2')"
 
 def test_send_log():
-    calc = android.attach("*calc*", load_symbols=[])
-    calc_classes = calc.java.classes
-    log = calc_classes['android.util.Log']
+    email = android.attach("com.android.email", load_symbols=[])
+    email_classes = email.java.classes
+    log = email_classes['android.util.Log']
 
     # Long way
     x = log.w("test1", "test2")
-    calc.java.run_script_generic(x, raw=True, unload=True)
+    email.java.run_script_generic(x, raw=True, unload=True)
 
     # Short-hand
     log.d("test3", "test4")()
@@ -125,9 +125,9 @@ def test_send_log():
     # TODO: Hook this test into a logcat monitor to ensure it gets logged
 
 def test_implementation():
-    calc = android.attach("*calc*", load_symbols=[])
-    calc_classes = calc.java.classes
-    Math = calc_classes['java.lang.Math']
+    email = android.attach("com.android.email", load_symbols=[])
+    email_classes = email.java.classes
+    Math = email_classes['java.lang.Math']
     assert isinstance(Math.random()(), float)
 
     Math.random.implementation = "function () { return 123; }"

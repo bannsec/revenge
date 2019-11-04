@@ -29,7 +29,7 @@ def test_spawn():
     p.quit()
 
     # Spawn with splat
-    p = android.spawn("*calc*", gated=False, load_symbols=[])
+    p = android.spawn("com.android.email", gated=False, load_symbols=[])
     p.quit()
 
 def test_attach():
@@ -37,8 +37,8 @@ def test_attach():
     p.quit()
 
 def test_applications():
-    calc = android.applications['*calc*']
-    p = android.spawn(calc, gated=False, load_symbols=[])
+    email = android.applications['com.android.email']
+    p = android.spawn(email, gated=False, load_symbols=[])
 
     list(android.applications)
     len(android.applications)

@@ -11,11 +11,11 @@ from revenge import Process, types, common, devices
 
 android = devices.AndroidDevice(type="usb")
 android._wait_for_frida_server()
-calc = android.spawn("*calc*", gated=False, load_symbols=[])
+email = android.spawn("com.android.email", gated=False, load_symbols=[])
 
 def test_basic():
     global msg
-    calc = android.attach("*calc*", load_symbols=[])
+    email = android.attach("com.android.email", load_symbols=[])
 
     msg = []
 
@@ -24,7 +24,7 @@ def test_basic():
         msg += messages
 
     # Just testing that we get all the data back
-    with calc.java.BatchContext(on_message=on_message) as context:
+    with email.java.BatchContext(on_message=on_message) as context:
         for i in range(2048):
             context.run_script_generic(str(i))
 
