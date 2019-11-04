@@ -16,6 +16,7 @@ import pytest
 import revenge
 from revenge.memory import MemoryRange
 types = revenge.types
+common = revenge.common
 from revenge.exceptions import *
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -75,6 +76,17 @@ def test_memory_bytes_on_enter():
     puts("Goodbye world!")
     time.sleep(0.1)
     assert l == []
+
+    puts.replace_on_message = lambda:1
+    puts.on_enter = """function (args) { send(args[0].readUtf8String()) }"""
+    puts.replace_on_message = on_msg
+
+    puts("Blerg")
+
+    while l == []:
+        pass
+
+    assert l == ["Blerg"]
 
     p.quit()
 

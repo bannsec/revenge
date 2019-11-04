@@ -440,6 +440,7 @@ class MemoryBytes(object):
 
         # force reload the modification with the new on_message handler
         self.replace = self.replace
+        self.on_enter = self.on_enter
 
     @property
     def replace(self):
