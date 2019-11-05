@@ -520,6 +520,12 @@ class Telescope(BasicBasic):
     def __hex__(self):
         return hex(int(self))
 
+    def __and__(self, other):
+        return int(self) & other
+
+    def __rshift__(self, shift):
+        return int(self) >> shift
+
     @classmethod
     def from_dict(klass, process, d):
         """Creates a new Telescope instance from the given dictionary.

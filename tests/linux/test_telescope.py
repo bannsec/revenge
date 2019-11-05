@@ -40,6 +40,9 @@ def test_telescope_int_hex():
     with pytest.raises(RevengeInvalidArgumentType):
         hex(t.next)
 
+    assert t & 0xffff == 0x49c0
+    assert t >> 4 == 0x7fc954d349c
+
     p.quit()
 
 def test_telescope_js_basic():
