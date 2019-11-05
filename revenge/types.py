@@ -508,6 +508,18 @@ class Telescope(BasicBasic):
 
         return "<Telescope " + " -> ".join(attrs) + ">"
 
+    def __int__(self):
+        if self.type != "int":
+            raise RevengeInvalidArgumentType("Asking for int of Telescope value that is type {}".format(self.type))
+
+        return self.thing
+
+    def __index__(self):
+        return self.__int__()
+
+    def __hex__(self):
+        return hex(int(self))
+
     @classmethod
     def from_dict(klass, process, d):
         """Creates a new Telescope instance from the given dictionary.

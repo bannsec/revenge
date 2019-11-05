@@ -10,7 +10,10 @@ import revenge
 types = revenge.types
 common =  revenge.common
 
+from revenge.exceptions import *
+
 import time
+import pytest
 
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "bins")
@@ -20,6 +23,24 @@ bin_location = os.path.join(here, "bins")
 #
 
 telescope_path = os.path.join(bin_location, "telescope")
+
+def test_telescope_int_hex():
+
+    p = revenge.Process(telescope_path, resume=True, verbose=False)
+
+    d = {'thing': '0x7fc954d349c0', 'next': {'type': 'instruction', 'thing': {'groups': ['branch_relative', 'jump'], 'regsWritten': [], 'regsRead': [], 'operands': [{'type': 'imm', 'value': '140502694078472', 'size': 8}], 'opStr': '0x7fc9552ba808', 'mnemonic': 'jmp', 'size': 5, 'next': '0x7fc954d349c5', 'address': '0x7fc954d349c0'}, 'telescope': True, 'next': None, 'mem_range': None}, 'mem_range': {'base': '0x7fc954d34000', 'size': 4096, 'protection': 'rwx', 'file': {'path': '/lib/x86_64-linux-gnu/libc-2.27.so', 'offset': 524288, 'size': 0}}, 'telescope': True, 'type': 'int'}
+    t = types.Telescope.from_dict(p, d)
+
+    assert int(t) == 0x7fc954d349c0
+    assert hex(t) == "0x7fc954d349c0"
+
+    with pytest.raises(RevengeInvalidArgumentType):
+        int(t.next)
+
+    with pytest.raises(RevengeInvalidArgumentType):
+        hex(t.next)
+
+    p.quit()
 
 def test_telescope_js_basic():
 
