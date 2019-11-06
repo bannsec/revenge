@@ -496,17 +496,7 @@ class Telescope(BasicBasic):
         self.memory_range = d['mem_range']
 
     def __repr__(self):
-        attrs = []
-
-        next_thing = self
-        while next_thing is not None:
-            if next_thing.type == "int":
-                attrs.append(hex(next_thing.thing))
-            else:
-                attrs.append(str(next_thing.thing))
-            next_thing = next_thing.next
-
-        return "<Telescope " + " -> ".join(attrs) + ">"
+        return "<Telescope " + self.description + ">"
 
     def __int__(self):
         if self.type != "int":
@@ -603,6 +593,21 @@ class Telescope(BasicBasic):
 
         else:
             self.__memory_range = MemoryRange._from_frida_find_json(self._process, memory_range)
+
+    @property
+    def description(self):
+        """str: String representational description of this telescope."""
+        attrs = []
+
+        next_thing = self
+        while next_thing is not None:
+            if next_thing.type == "int":
+                attrs.append(hex(next_thing.thing))
+            else:
+                attrs.append(str(next_thing.thing))
+            next_thing = next_thing.next
+
+        return ' -> '.join(attrs)
 
 
         

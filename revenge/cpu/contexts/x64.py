@@ -4,8 +4,6 @@ logger = logging.getLogger(__name__)
 from termcolor import cprint, colored
 from prettytable import PrettyTable
 
-from ... import types, common
-
 x64_regs = {
     'sp'  : 'self.rsp',
     'bp'  : 'self.rbp',
@@ -94,16 +92,31 @@ class X64Context(object):
 
         # Generically set any registers we're given
         for key, val in registers.items():
-            setattr(self, key, common.auto_int(val))
+
+            # If dict, assume it's telescope for now
+            if isinstance(val, dict):
+                setattr(self, key, types.Telescope.from_dict(self._process, val))
+            else:
+                setattr(self, key, common.auto_int(val))
 
     def __getattr__(self, attr):
         return eval(x64_regs[attr])
 
     def __str__(self):
         table = PrettyTable(["Register", "Value"])
+        table.align["Value"] = "l"
+
         main_regs = ['rip', 'rsp', 'rbp', 'rax', 'rbx', 'rcx', 'rdx', 'rsi', 'rdi', 'r8', 'r9', 'r10', 'r11', 'r12', 'r13', 'r14', 'r15']
 
         for reg in main_regs:
-            table.add_row([reg, hex(getattr(self, reg))])
+            thing = getattr(self, reg)
+            
+            if isinstance(thing, types.Telescope):
+                table.add_row([reg, thing.description])
+
+            else:
+                table.add_row([reg, hex(getattr(self, reg))])
 
         return str(table)
+
+from ... import types, common
