@@ -158,6 +158,9 @@ class Memory(object):
         if isinstance(address, symbols.Symbol):
             address = address.address
 
+        if isinstance(address, types.Telescope):
+            address = int(address)
+
         assert isinstance(address, int), "Unexpected address type of {}".format(type(address))
 
         desc = ""
@@ -333,6 +336,9 @@ class Memory(object):
 
         if isinstance(item, symbols.Symbol):
             item = item.address
+
+        if isinstance(item, types.Telescope):
+            item = int(item)
 
         if isinstance(item, int):
             return MemoryBytes(self._process, item)

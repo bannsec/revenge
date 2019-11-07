@@ -146,6 +146,9 @@ class Modules(object):
         if isinstance(item, str):
             return next(mod for mod in self if fnmatch(mod.name, item))
 
+        if isinstance(item, types.Telescope):
+            item = int(item)
+
         # Resolve module by the address
         if isinstance(item, int):
             for mod in self:

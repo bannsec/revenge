@@ -368,6 +368,10 @@ def test_describe_address():
     assert p.memory.describe_address(p.modules['basic_one'].base) == "basic_one"
     assert p.memory.describe_address(p.modules['basic_one'].base + 0x123) == "basic_one+0x123"
 
+    # Implicitly convert Telescope
+    assert p.memory.describe_address(types.Telescope(p, p.modules['basic_one'].base)) == "basic_one"
+    assert p.memory[types.Telescope(p, p.modules['basic_one'].base)].string_utf8.startswith('\x7fELF')
+
     p.quit()
 
 def test_memory_local_symbol_resolve():

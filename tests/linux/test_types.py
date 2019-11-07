@@ -327,7 +327,7 @@ def test_js_attr():
         x = t(i)
 
         if issubclass(type(x), types.Pointer):
-            assert x.js == "ptr('{}')".format(hex(int(x)))
+            assert x.js == 'ptr("{}")'.format(hex(int(x)))
 
         elif issubclass(type(x), types.Int64):
             assert x.js == "int64('{}')".format(hex(int(x)))

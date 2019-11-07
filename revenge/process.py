@@ -303,6 +303,8 @@ class Process(object):
 
         msg = []
         data = []
+        if include_js is None:
+            include_js = ("dispose.js", "send_batch.js", "timeless.js", "telescope.js")
 
         # HACK: Using list for completed to make passing data back from async
         # function simpler.

@@ -344,7 +344,7 @@ class MemoryBytes(object):
                 logger.error("Unexpected argument type of {}".format(type(arg)))
                 return None
 
-        js = """var f = new NativeFunction(ptr("{ptr}"), '{ret_type}', {args_types});""".format(
+        js = """var f = new NativeFunction(ptr("{ptr}"), "{ret_type}", {args_types});""".format(
                 ptr = hex(self.address),
                 ret_type = self.return_type.type,
                 args_types = json.dumps(args_types),
@@ -352,24 +352,28 @@ class MemoryBytes(object):
         
         # If we are not passing to a context, then sync send it
         if kwargs.get("context", None) is None:
-            js += "send(f({args}))".format(args = ', '.join(args_resolved))
+            js += "send(f({args}));".format(args = ', '.join(args_resolved))
         else:
             # We're passing to a context, let it handle the message back.
             js += "f({args})".format(args = ', '.join(args_resolved))
 
         # Wrap call to watch for native exceptions
         js = "try { " + js + """} catch (exception) { 
-            if ( Object.keys(exception).indexOf('memory') == -1 ) {
+            if ( Object.keys(exception).indexOf("memory") == -1 ) {
                 var bt = [];
             } else {
-                var bt = Thread.backtrace(exception['memory']['context']);
+                var bt = Thread.backtrace(exception["memory"]["context"]);
             }
+            // Convert context to be telescoping
+            exception["context"] = timeless_snapshot(exception)["context"];
             send({
                 "exception": exception,
                 "backtrace": bt,
-            })}"""
+            });}"""
 
-        ret = self._process.run_script_generic(js, raw=True, unload=True, **kwargs)
+        
+        # Something about v8 is broken here... Breaks after doing a function replace->call. Not sure why.
+        ret = self._process.run_script_generic(js, raw=True, unload=True, runtime='duk', **kwargs)
 
         # If we changed on_message or context, this might be None. That's ok.
         if ret is None:
@@ -521,7 +525,7 @@ class MemoryBytes(object):
                 "FUNCTION_ARG_TYPES": str([])
             }
 
-            self._process.run_script_generic("replace_function.js", replace=replace_vars, unload=False)
+            self._process.run_script_generic("replace_function.js", replace=replace_vars, unload=False, runtime='v8')
             script = self._process._scripts.pop(0)
             self._process.memory._active_replacements[self.address] = (replace, script)
 
@@ -601,7 +605,9 @@ class MemoryBytes(object):
                         on_enter = on_enter,
                     ),
                     raw=True, unload=False,
-                    on_message=self.replace_on_message)
+                    on_message=self.replace_on_message,
+                    runtime='v8',
+                    )
             script = self._process._scripts.pop(0)
             self._process.memory._active_on_enter[self.address] = (on_enter, script)
 

@@ -207,7 +207,7 @@ class Pointer(UInt64):
 
     @property
     def js(self):
-        return "ptr('{}')".format(hex(self))
+        return """ptr("{}")""".format(hex(self))
 
 class Padding(BasicBasic):
     """Defines the spacing between struct entries.

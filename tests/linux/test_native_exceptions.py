@@ -23,6 +23,7 @@ def test_arithmetic():
     assert isinstance(e, revenge.native_exception.NativeException)
     str(e)
     repr(e)
+    assert isinstance(e.context.pc, types.Telescope)
     assert e.type == 'arithmetic'
     # This abort is run by throwing the signal from libc
     assert p.modules[e.address].name == 'exceptions'
@@ -45,6 +46,7 @@ def test_illegal_instruction():
     assert isinstance(e, revenge.native_exception.NativeException)
     str(e)
     repr(e)
+    assert isinstance(e.context.pc, types.Telescope)
     assert e.type == 'illegal-instruction'
     # This abort is run by throwing the signal from libc
     assert 'libc' in p.modules[e.address].name 
@@ -66,6 +68,7 @@ def test_abort():
     assert isinstance(e, revenge.native_exception.NativeException)
     str(e)
     repr(e)
+    assert isinstance(e.context.pc, types.Telescope)
     assert e.type == 'abort'
     # This abort is run by throwing the signal from libc
     assert 'libc' in p.modules[e.address].name 
@@ -87,6 +90,7 @@ def test_access_violation():
     assert isinstance(e, revenge.native_exception.NativeException)
     str(e)
     repr(e)
+    assert isinstance(e.context.pc, types.Telescope)
     assert e.type == 'access-violation'
     # This abort is run by throwing the signal from libc
     assert 'exceptions' in p.modules[e.address].name 
@@ -109,6 +113,7 @@ def test_access_violation_read():
     assert isinstance(e, revenge.native_exception.NativeException)
     str(e)
     repr(e)
+    assert isinstance(e.context.pc, types.Telescope)
     assert e.type == 'access-violation'
     # This abort is run by throwing the signal from libc
     assert p.modules[e.address].name == 'exceptions'
@@ -159,6 +164,7 @@ def test_access_violation_execute():
     assert isinstance(e, revenge.native_exception.NativeException)
     str(e)
     repr(e)
+    assert isinstance(e.context.pc, types.Telescope)
     assert e.type == 'access-violation'
     # 0x666 shouldn't be in any module
     assert p.modules[e.address] is None
@@ -184,6 +190,7 @@ def test_int3():
     assert isinstance(e, revenge.native_exception.NativeException)
     str(e)
     repr(e)
+    assert isinstance(e.context.pc, types.Telescope)
     assert e.type == 'breakpoint'
 
     assert p.modules[e.address].name == 'exceptions'
@@ -206,6 +213,7 @@ def test_sigsys():
     assert isinstance(e, revenge.native_exception.NativeException)
     str(e)
     repr(e)
+    assert isinstance(e.context.pc, types.Telescope)
     assert e.type == 'system'
 
     assert 'libc' in p.modules[e.address].name
