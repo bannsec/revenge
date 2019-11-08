@@ -7,6 +7,6 @@ fields.forEach(function (field) {
         'full_description': field.toString(),
         'name': field.getName(),
         'class': field.getType().toString(),
-    })
+    });
 
 });

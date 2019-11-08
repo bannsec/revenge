@@ -1,9 +1,9 @@
 
-var GetWindowLongPtrA = new NativeFunction(Module.getExportByName('user32.dll', 'GetWindowLongPtrA'), 'pointer', ['pointer', 'int'])
-var GetWindowLongPtrW = new NativeFunction(Module.getExportByName('user32.dll', 'GetWindowLongPtrW'), 'pointer', ['pointer', 'int'])
-var IsWindowUnicode = new NativeFunction(Module.getExportByName('user32.dll', 'IsWindowUnicode'), 'int', ['pointer'])
+var GetWindowLongPtrA = new NativeFunction(Module.getExportByName('user32.dll', 'GetWindowLongPtrA'), 'pointer', ['pointer', 'int']);
+var GetWindowLongPtrW = new NativeFunction(Module.getExportByName('user32.dll', 'GetWindowLongPtrW'), 'pointer', ['pointer', 'int']);
+var IsWindowUnicode = new NativeFunction(Module.getExportByName('user32.dll', 'IsWindowUnicode'), 'int', ['pointer']);
 
-var known_window_handlers = []
+var known_window_handlers = [];
 
 //
 // General HWND resolver
@@ -12,7 +12,7 @@ function hwnd_resolver(hwnd) {
 
     // Don't both with null pointer
     if ( hwnd == 0 ) {
-        return
+        return;
     }
 
     var phwnd = ptr(hwnd);

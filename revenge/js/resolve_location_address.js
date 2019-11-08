@@ -15,4 +15,4 @@ if ( symbol != "" ) {
     var func_ptr = Module.getBaseAddress(module).add(offset);
 }
 
-send(func_ptr)
+send(func_ptr);

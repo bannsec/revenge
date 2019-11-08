@@ -7,6 +7,6 @@ methods.forEach(function (method) {
         'full_description': method.toString(),
         'name': method.getName(),
         'return_type': method.getReturnType().toString(),
-    })
+    });
 
 });

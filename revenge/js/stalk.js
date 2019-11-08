@@ -60,22 +60,22 @@ function event_get_depth(event) {
 
 function stalker_follow(tid) {
     var module_map = new ModuleMap();
-    var include_from = FROM_MODULES_HERE
+    var include_from = FROM_MODULES_HERE;
     var include_function = INCLUDE_FUNCTION_HERE;
     var exclude_ranges = Array();
 
     EXCLUDE_RANGES_HERE.forEach(function (item) {
-        exclude_ranges.push(Array( eval(item[0]), eval(item[1])))
-    })
+        exclude_ranges.push(Array( eval(item[0]), eval(item[1])));
+    });
 
     // Unfollow must be called from the source script doing the stalking. Thus, RPC.
-    rpc.exports["unfollow"] = function () {
+    rpc.exports.unfollow = function () {
             Stalker.unfollow(tid);
             Stalker.flush();
-    }
+    };
 
     // This is automagically called when unloading a script in python
-    dispose_push( function () { Stalker.unfollow(tid); } )
+    dispose_push( function () { Stalker.unfollow(tid); } );
 
     // TODO: What should this actually be?
     // also, lower this back down when Stalker starts draining properly again
@@ -124,64 +124,60 @@ function stalker_follow(tid) {
 
                     // Optionally only include from some modules
                     if (include_from.length > 0 && !include_from.includes(from_module)) {
-                        return
+                        return;
                     }
 
                 }
 
-                var event_dict = {}
+                var event_dict = {};
 
                 if ( event[0] == 'call' ) {
 
-                    var to_module   = module_map.findName(ptr(event[2]));
-                    event_dict['tid']         = tid;
-                    event_dict['type']        = 'call';
-                    event_dict['from_ip']     = event[1];
-                    event_dict['to_ip']       = event[2];
-                    event_dict['depth']       = Number(event[3]);
-                    event_dict['from_module'] = from_module;
-                    event_dict['to_module']   = to_module;
+                    event_dict.tid          = tid;
+                    event_dict.type         = 'call';
+                    event_dict.from_ip      = event[1];
+                    event_dict.to_ip        = event[2];
+                    event_dict.depth        = Number(event[3]);
+                    event_dict.from_module  = from_module;
+                    event_dict.to_module    = module_map.findName(ptr(event[2]));
                     
                 } else if ( event[0] == 'ret' ) {
                     
-                    var to_module   = module_map.findName(ptr(event[2]));
-                    event_dict['tid']         = tid;
-                    event_dict['type']        = 'ret';
-                    event_dict['from_ip']     = event[1];
-                    event_dict['to_ip']       = event[2];
-                    event_dict['depth']       = Number(event[3]);
-                    event_dict['from_module'] = from_module;
-                    event_dict['to_module']   = to_module;
+                    event_dict.tid          = tid;
+                    event_dict.type         = 'ret';
+                    event_dict.from_ip      = event[1];
+                    event_dict.to_ip        = event[2];
+                    event_dict.depth        = Number(event[3]);
+                    event_dict.from_module  = from_module;
+                    event_dict.to_module    = module_map.findName(ptr(event[2]));
 
                 } else if ( event[0] == 'exec' ) {
                     
-                    event_dict['tid']         = tid;
-                    event_dict['type']        = 'exec';
-                    event_dict['from_ip']     = event[1];
-                    event_dict['from_module'] = from_module;
-                    event_dict['depth']       = depth;
+                    event_dict.tid          = tid;
+                    event_dict.type         = 'exec';
+                    event_dict.from_ip      = event[1];
+                    event_dict.from_module  = from_module;
+                    event_dict.depth        = depth;
 
                 } else if ( event[0] == 'block' ) {
 
-                    var to_module   = module_map.findName(ptr(event[2]));
-                    event_dict['tid']         = tid;
-                    event_dict['type']        = 'block';
-                    event_dict['from_ip']     = event[1];
-                    event_dict['to_ip']       = event[2];
-                    event_dict['from_module'] = from_module;
-                    event_dict['to_module']   = to_module;
-                    event_dict['depth']       = depth;
+                    event_dict.tid          = tid;
+                    event_dict.type         = 'block';
+                    event_dict.from_ip      = event[1];
+                    event_dict.to_ip        = event[2];
+                    event_dict.from_module  = from_module;
+                    event_dict.to_module    = module_map.findName(ptr(event[2]));
+                    event_dict.depth        = depth;
                     
                 } else if ( event[0] == 'compile' ) {
 
-                    var to_module   = module_map.findName(ptr(event[2]));
-                    event_dict['tid']         = tid;
-                    event_dict['type']        = 'compile';
-                    event_dict['from_ip']     = event[1];
-                    event_dict['to_ip']       = event[2];
-                    event_dict['from_module'] = from_module;
-                    event_dict['to_module']   = to_module;
-                    event_dict['depth']       = depth;
+                    event_dict.tid          = tid;
+                    event_dict.type         = 'compile';
+                    event_dict.from_ip      = event[1];
+                    event_dict.to_ip        = event[2];
+                    event_dict.from_module  = from_module;
+                    event_dict.to_module    = module_map.findName(ptr(event[2]));
+                    event_dict.depth        = depth;
 
                 }
 

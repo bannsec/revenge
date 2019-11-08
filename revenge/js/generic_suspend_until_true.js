@@ -4,7 +4,7 @@
 var func_ptr = ptr("FUNCTION_HERE");
 
 // Watch this address to know when to continue
-const shared_var = Memory.alloc(1)
+var shared_var = Memory.alloc(1);
 shared_var.writeS8(0); // Init to false
 
 Interceptor.attach(func_ptr, function (args) {
@@ -17,10 +17,10 @@ Interceptor.attach(func_ptr, function (args) {
 
         Thread.sleep(0.2);
         send("Still waiting for variable change at " + shared_var);
-    };
+    }
 
     send("Done waiting at function.");
 });
 
 // Let the caller know where the memory is
-send(shared_var)
+send(shared_var);

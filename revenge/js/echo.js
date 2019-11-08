@@ -5,7 +5,7 @@
  */
 
 function add_echo () {
-    rpc.exports["echo"] = echo;
+    rpc.exports.echo = echo;
 }
 
 function echo(x) {

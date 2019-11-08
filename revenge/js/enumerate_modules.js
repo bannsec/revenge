@@ -3,4 +3,4 @@ Process.enumerateModules({
         send(module);
     },
     onComplete: function(){}
-})
+});
