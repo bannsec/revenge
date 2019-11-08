@@ -16,18 +16,32 @@ void do_access_violation() {
 
 void do_access_read_violation() {
     // Attempt to load from memory 0x666
+#if __amd64__
     __asm ("add 0x666,%rax");
+#else
+    __asm ("add 0x666,%eax");
+#endif
+
 }
 
 void do_access_write_violation() {
     // Attempt to write to memory 0x666
+#if __amd64__
     __asm ("movq %rax, (0x666)");
+#else
+    __asm ("mov  %eax, (0x666)");
+#endif
 }
 
 void do_access_exec_violation() {
     // Attempt to execute from 0x666
+#if __amd64__
     __asm ("mov $0x666, %rax;"
             "jmp %rax");
+#else
+    __asm ("mov $0x666, %eax;"
+            "jmp %eax");
+#endif
 }
 
 int do_abort() {
@@ -55,8 +69,13 @@ void do_overflow(char *s) {
 }
 
 void do_arithmetic() {
+#if __amd64__
     __asm ("xor %rax, %rax;" 
            "div %rax");
+#else
+    __asm ("xor %eax, %eax;" 
+           "div %eax");
+#endif
 }
 
 int main() {
