@@ -38,6 +38,9 @@ class Threads(object):
                     return Thread(self._process, {'id': elm, 'state': 'waiting', 'context': {'pc': '0'}})
                 logger.error("Invalid thread id selected.")
 
+        elif isinstance(elm, Thread):
+            return elm
+
         else:
             logger.error("Not sure how to handle this.")
 

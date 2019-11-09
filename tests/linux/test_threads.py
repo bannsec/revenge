@@ -149,6 +149,7 @@ def test_thread_getitem():
     assert util.threads[t.id] is not None
     assert util.threads[0] is None
     assert util.threads[b'blerg'] is None
+    assert util.threads[t] is t
 
     util.quit()
 
