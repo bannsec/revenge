@@ -355,12 +355,7 @@ class NativeInstructionTracer(Technique):
         else:
             threads_new = []
             for thread in threads:
-                if isinstance(thread, Thread):
-                    threads_new.append(thread)
-                elif isinstance(thread, int):
-                    threads_new.append(self._process.threads[thread])
-                else:
-                    raise Exception("Unable to resolve requested thread of type {}".format(type(thread)))
+                threads_new.append(self._process.threads[thread])
 
             threads = threads_new
 
