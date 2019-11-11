@@ -9,6 +9,44 @@ class NativeTimelessTracer(Technique):
     TYPE = "stalk"
 
     def __init__(self, process):
+        """Performs timeless tracing.
+        
+        Examples:
+            .. code-block:: python3
+                
+                #
+                # Global apply
+                #
+
+                # Setup the tracer
+                timeless = process.techniques.NativeTimelessTracer()
+                timeless.apply()
+
+                # Continue execution
+                process.memory[process.entrypoint].breakpoint = False
+
+                # Keep checking back to your trace
+                print(timeless)
+
+                # Grab your specific trace
+                t = list(timeless)[0]
+                print(t)
+                print(t[-50:])
+
+                # Look at the trace items individually
+                ti = t[0]
+                print(ti.context)
+                print(ti.context.rax)
+
+                #
+                # Call apply
+                #
+
+                # Also can apply this per-call
+                time = process.memory['time']
+                time(0, techniques=timeless)
+
+        """
         self._process = process
         self.traces = {}
 
@@ -59,6 +97,8 @@ class NativeTimelessTracer(Technique):
     def __iter__(self):
         return self.traces.__iter__()
 
+# doc fixup
+NativeTimelessTracer.__doc__ = NativeTimelessTracer.__init__.__doc__
 
 from .timeless_trace_item import NativeTimelessTraceItem
 from .timeless_trace import NativeTimelessTrace

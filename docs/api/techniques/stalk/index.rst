@@ -5,6 +5,7 @@ Stalk Techniques
     :maxdepth: 1
 
     NativeInstructionTracer
+    NativeTimelessTracer
 
 About
 -----

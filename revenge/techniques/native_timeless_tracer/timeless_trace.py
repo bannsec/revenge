@@ -34,6 +34,7 @@ class NativeTimelessTrace(object):
         self._process.techniques._active_stalks[self._thread.id] = self
 
     def stop(self):
+        """Stop tracing."""
         if self._script is not None:
             self._script[0].exports.unfollow()
             # As with NativeInstructionTracer, the script unload always causes a process crash for some reason
@@ -90,6 +91,9 @@ class NativeTimelessTrace(object):
 
         raise Exception("Unhandled getitem type of {}".format(type(item)))
 
+    def __len__(self):
+        return len(self._trace)
+
     def _parse_items_cb(self, items, data):
         """Parse incoming trace items.
 
@@ -104,8 +108,5 @@ class NativeTimelessTrace(object):
         else:
             for item in items["payload"]:
                 self._trace.append(NativeTimelessTraceItem.from_snapshot(self._process, item))
-
-    def __len__(self):
-        return len(self._trace)
 
 from .timeless_trace_item import NativeTimelessTraceItem

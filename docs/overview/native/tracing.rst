@@ -64,3 +64,9 @@ Examples
 
     # Take a slice of the trace
     t2 = t[12:24]
+
+Timeless Tracing
+================
+
+``revenge`` has a technique for timeless tracing. For more information, see
+:ref:`NativeTimelessTracerTechnique-page`.
