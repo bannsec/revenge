@@ -29,6 +29,17 @@ int main() {
             : "r" (str1), "r" (str2), "r" (&str1)
             :
             );
+#elif __i386__
+    __asm ( "mov $1,  %%eax;"
+            "mov $2,  %%ebx;"
+            "mov $3,  %%ecx;"
+            "mov $4,  %%edx;"
+            "mov $5,  %%edi;"
+            "mov $6,  %%esi;"
+            :
+            : "r" (str1), "r" (str2), "r" (&str1)
+            :
+            );
 #endif
 
     return some_call();

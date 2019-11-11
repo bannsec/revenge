@@ -12,6 +12,169 @@ bin_location = os.path.join(here, "..", "..", "bins")
 
 timeless_one_path = os.path.join(bin_location, "timeless_one")
 timeless_two_path = os.path.join(bin_location, "timeless_two")
+timeless_two_i386_path = os.path.join(bin_location, "timeless_two_i386")
+
+#
+# i386
+#
+
+def test_timeless_basic_two_i386():
+
+    p = revenge.Process(timeless_two_i386_path, resume=False, verbose=False)
+
+    timeless = p.techniques.NativeTimelessTracer()
+    timeless.apply()
+    t = timeless.traces[list(timeless)[0]]
+    p.memory[p.entrypoint].breakpoint = False
+
+    end_of_main = p.memory['timeless_two_i386:0x554'].address
+    t.wait_for(end_of_main)
+
+    insts = iter(t)
+
+    begin_main = p.memory['timeless_two_i386:0x511'].address
+    while int(next(insts).context.pc) != begin_main:
+        pass
+
+    timeless_two = p.modules['timeless_two_i386']
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x512
+    depth = inst.depth
+    assert depth is not None
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x514
+    assert inst.depth == depth
+
+    depth += 1
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x555
+    assert inst.depth == depth
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x558
+    assert inst.depth == depth
+
+    depth -= 1
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x519
+    assert inst.depth == depth
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x51e
+    assert inst.depth == depth
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x524
+    assert inst.depth == depth
+    assert inst.context.edx.memory_range.readable == True
+    assert inst.context.edx.next.thing == "Test string"
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x52A
+    assert inst.depth == depth
+    assert inst.context.ecx.memory_range.readable == True
+    assert inst.context.ecx.next.memory_range.readable == True
+    assert inst.context.ecx.next.next.thing == "Test string"
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x530
+    assert inst.depth == depth
+    assert inst.context.eax.memory_range.readable == True
+    assert inst.context.eax.next.memory_range.readable == True
+    assert inst.context.eax.next.next.thing == "Test string"
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x535
+    assert inst.depth == depth
+    assert int(inst.context.eax) == 1
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x53a
+    assert inst.depth == depth
+    assert int(inst.context.ebx) == 2
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x53f
+    assert inst.depth == depth
+    assert int(inst.context.ecx) == 3
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x544
+    assert inst.depth == depth
+    assert int(inst.context.edx) == 4
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x549
+    assert inst.depth == depth
+    assert int(inst.context.edi) == 5
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x54e
+    assert inst.depth == depth
+    assert int(inst.context.esi) == 6
+
+    depth += 1
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x4fd
+    assert inst.depth == depth
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x4fe
+    assert inst.depth == depth
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x500
+    assert inst.depth == depth
+
+    depth += 1
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x555
+    assert inst.depth == depth
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x558
+    assert inst.depth == depth
+
+    depth -= 1
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x505
+    assert inst.depth == depth
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x50a
+    assert inst.depth == depth
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x50f
+    assert inst.depth == depth
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x510
+    assert inst.depth == depth
+
+    depth -= 1
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x553
+    assert inst.depth == depth
+
+    inst = next(insts)
+    assert int(inst.context.pc) == timeless_two.base + 0x554
+    assert inst.depth == depth
+    assert int(inst.context.eax) == 1337
+
+    p.quit()
+
+#
+# x64
+#
 
 def test_timeless_basic_two_amd64():
 
