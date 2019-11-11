@@ -7,6 +7,9 @@ logger = logging.getLogger(__name__)
 import os
 import revenge
 types = revenge.types
+from revenge.exceptions import *
+
+import pytest
 
 from revenge.techniques import Technique, Techniques
 
@@ -38,5 +41,12 @@ def test_techniques_basic():
     range = p.memory.maps[p.memory['strlen'].address]
     tech = p.techniques.NativeInstructionTracer(exec=True)
     tech._technique_code_range(range)
+
+    # Try using two stalking techniques at once
+    time = p.memory['time']
+    timeless = p.techniques.NativeTimelessTracer()
+    trace = p.techniques.NativeInstructionTracer(exec=True)
+    with pytest.raises(RevengeInvalidArgumentType):
+        time(0, techniques=[timeless, trace])
 
     p.quit()
