@@ -362,10 +362,10 @@ class MemoryBytes(object):
             if ( Object.keys(exception).indexOf("memory") == -1 ) {
                 var bt = [];
             } else {
-                var bt = Thread.backtrace(exception["memory"]["context"]);
+                var bt = Thread.backtrace(exception.memory.context);
             }
             // Convert context to be telescoping
-            exception["context"] = timeless_snapshot(exception)["context"];
+            exception.context = timeless_snapshot(exception).context;
             send({
                 "exception": exception,
                 "backtrace": bt,
