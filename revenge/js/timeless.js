@@ -119,7 +119,11 @@ function timeless_snapshot(obj) {
                     }
 
                     if ( operand.value.index !== undefined ) {
-                        index = operand.value.index;
+                        try {
+                            index = timeless_snapshot.previous_context[operand.value.index].thing
+                        } catch (e) { 
+                            index = operand.value.index;
+                        }
                     } else {
                         index = 0;
                     }
@@ -156,13 +160,14 @@ function timeless_invalidate_cache_context(ptr_low, ptr_high, thing) {
         var thing_ptr = thing.thing;
 
         // If we're in the range that just changed
-        if ( ptr_low.compare(thing_ptr) >= 0 && ptr_high.compare(thing_ptr) <= 0 ) {
+        if ( ptr_low.compare(thing_ptr) <= 0 && ptr_high.compare(thing_ptr) >= 0 ) {
             return true;
         }
 
-        // If the next thing is a string, check if this affects it
+        // If the next thing is a string, check if any part of the string is in
+        // this area
         if ( thing.next !== null && thing.next.type == "string" ) {
-            if ( ptr_low.compare(thing_ptr) >= 0 && ptr_high.compare(thing_ptr.add(thing.next.thing.length)) <= 0 ) {
+            if ( ptr_low.compare(thing_ptr.add(thing.next.thing.length)) <= 0 && ptr_high.compare(thing_ptr) >= 0 ) {
                 return true;
             }
         }
@@ -252,7 +257,10 @@ function timeless_transformer(iterator) {
 }
 
 function timeless_trace(tid) {
-    Stalker.queueCapacity = 1048576; // 32768; //65536;
+    // Disable telescoping of mem_range for performance
+    telescope.mem_range_disabled = true;
+
+    Stalker.queueCapacity = 65536; //1048576; // 32768; //65536;
 
     // This is automagically called when unloading a script in python
     dispose_push( function () { Stalker.unfollow(tid); Stalker.flush(); } );

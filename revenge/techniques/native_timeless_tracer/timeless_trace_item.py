@@ -31,6 +31,11 @@ class NativeTimelessTraceItem(object):
         return klass(process, context=context, depth=depth)
 
     @property
+    def instruction(self):
+        """Returns the assembly instruction object for this item."""
+        return self.context.pc.next.thing
+
+    @property
     def context(self):
         return self.__context
 

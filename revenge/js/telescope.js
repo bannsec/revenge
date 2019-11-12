@@ -17,6 +17,25 @@ function telescope_get_type(thing) {
     return typeof(thing);
 }
 
+// Caches memory pages for performance
+function telescope_get_memory_range(p) {
+
+    if ( telescope_get_memory_range.ranges === undefined ) {
+        telescope_get_memory_range.ranges = Process.enumerateRangesSync("---");
+    }
+
+    var mem_ranges = telescope_get_memory_range.ranges;
+
+    for ( var i = 0; i < mem_ranges.length; i++ ) {
+        var mem_range = mem_ranges[i];
+
+        if ( mem_range.base.compare(p) <= 0 && mem_range.base.add(mem_range.size).compare(p) >= 0 ) {
+            return mem_range;
+        }
+    }
+    
+    return null;
+}
 
 function telescope(v, telescope_depth, type_hint) {
 
@@ -46,16 +65,22 @@ function telescope(v, telescope_depth, type_hint) {
     // If we've hit our max depth, return
     if ( telescope_depth >= 3 ) return scope;
 
-    // Setup mem_range
-    if ( ptr_v.compare(ptr("0xffffff")) < 0 ) {
-        // Assume this isn't a valid range
+    // Option to disable it since it's so darn slow
+    if ( telescope.mem_range_disabled ) {
         scope.mem_range = null;
     } else {
-        scope.mem_range = Process.findRangeByAddress(ptr_v);
+        // Setup mem_range
+        if ( ptr_v.compare(ptr("0xffffff")) < 0 ) {
+            // Assume this isn't a valid range
+            scope.mem_range = null;
+        } else {
+            scope.mem_range = telescope_get_memory_range(ptr_v);
+            //scope.mem_range = Process.findRangeByAddress(ptr_v);
+        } 
     }
     
     // Doesn't point anywhere else, we're done
-    if ( scope.mem_range === null ) return scope;
+    //if ( scope.mem_range === null ) return scope;
 
     // If this points to readable memory
     if ( type_hint !== "instruction") {
@@ -89,7 +114,7 @@ function telescope(v, telescope_depth, type_hint) {
     // Address is an instruction?
     // Soemtimes Instruction.parse throws exception
     try {
-        if ( scope.mem_range.protection[2] === "x" ) {
+        if ( type_hint == "instruction" || scope.mem_range !== null && scope.mem_range.protection[2] === "x" ) {
             scope.next = {
                 "type": "instruction",
                 "thing": Instruction.parse(ptr_v),
