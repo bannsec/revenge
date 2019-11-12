@@ -102,6 +102,7 @@ class NativeTimelessTrace(object):
         
         This method will be called directly as a callback from the js.
         """
+
         if items["type"] == "error":
             logger.error("_parse_items_cb error: " + items["description"])
 

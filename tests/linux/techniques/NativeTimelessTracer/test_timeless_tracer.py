@@ -351,6 +351,8 @@ def test_timeless_basic_amd64():
     after_call = p.memory['timeless_one:0x6F5'].address
     ti = t.wait_for(after_call)
     assert ti.context.rax.next.thing == "SuperS3cretFl@g"
+    # This is to make sure we're cache invalidating correctly..
+    assert ti.context.rdi.next.thing == "SuperS3cretFl@g"
     assert int(ti.context.pc) == after_call
 
     repr(timeless)

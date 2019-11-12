@@ -30,9 +30,10 @@ function timeless_snapshot(obj) {
     var ret = {};
     ret.is_timeless_snapshot = true;
 
-    // Only look up each value once.
-    var cache = {};
-    
+    if ( timeless_snapshot.previous_context === undefined ) {
+        timeless_snapshot.previous_context = {};
+    }
+
     //
     // Parse out the context
     // 
@@ -41,31 +42,97 @@ function timeless_snapshot(obj) {
         ret.context = {};
         var reg, regs;
 
-        if ( obj.context.rip ) {
-            regs = x64_regs;
-        } else if ( obj.context.eip ) {
-            regs = x86_regs;
-        } else {
-            regs = [];
+        if ( timeless_snapshot.regs === undefined ) {
+            // Determine what regs to look for
+            if ( obj.context.rip ) {
+                timeless_snapshot.regs = x64_regs;
+            } else if ( obj.context.eip ) {
+                timeless_snapshot.regs = x86_regs;
+            } else {
+                timeless_snapshot.regs = [];
+            }
         }
+
+        regs = timeless_snapshot.regs;
 
         for ( var i = 0; i < regs.length; i++ ) {
             reg = regs[i];
 
-            // Check the cache
-            if ( cache[obj.context[reg]] !== undefined ) {
-                ret.context[reg] = cache[obj.context[reg]];
-                continue;
-            }
+            // Only telescope on things that changed
+            if ( timeless_snapshot.previous_context[reg] === undefined || timeless_snapshot.previous_context[reg].thing.compare(obj.context[reg]) !== 0 ) {
 
-            if ( reg === "pc" ) {
-                var type_hint = "instruction";
+                if ( reg == "pc" || reg == "rip" || reg == "eip" ) {
+                    var type_hint = "instruction";
+                } else {
+                    var type_hint = null;
+                }
+
+                // TODO: When telescoping a fresh object, check if any of the
+                // other regs use this value and update them with the fresh one
+                // we just looked at
+                ret.context[reg] = telescope(obj.context[reg], 0, type_hint);
+                timeless_snapshot.previous_context[reg] = ret.context[reg];
+
             } else {
-                var type_hint = null;
+                // Copy over the old value
+                ret.context[reg] = timeless_snapshot.previous_context[reg];
+            }
+        }
+
+        /**********************
+         * Invalidating Cache *
+         **********************/
+
+        // Frida will hide it's own memory from us, thus if we're executing in
+        // Frida this will be undefined.
+        
+        if ( ret.context.pc.next !== null ) {
+            var inst = ret.context.pc.next.thing;
+            var operands = inst.operands;
+            var base, scale, index, disp;
+
+            for ( var i = 0; i < operands.length; i++ ) {
+                var operand = operands[i];
+
+                // Invalidate all mem accesses in cache
+                if ( operand.type == "mem" ) {
+
+                    // TODO: Handle mem with segment
+
+                    // [base + index*scale + disp]
+                    if ( operand.value.base !== undefined ) {
+                        base = timeless_snapshot.previous_context[operand.value.base].thing;
+                    } else {
+                        base = 0;
+                    }
+
+                    if ( operand.value.scale !== undefined ) {
+                        scale = operand.value.scale;
+                    } else {
+                        scale = 1;
+                    }
+
+                    if ( operand.value.disp !== undefined ) {
+                        disp = operand.value.disp;
+                    } else {
+                        disp = 0;
+                    }
+
+                    if ( operand.value.index !== undefined ) {
+                        index = operand.value.index;
+                    } else {
+                        index = 0;
+                    }
+
+                    //var ptr_low = ptr(base + index*scale + disp);
+                    var ptr_low = ptr(base).add(index*scale).add(disp);
+                    var ptr_high = ptr_low.add(operand.size);
+                    timeless_invalidate_cache_context(ptr_low, ptr_high);
+                }
+
+                // TODO: Implement {'type': 'imm', 'value': '139708544517310', 'size': 8}
             }
 
-            ret.context[reg] = telescope(obj.context[reg], 0, type_hint);
-            cache[obj.context[reg]] = ret.context[reg];
         }
 
     } else {
@@ -73,6 +140,53 @@ function timeless_snapshot(obj) {
     }
 
     return ret;
+}
+
+// Recursively invalidate cache based on what memory was accessed
+function timeless_invalidate_cache_context(ptr_low, ptr_high, thing) {
+    
+    // If we're looking at a specific thing
+    if ( thing !== undefined ) {
+
+        // Probably only invalidating ints...
+        if ( thing.type !== "int" ) {
+            return false;
+        }
+
+        var thing_ptr = thing.thing;
+
+        // If we're in the range that just changed
+        if ( ptr_low.compare(thing_ptr) >= 0 && ptr_high.compare(thing_ptr) <= 0 ) {
+            return true;
+        }
+
+        // If the next thing is a string, check if this affects it
+        if ( thing.next !== null && thing.next.type == "string" ) {
+            if ( ptr_low.compare(thing_ptr) >= 0 && ptr_high.compare(thing_ptr.add(thing.next.thing.length)) <= 0 ) {
+                return true;
+            }
+        }
+
+        // If there's more telescoped
+        if ( thing.next !== null ) {
+            return timeless_invalidate_cache_context(ptr_low, ptr_high, thing.next);
+        }
+
+        // Looks like we don't need to invalidate
+        return false;
+        
+    }
+
+    for ( var i = 0; i < timeless_snapshot.regs.length; i++ ) {
+        var reg = timeless_snapshot.regs[i];
+        var thing = timeless_snapshot.previous_context[reg];
+
+        // If something changed in this context, invalidate it
+        if ( timeless_invalidate_cache_context(ptr_low, ptr_high, thing ) ) {
+            timeless_snapshot.previous_context[reg] = undefined;
+        }
+    }
+    
 }
 
 // This gets called with every instruction that's executed

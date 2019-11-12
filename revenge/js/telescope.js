@@ -38,6 +38,9 @@ function telescope(v, telescope_depth, type_hint) {
     // Only telescoping on ints
     if ( v_type != "int" ) return scope;
 
+    // Return data as ptr
+    scope.thing = ptr(scope.thing);
+
     var ptr_v = ptr(v);
     
     // If we've hit our max depth, return
