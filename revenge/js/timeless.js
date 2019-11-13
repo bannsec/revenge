@@ -28,7 +28,10 @@ var timeless_module_map = new ModuleMap();
 
 function timeless_snapshot(obj) {
     var ret = {};
+    var resolved;
     ret.is_timeless_snapshot = true;
+
+    var this_call_only_cache = {};
 
     if ( timeless_snapshot.previous_context === undefined ) {
         timeless_snapshot.previous_context = {};
@@ -67,10 +70,19 @@ function timeless_snapshot(obj) {
                     var type_hint = null;
                 }
 
-                // TODO: When telescoping a fresh object, check if any of the
-                // other regs use this value and update them with the fresh one
-                // we just looked at
-                ret.context[reg] = telescope(obj.context[reg], 0, type_hint);
+                // If we just resolved this, use the cache
+                if ( this_call_only_cache[obj.context[reg]] !== undefined ) {
+                    resolved = this_call_only_cache[obj.context[reg]];
+                } else {
+
+                    // TODO: When telescoping a fresh object, check if any of the
+                    // other regs use this value and update them with the fresh one
+                    // we just looked at
+                    resolved = telescope(obj.context[reg], 0, type_hint);
+                    this_call_only_cache[obj.context[reg]] = resolved;
+                }
+
+                ret.context[reg] = resolved;
                 timeless_snapshot.previous_context[reg] = ret.context[reg];
 
             } else {
