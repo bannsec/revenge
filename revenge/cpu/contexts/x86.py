@@ -55,7 +55,7 @@ class X86Context(object):
 
             # If dict, assume it's telescope for now
             if isinstance(val, dict):
-                setattr(self, key, types.Telescope.from_dict(self._process, val))
+                setattr(self, key, types.Telescope(self._process, data=val))
             else:
                 setattr(self, key, common.auto_int(val))
 

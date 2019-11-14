@@ -2,6 +2,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
+import weakref
 import collections
 from .exceptions import *
 
@@ -465,15 +466,39 @@ class Struct(Pointer):
         return int(self)
 
 class Telescope(BasicBasic):
-    def __init__(self, process, address=None):
+    _flyweight_cache = weakref.WeakValueDictionary()
+
+    def __init__(self, process, address=None, data=None):
         """Create a telescoped variable object.
 
         Args:
             process: Base process object
             address (int, optional): Address to telescope
+            data (dict, optional): Dictionary object of information to populate
+                from. see telescope.js.
         """
-        self._process = process
-        self.address = address
+        # Doing setup in __new__
+        pass
+
+    def __new__(klass, process, address=None, data=None):
+        
+        # Implementing auto flyweight pattern for telescope magic
+        telescope = super(Telescope, klass).__new__(klass)
+
+        telescope._process = process
+        telescope.address = address
+
+        if data is not None:
+            telescope._parse_dict(data)
+
+        # If this object already exists, just use that one
+        h = hash(telescope)
+        if h in telescope._flyweight_cache:
+            return telescope._flyweight_cache[h]
+
+        # Save this object off
+        telescope._flyweight_cache[h] = telescope
+        return telescope
 
     def _telescope(self):
         d = self._process.run_script_generic(r"""send(telescope({}));""".format(
@@ -519,25 +544,20 @@ class Telescope(BasicBasic):
     def __hash__(self):
         return hash((self.address, self.type, self.thing, self.next, self.memory_range))
 
-    @classmethod
-    def from_dict(klass, process, d):
-        """Creates a new Telescope instance from the given dictionary.
-
-        Args:
-            process (revenge.Process): revenge Process object
-            d (dict): Dictionary object returned from telescope.js call.
-        """
-        telescope = klass(process)
-        telescope._parse_dict(d)
-        return telescope
-
     @property
     def thing(self):
         """Whatever this part of the telescope is."""
-        return self.__thing
+        try:
+            return self.__thing
+        except AttributeError:
+            return None
 
     @thing.setter
     def thing(self, thing):
+        # Immutable after set due to flyweight
+        if self.thing is not None:
+            raise RevengeImmutableError("thing argument is immutable.")
+
         # Sometimes we get ints returned as string hex rep
         if self.type == "int":
             thing = common.auto_int(thing)
@@ -552,11 +572,12 @@ class Telescope(BasicBasic):
 
     @next.setter
     def next(self, next):
+
         if next is None:
             self.__next = None
 
         else:
-            self.__next = Telescope.from_dict(self._process, next)
+            self.__next = Telescope(self._process, data=next)
 
     @property
     def address(self):

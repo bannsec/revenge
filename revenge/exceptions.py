@@ -17,3 +17,6 @@ class RevengeSymbolLookupFailure(RevengeError):
 
 class RevengeThreadCreateError(RevengeError):
     pass
+
+class RevengeImmutableError(RevengeError):
+    pass

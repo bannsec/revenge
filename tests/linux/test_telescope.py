@@ -29,7 +29,7 @@ def test_telescope_int_hex():
     p = revenge.Process(telescope_path, resume=True, verbose=False)
 
     d = {'thing': '0x7fc954d349c0', 'next': {'type': 'instruction', 'thing': {'groups': ['branch_relative', 'jump'], 'regsWritten': [], 'regsRead': [], 'operands': [{'type': 'imm', 'value': '140502694078472', 'size': 8}], 'opStr': '0x7fc9552ba808', 'mnemonic': 'jmp', 'size': 5, 'next': '0x7fc954d349c5', 'address': '0x7fc954d349c0'}, 'telescope': True, 'next': None, 'mem_range': None}, 'mem_range': {'base': '0x7fc954d34000', 'size': 4096, 'protection': 'rwx', 'file': {'path': '/lib/x86_64-linux-gnu/libc-2.27.so', 'offset': 524288, 'size': 0}}, 'telescope': True, 'type': 'int'}
-    t = types.Telescope.from_dict(p, d)
+    t = types.Telescope(p, data=d)
 
     assert int(t) == 0x7fc954d349c0
     assert hex(t) == "0x7fc954d349c0"
@@ -171,6 +171,7 @@ def test_telescope_class():
     assert scope.next.thing == "This is a test"
     assert scope.next.type == "string"
     assert hash(scope) == hash(scope)
+    assert scope is types.Telescope(process, telescope.symbols['string1'])
     hash_prev = hash(scope)
     str(scope)
     repr(scope)
@@ -184,6 +185,7 @@ def test_telescope_class():
     assert scope.next.next.thing == "This is a test"
     assert hash(scope) == hash(scope)
     assert hash(scope) != hash_prev
+    assert scope is types.Telescope(process, telescope.symbols['string2'])
     hash_prev = hash(scope)
     str(scope)
     repr(scope)
@@ -197,6 +199,7 @@ def test_telescope_class():
     assert scope.next.next.thing == "This is a test"
     assert hash(scope) == hash(scope)
     assert hash(scope) != hash_prev
+    assert scope is types.Telescope(process, telescope.symbols['string1_ptr'])
     hash_prev = hash(scope)
     str(scope)
     repr(scope)
@@ -211,6 +214,7 @@ def test_telescope_class():
     assert scope.next.next.next.thing == "This is a test"
     assert hash(scope) == hash(scope)
     assert hash(scope) != hash_prev
+    assert scope is types.Telescope(process, telescope.symbols['string2_ptr'])
     hash_prev = hash(scope)
     str(scope)
     repr(scope)
@@ -224,6 +228,7 @@ def test_telescope_class():
     assert "stack" in scope.next.next.thing
     assert hash(scope) == hash(scope)
     assert hash(scope) != hash_prev
+    assert scope is types.Telescope(process, telescope.symbols['string3_uninit_ptr'])
     hash_prev = hash(scope)
     str(scope)
     repr(scope)
@@ -236,6 +241,7 @@ def test_telescope_class():
     assert scope.next.thing & 0xffff == 1337
     assert hash(scope) == hash(scope)
     assert hash(scope) != hash_prev
+    assert scope is types.Telescope(process, telescope.symbols['random_int'])
     hash_prev = hash(scope)
     str(scope)
     repr(scope)
@@ -249,6 +255,7 @@ def test_telescope_class():
     assert scope.next.next.thing & 0xffff == 1337
     assert hash(scope) == hash(scope)
     assert hash(scope) != hash_prev
+    assert scope is types.Telescope(process, telescope.symbols['random_int_ptr'])
     hash_prev = hash(scope)
     str(scope)
     repr(scope)
@@ -265,8 +272,12 @@ def test_telescope_class():
     assert scope.next.next.thing.operands[0]['value'] == "rbp"
     assert hash(scope) == hash(scope)
     assert hash(scope) != hash_prev
+    assert scope is types.Telescope(process, telescope.symbols['pointer_to_main'])
     hash_prev = hash(scope)
     str(scope)
     repr(scope)
+
+    with pytest.raises(RevengeImmutableError):
+        scope.thing = 1
 
     process.quit()
