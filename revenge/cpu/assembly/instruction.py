@@ -92,6 +92,9 @@ class AssemblyInstruction(object):
         attrs = ['AssemblyInstruction', hex(self.address), self.mnemonic, self.args_str]
         return '<' + ' '.join(attrs) + '>'
 
+    def __hash__(self):
+        return hash((self.address, self.args_str))
+
     @property
     def args_str_resolved(self):
         """str: Attempt to resolve addresses in the args str into symbols."""

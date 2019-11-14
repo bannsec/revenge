@@ -33,6 +33,17 @@ trace_items = [item_call, item_ret, item_block, item_compile, item_exec]
 
 crackme_count_path = os.path.join(bin_location, "crackme_count")
 
+def test_assembly_instruction_hash():
+
+    p = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+
+    main = p.memory['basic_one:main']
+    exit = p.memory['exit']
+    assert hash(main.instruction) == hash(main.instruction)
+    assert hash(main.instruction) != hash(exit.instruction)
+
+    p.quit()
+
 def test_trace_include_function():
 
     p = revenge.Process(crackme_count_path, resume=False, verbose=False)
@@ -558,7 +569,7 @@ def test_basic_one_traceitem():
     repr(t2)
 
     assert isinstance(t2[0], TraceItem)
-
+    
     basic_one.quit()
 
 
