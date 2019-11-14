@@ -517,10 +517,27 @@ def test_memory_range_class():
     assert mr.readable
     assert mr.writable
     assert not mr.executable
+    assert hash(mr) == hash(mr)
 
-    mr = MemoryRange(util, 0x123, 0x5, 'rw-')
-    assert mr.file is None
-    assert mr.file_offset is None
+    mr2 = MemoryRange(util, 0x123, 0x5, 'rw-')
+    assert mr2.file is None
+    assert mr2.file_offset is None
+    assert hash(mr2) == hash(mr2)
+    assert hash(mr) != hash(mr2)
+
+    mr2_hash = hash(mr2)
+    mr2.base = 0x1337
+    assert mr2_hash != hash(mr2)
+    mr2_hash = hash(mr2)
+    mr2.size = 111
+    assert mr2_hash != hash(mr2)
+    mr2_hash = hash(mr2)
+    mr2.protection = "r--"
+    assert mr2_hash != hash(mr2)
+    mr2_hash = hash(mr2)
+    mr2._file = {'path': "blerg"}
+    assert mr2_hash != hash(mr2)
+
 
 def test_memory_repr_str():
 

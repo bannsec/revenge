@@ -19,6 +19,8 @@ class MemoryRange(object):
             value.append(self.file + ":" + hex(self.file_offset))
         return '<' + ' '.join(value) + '>'
 
+    def __hash__(self):
+        return hash((self.base, self.size, self.protection, self.file))
 
     @property
     def file(self):
