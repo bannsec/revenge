@@ -515,6 +515,9 @@ class Telescope(BasicBasic):
 
     def __rshift__(self, shift):
         return int(self) >> shift
+    
+    def __hash__(self):
+        return hash((self.address, self.type, self.thing, self.next, self.memory_range))
 
     @classmethod
     def from_dict(klass, process, d):

@@ -170,6 +170,8 @@ def test_telescope_class():
     assert scope.type == "int"
     assert scope.next.thing == "This is a test"
     assert scope.next.type == "string"
+    assert hash(scope) == hash(scope)
+    hash_prev = hash(scope)
     str(scope)
     repr(scope)
 
@@ -180,6 +182,9 @@ def test_telescope_class():
     assert scope.next.type == "int"
     assert scope.next.next.type == "string"
     assert scope.next.next.thing == "This is a test"
+    assert hash(scope) == hash(scope)
+    assert hash(scope) != hash_prev
+    hash_prev = hash(scope)
     str(scope)
     repr(scope)
 
@@ -190,6 +195,9 @@ def test_telescope_class():
     assert scope.next.type == "int"
     assert scope.next.next.type == "string"
     assert scope.next.next.thing == "This is a test"
+    assert hash(scope) == hash(scope)
+    assert hash(scope) != hash_prev
+    hash_prev = hash(scope)
     str(scope)
     repr(scope)
 
@@ -201,6 +209,9 @@ def test_telescope_class():
     assert scope.next.next.type == "int"
     assert scope.next.next.next.type == "string"
     assert scope.next.next.next.thing == "This is a test"
+    assert hash(scope) == hash(scope)
+    assert hash(scope) != hash_prev
+    hash_prev = hash(scope)
     str(scope)
     repr(scope)
 
@@ -211,6 +222,9 @@ def test_telescope_class():
     assert scope.next.type == "int"
     assert scope.next.next.type == "string"
     assert "stack" in scope.next.next.thing
+    assert hash(scope) == hash(scope)
+    assert hash(scope) != hash_prev
+    hash_prev = hash(scope)
     str(scope)
     repr(scope)
 
@@ -220,6 +234,9 @@ def test_telescope_class():
     assert scope.type == "int"
     assert scope.next.type == "int"
     assert scope.next.thing & 0xffff == 1337
+    assert hash(scope) == hash(scope)
+    assert hash(scope) != hash_prev
+    hash_prev = hash(scope)
     str(scope)
     repr(scope)
 
@@ -230,6 +247,9 @@ def test_telescope_class():
     assert scope.next.type == "int"
     assert scope.next.next.type == "int"
     assert scope.next.next.thing & 0xffff == 1337
+    assert hash(scope) == hash(scope)
+    assert hash(scope) != hash_prev
+    hash_prev = hash(scope)
     str(scope)
     repr(scope)
 
@@ -243,6 +263,9 @@ def test_telescope_class():
     assert isinstance(scope.next.next.thing, revenge.cpu.assembly.AssemblyInstruction)
     assert scope.next.next.thing.mnemonic == "push"
     assert scope.next.next.thing.operands[0]['value'] == "rbp"
+    assert hash(scope) == hash(scope)
+    assert hash(scope) != hash_prev
+    hash_prev = hash(scope)
     str(scope)
     repr(scope)
 
