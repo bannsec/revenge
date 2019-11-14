@@ -126,6 +126,7 @@ def test_contexts_amd64():
     assert x64.dil == 0x21
 
     assert x64.rip == 0x1234567887654321
+    assert hash(x64) == hash(x64)
 
     str(x64)
 
@@ -156,6 +157,9 @@ def test_contexts_amd64():
     assert isinstance(ctx.r13, types.Telescope)
     assert isinstance(ctx.r14, types.Telescope)
     assert isinstance(ctx.r15, types.Telescope)
+
+    assert hash(ctx) == hash(ctx)
+    assert hash(ctx) != hash(x64)
 
     basic_one.quit()
 
@@ -216,6 +220,8 @@ def test_contexts_x86():
 
     str(x86)
 
+    assert hash(x86) == hash(x86)
+
     #
     # Test Telescoping context
     #
@@ -232,5 +238,8 @@ def test_contexts_x86():
     assert isinstance(ctx.esi, types.Telescope)
     assert isinstance(ctx.esp, types.Telescope)
     assert isinstance(ctx.ebp, types.Telescope)
+
+    assert hash(ctx) == hash(ctx)
+    assert hash(ctx) != hash(x86)
 
     basic_one.quit()
