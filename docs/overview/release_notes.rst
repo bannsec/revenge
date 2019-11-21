@@ -2,6 +2,27 @@
 Release Notes
 =============
 
+Version 0.16
+============
+
+- Initial
+  :class:`~revenge.techniques.native_timeless_tracer.NativeTimelessTracer`
+  implementation is here! For more information, checkout
+  :ref:`NativeTimelessTracerTechnique-page`
+- Exposed frida's :meth:`~revenge.memory.MemoryBytes.on_enter` to allow for
+  more easily monitoring functions rather than replacing them
+- Overhaul of :class:`~revenge.types.Telescope`
+
+  - Implemented int/hex/bitand and rshift
+  - Telescopes are now implemented via hash consing. This is drastically
+    reduces the memory utilization when using the new NativeTimelessTracer.
+  - Refactor of underlying js code for handling telescoping
+- CPU Contexts now handle and print telescoping register values
+- :class:`~revenge.native_exception.NativeException` now telescopes the CPU
+  reigsters when returning an exception
+- Updated travis tests to enable testing on Android 10
+- Updated coveralls to merge results
+
 Version 0.15
 ============
 
