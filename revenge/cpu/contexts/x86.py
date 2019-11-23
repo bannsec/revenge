@@ -1,7 +1,6 @@
 import logging
 logger = logging.getLogger(__name__)
 
-from prettytable import PrettyTable
 from . import CPUContextBase
 
 class X86Context(CPUContextBase):
@@ -44,4 +43,3 @@ class X86Context(CPUContextBase):
 
     __slots__ = REGS
 
-from ... import types, common

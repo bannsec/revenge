@@ -3,6 +3,8 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+import colorama
+
 class CPUContextBase(object):
 
     __slots__ = ['_process', 'pc', 'sp', '__changed_registers']
@@ -55,13 +57,20 @@ class CPUContextBase(object):
         table.align = 'l'
 
         for reg in self.REGS:
+
+            # Highlight changed registers
+            if reg in self.changed_registers:
+                reg_colored = colorama.Fore.YELLOW + reg + colorama.Style.RESET_ALL
+            else:
+                reg_colored = reg
+
             thing = getattr(self, reg)
             
             if isinstance(thing, types.Telescope):
-                table.add_row([reg, thing.description])
+                table.add_row([reg_colored, thing.description])
 
             else:
-                table.add_row([reg, hex(getattr(self, reg))])
+                table.add_row([reg_colored, hex(getattr(self, reg))])
 
         return str(table)
 

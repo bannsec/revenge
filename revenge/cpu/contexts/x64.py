@@ -2,7 +2,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 from termcolor import cprint, colored
-from prettytable import PrettyTable
 
 from . import CPUContextBase
 
