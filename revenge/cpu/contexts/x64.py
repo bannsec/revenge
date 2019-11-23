@@ -4,8 +4,9 @@ logger = logging.getLogger(__name__)
 from termcolor import cprint, colored
 from prettytable import PrettyTable
 
+from . import CPUContextBase
 
-class X64Context(object):
+class X64Context(CPUContextBase):
     REGS = ['rip', 'rsp', 'rbp', 'rax', 'rbx', 'rcx', 'rdx', 'rsi', 'rdi', 'r8', 'r9', 'r10', 'r11', 'r12', 'r13', 'r14', 'r15']
     REGS_ALL = {
         'sp'  : 'self.rsp',
@@ -82,58 +83,7 @@ class X64Context(object):
         'rip' : 'self.rip',
     }
 
-    def __init__(self, process, diff=None, **registers):
-        """Represents a x86_64 CPU context.
-        
-        Args:
-            diff (CPUContext, optional): Build this context as a diff from a
-                previous context
-
-        Example:
-            X64Context(process, rax=12, rbx=13, <etc>)
-        """
-
-        self._process = process
-
-        if not isinstance(diff, (type(None), self.__class__)):
-            raise RevengeInvalidArgumentType("diff must be either None or an instance of {}".format(self.__class__))
-
-        # Copy over old diff first if need be
-        if diff is not None:
-            for reg in self.REGS:
-                setattr(self, reg, getattr(diff, reg))
-
-        # Generically set any registers we're given
-        for key, val in registers.items():
-
-            # If dict, assume it's telescope for now
-            if isinstance(val, dict):
-                setattr(self, key, types.Telescope(self._process, data=val))
-            else:
-                setattr(self, key, common.auto_int(val))
-
-    def __getattr__(self, attr):
-        return eval(X64Context.REGS_ALL[attr])
-
-    def __str__(self):
-        table = PrettyTable(["Register", "Value"])
-        table.align["Value"] = "l"
-
-
-        for reg in self.REGS:
-            thing = getattr(self, reg)
-            
-            if isinstance(thing, types.Telescope):
-                table.add_row([reg, thing.description])
-
-            else:
-                table.add_row([reg, hex(getattr(self, reg))])
-
-        return str(table)
-
-    def __hash__(self):
-        # Don't hash as a generator!
-        return hash(tuple(getattr(self, reg) for reg in self.REGS))
+    __slots__ = REGS
 
 from ... import types, common
 from ...exceptions import *

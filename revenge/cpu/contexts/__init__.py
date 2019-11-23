@@ -3,23 +3,82 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+class CPUContextBase(object):
+
+    __slots__ = ['_process', 'pc', 'sp']
+
+    def __init__(self, process, diff=None, **registers):
+        """Represents a CPU context.
+        
+        Args:
+            diff (CPUContext, optional): Build this context as a diff from a
+                previous context
+
+        Example:
+            CPUContext(process, rax=12, rbx=13, <etc>)
+        """
+
+        self._process = process
+
+        if not isinstance(diff, (type(None), self.__class__)):
+            raise RevengeInvalidArgumentType("diff must be either None or an instance of {}".format(self.__class__))
+
+        # Copy over old diff first if need be
+        if diff is not None:
+            for reg in self.REGS:
+                setattr(self, reg, getattr(diff, reg))
+
+        # Generically set any registers we're given
+        for key, val in registers.items():
+
+            # If dict, assume it's telescope for now
+            if isinstance(val, dict):
+                setattr(self, key, types.Telescope(self._process, data=val))
+            else:
+                setattr(self, key, common.auto_int(val))
+
+    def __getattr__(self, attr):
+        return eval(self.REGS_ALL[attr])
+
+    def __str__(self):
+        table = PrettyTable(["Register", "Value"])
+
+        table.align = 'l'
+
+        for reg in self.REGS:
+            thing = getattr(self, reg)
+            
+            if isinstance(thing, types.Telescope):
+                table.add_row([reg, thing.description])
+
+            else:
+                table.add_row([reg, hex(getattr(self, reg))])
+
+        return str(table)
+
+    def __hash__(self):
+        # Don't hash as a generator!
+        return hash(tuple(getattr(self, reg) for reg in self.REGS))
+
+
+class CPUContext(object):
+    
+    def __new__(klass, process, *args, **kwargs):
+        """Represents a CPU for this running process."""
+
+        arch = process.arch
+        
+        if arch == "x64":
+            return X64Context(process, *args, **kwargs)
+
+        elif arch == "ia32":
+            return X86Context(process, *args, **kwargs)
+
+        else:
+            logger.error("Currently unsupported architecture of {}".format(arch))
+
+from prettytable import PrettyTable
 from .x64 import X64Context
 from .x86 import X86Context
+from ... import types, common
 
-def CPUContext(process, *args, **kwargs):
-    """Build context from args. Will auto discover context type.
-    
-    Example:
-        context = Context(process, eax=1, ebx=2, ...)
-    """
-
-    arch = process.arch
-    
-    if arch == "x64":
-        return X64Context(process, *args, **kwargs)
-
-    elif arch == "ia32":
-        return X86Context(process, *args, **kwargs)
-
-    else:
-        logger.error("Currently unsupported architecture of {}".format(arch))
