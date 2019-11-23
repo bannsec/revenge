@@ -41,7 +41,7 @@ class X86Context(object):
         'eip' : 'self.eip',
     }
 
-    def __init__(self, process, **registers):
+    def __init__(self, process, diff=None, **registers):
         """Represents a x86 CPU context.
 
         Example:
@@ -49,6 +49,11 @@ class X86Context(object):
         """
 
         self._process = process
+
+        # Copy over old diff first if need be
+        if diff is not None:
+            for reg in self.REGS:
+                setattr(self, reg, getattr(diff, reg))
 
         # Generically set any registers we're given
         for key, val in registers.items():

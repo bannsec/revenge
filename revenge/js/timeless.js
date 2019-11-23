@@ -26,7 +26,10 @@ var x64_regs = ['pc', 'sp', 'rax', 'rcx', 'rdx', 'rbx', 'rsp', 'rbp', 'rsi', 'rd
 var x86_regs = ['pc', 'sp', 'eip', 'esp', 'ebp', 'eax', 'ebx', 'ecx', 'edx', 'esi', 'edi'];
 var timeless_module_map = new ModuleMap();
 
-function timeless_snapshot(obj) {
+// obj == object with context
+// diff_only == bool, should we only return what changed or return a full
+// object (default is false)
+function timeless_snapshot(obj, diff_only) {
     var ret = {};
     var resolved;
     ret.is_timeless_snapshot = true;
@@ -86,8 +89,13 @@ function timeless_snapshot(obj) {
                 timeless_snapshot.previous_context[reg] = ret.context[reg];
 
             } else {
-                // Copy over the old value
-                ret.context[reg] = timeless_snapshot.previous_context[reg];
+
+                // This is an already seen value, only copy if diff_only is NOT
+                // true
+                if ( diff_only !== true ) {
+                    // Copy over the old value
+                    ret.context[reg] = timeless_snapshot.previous_context[reg];
+                }
             }
         }
 
@@ -238,7 +246,7 @@ function timeless_parse_instruction(context) {
 
     var obj = {};
     obj.context = context;
-    obj = timeless_snapshot(obj);
+    obj = timeless_snapshot(obj, true); // using diff_only snapshotting for performance
 
     // TODO: Validate this... Currently, the only time this should happen is
     // when we end up stalking into Frida's own memory, which it tries to hide

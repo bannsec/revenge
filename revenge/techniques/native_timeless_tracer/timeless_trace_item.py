@@ -5,8 +5,18 @@ logger = logging.getLogger(__name__)
 
 class NativeTimelessTraceItem(object):
     
-    def __init__(self, process, context=None, depth=None):
+    def __init__(self, process, context=None, depth=None, previous=None):
+        """Class describing a single step of NativeTimelessTracing
+
+        Args:
+            process (revenge.Process): Process object
+            context (dict): Dictionary describing this step's context
+            depth (int): Current call depth
+            previous (NativeTimelessTraceItem, optional): Previous timeless
+                trace item to use for differential generation
+        """
         self._process = process
+        self._previous = previous
         self.context = context
         self.depth = depth
 
@@ -17,8 +27,15 @@ class NativeTimelessTraceItem(object):
         return "<{}>".format(' '.join(attrs))
 
     @classmethod
-    def from_snapshot(klass, process, snapshot):
-        """Creates a NativeTimelessTraceItem from a snapshot returned by timeless_snapshot()"""
+    def from_snapshot(klass, process, snapshot, previous=None):
+        """Creates a NativeTimelessTraceItem from a snapshot returned by timeless_snapshot()
+        
+        Args:
+            process (revenge.Process): Process object
+            snapshot (dict): Timeless snapshot dictionary
+            previous (NativeTimelessTraceItem, optional): Previous timeless
+                trace item to use for differential generation
+        """
 
         if not isinstance(snapshot, dict):
             raise RevengeInvalidArgumentType("Invalid type for from_snapshot of {}. Expecting dict.".format(type(snapshot)))
@@ -28,7 +45,7 @@ class NativeTimelessTraceItem(object):
 
         context = snapshot["context"]
         depth = snapshot["depth"]
-        return klass(process, context=context, depth=depth)
+        return klass(process, context=context, depth=depth, previous=previous)
 
     @property
     def instruction(self):
@@ -41,10 +58,11 @@ class NativeTimelessTraceItem(object):
 
     @context.setter
     def context(self, context):
+        diff = self._previous.context if self._previous is not None else None
 
         # TODO: This is an assumption...
         if isinstance(context, dict):
-            self.__context = CPUContext(self._process, **context)
+            self.__context = CPUContext(self._process, diff=diff, **context)
 
         elif context is None:
             self.__context = None

@@ -108,6 +108,10 @@ class NativeTimelessTrace(object):
 
         else:
             for item in items["payload"]:
-                self._trace.append(NativeTimelessTraceItem.from_snapshot(self._process, item))
 
+                # Previous item used for diff generation
+                previous_item = self._trace[-1] if self._trace != [] else None
+                self._trace.append(NativeTimelessTraceItem.from_snapshot(self._process, item, previous=previous_item))
+
+from pprint import pprint
 from .timeless_trace_item import NativeTimelessTraceItem
