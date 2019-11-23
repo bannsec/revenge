@@ -36,6 +36,10 @@ def test_memory_symbol_resolve():
     strlen3 = process.memory['strlen+0xf']
     assert strlen.address + 0xf == strlen3.address
 
+    func = process.memory['basic_one:func']
+    func2 = process.memory['basic_one:func+0x4']
+    assert func2.address == func.address + 4
+
     process.quit()
 
 def test_load_library():

@@ -47,7 +47,7 @@ class Modules(object):
 
         # First try to resolve with local symbol table
         try:
-            return self._symbol_to_address[module][symbol]
+            return self._symbol_to_address[module][symbol] + int(offset, 16)
         except KeyError:
             pass
         
