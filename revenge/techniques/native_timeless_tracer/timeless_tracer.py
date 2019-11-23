@@ -95,7 +95,7 @@ class NativeTimelessTracer(Technique):
         return str(table)
 
     def __iter__(self):
-        return self.traces.__iter__()
+        return self.traces.values().__iter__()
 
 # doc fixup
 NativeTimelessTracer.__doc__ = NativeTimelessTracer.__init__.__doc__

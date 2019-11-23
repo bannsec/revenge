@@ -25,7 +25,7 @@ def test_timeless_basic_two_i386():
 
     timeless = p.techniques.NativeTimelessTracer()
     timeless.apply()
-    t = timeless.traces[list(timeless)[0]]
+    t = list(timeless)[0]
     p.memory[p.entrypoint].breakpoint = False
 
     end_of_main = p.memory['timeless_two_i386:0x554'].address
@@ -209,7 +209,7 @@ def test_timeless_basic_three_amd64():
 
     timeless = p.techniques.NativeTimelessTracer()
     timeless.apply()
-    t = timeless.traces[list(timeless)[0]]
+    t = list(timeless)[0]
     p.memory[p.entrypoint].breakpoint = False
 
     t.wait_for(0x4005B1)
@@ -269,7 +269,7 @@ def test_timeless_basic_two_amd64():
 
     timeless = p.techniques.NativeTimelessTracer()
     timeless.apply()
-    t = timeless.traces[list(timeless)[0]]
+    t = list(timeless)[0]
     p.memory[p.entrypoint].breakpoint = False
 
     end_of_main = p.memory['timeless_two:0x6BB'].address
@@ -458,7 +458,7 @@ def test_timeless_basic_amd64():
     str(timeless)
 
     timeless.apply()
-    t = timeless.traces[list(timeless)[0]]
+    t = list(timeless)[0]
     p.memory[p.entrypoint].breakpoint = False
 
     # Right after decrypting
