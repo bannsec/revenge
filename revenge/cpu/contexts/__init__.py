@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 
 class CPUContextBase(object):
 
-    __slots__ = ['_process', 'pc', 'sp']
+    __slots__ = ['_process', 'pc', 'sp', '__changed_registers']
 
     def __init__(self, process, diff=None, **registers):
         """Represents a CPU context.
@@ -19,6 +19,7 @@ class CPUContextBase(object):
         """
 
         self._process = process
+        self.__changed_registers = []
 
         if not isinstance(diff, (type(None), self.__class__)):
             raise RevengeInvalidArgumentType("diff must be either None or an instance of {}".format(self.__class__))
@@ -31,11 +32,19 @@ class CPUContextBase(object):
         # Generically set any registers we're given
         for key, val in registers.items():
 
+            if diff:
+                self.changed_registers.append(key)
+
             # If dict, assume it's telescope for now
             if isinstance(val, dict):
                 setattr(self, key, types.Telescope(self._process, data=val))
             else:
                 setattr(self, key, common.auto_int(val))
+
+    @property
+    def changed_registers(self):
+        """list: What registers were changed with this step?"""
+        return self.__changed_registers
 
     def __getattr__(self, attr):
         return eval(self.REGS_ALL[attr])
