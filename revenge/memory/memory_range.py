@@ -1,8 +1,5 @@
-
 import logging
 logger = logging.getLogger(__name__)
-
-from .. import common, types, exceptions
 
 class MemoryRange(object):
 
@@ -12,6 +9,19 @@ class MemoryRange(object):
         self.size = size
         self.protection = protection
         self._file = file
+
+    def set_protection(self, read, write, execute):
+        """Sets the protection for this memory page.
+
+        Args:
+            read (bool): Allow read?
+            write (bool): Allow write?
+            execute (bool): Allow execute?
+
+        This will call appropriate mprotect or similar. This can be done
+        implicitly from the .protection property.
+        """
+        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
 
     def __repr__(self):
         value = ["MemoryRange", hex(self.base), '-', hex(self.base+self.size), self.protection]
@@ -70,13 +80,11 @@ class MemoryRange(object):
 
         # Set protection if it's not already this
         elif protection != self.protection:
-            self._process.run_script_generic("""Memory.protect({}, {}, '{}')""".format(
-                self.base.js,
-                hex(self.size),
-                protection,
-                ), raw=True, unload=True)
-
-            self.__protection = protection
+            self.set_protection(
+                protection[0] == "r",
+                protection[1] == "w",
+                protection[2] == "x",
+                )
 
     @property
     def size(self):
@@ -96,17 +104,5 @@ class MemoryRange(object):
     def base(self, base):
         self.__base = types.Pointer(common.auto_int(base))
 
-    @classmethod
-    def _from_frida_find_json(klass, process, d):
-        """Build this MemoryRange directly from Frida dictionary object.
-
-        This is returned from Process.findRangeByAddress(address) and others"""
-        #    process, base, size, protection, file=None
-        
-        if not isinstance(d, dict):
-            error = "d must be the dictionary object returned from frida."
-            logger.error(error)
-            raise exceptions.RevengeInvalidArgumentType(error)
-
-        return klass(process, base=d['base'], size=d['size'],
-                protection=d['protection'], file=d.get('file', None))
+import inspect
+from .. import common, types, exceptions

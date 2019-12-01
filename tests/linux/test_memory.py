@@ -14,7 +14,8 @@ import re
 import pytest
 
 import revenge
-from revenge.memory import MemoryRange
+#from revenge.memory import MemoryRange
+from revenge.engines.frida.memory import MemoryRange
 types = revenge.types
 common = revenge.common
 from revenge.exceptions import *

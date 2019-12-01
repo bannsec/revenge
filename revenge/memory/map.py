@@ -9,9 +9,6 @@ class MemoryMap(object):
     def __init__(self, process):
         self._process = process
 
-        ranges = self._process.run_script_generic("""send(Process.enumerateRangesSync(''));""", raw=True, unload=True)[0][0]
-        self._ranges = [MemoryRange(self._process, **range) for range in ranges]
-
     def __iter__(self):
         return self._ranges.__iter__()
 

@@ -8,6 +8,9 @@ import operator
 import struct
 from termcolor import cprint, colored
 
+import importlib
+import inspect
+
 from .. import common, types, symbols
 
 class Memory(object):
@@ -47,9 +50,17 @@ class Memory(object):
         # key == address of onEnter function, value = tuple: what it's being hooked with, script so we can unload later
         self._active_on_enter = {}
 
-        # key == hash (see MemoryBytes), value = dict of cache values
-        self._thread_call_cache = {}
+    def __new__(klass, process, engine=None):
+        
+        # If we're in a proper subclass, don't monkey with the engine
+        if engine is False:
+            return super(Memory, klass).__new__(klass)
 
+        if engine is None:
+            engine = process._engine
+
+        mod = importlib.import_module('...engines.{engine}.memory'.format(engine=engine), package=__name__)
+        return super(Memory, klass).__new__(mod.Memory)
 
     def alloc(self, size):
         """Allocate size bytes of memory and get a MemoryBytes object back to use it.
@@ -60,14 +71,7 @@ class Memory(object):
         Returns:
             revenge.memory.MemoryBytes: Object for the new memory location.
         """
-        
-        assert type(size) is int
-
-        pointer = common.auto_int(self._process.run_script_generic("""var p = Memory.alloc(uint64('{}')); send(p);""".format(hex(size)), raw=True, unload=False)[0][0])
-        script = self._process._scripts.pop(0) # We want to hold on to it here
-
-        self._allocated_memory[pointer] = script
-        return MemoryBytes(self._process, pointer, pointer+size)
+        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
 
     def alloc_struct(self, struct):
         """Short-hand to alloc appropriate space for the struct and write it in.
@@ -79,7 +83,6 @@ class Memory(object):
             revenge.types.Struct: The original struct, but now bound to the
             new memory location.
         """
-        
         if not isinstance(struct, types.Struct):
             error = "Struct should be of type revenge.types.Struct. Got {}".format(type(struct))
             logger.error(error)
@@ -98,7 +101,6 @@ class Memory(object):
 
         # Return the struct
         return struct
-
 
     def alloc_string(self, s, encoding='latin-1'):
         """Short-hand to run alloc of appropriate size, then write in the string.
@@ -141,7 +143,7 @@ class Memory(object):
 
     def find(self, *args, **kwargs):
         """Search for thing in memory. Must be one of the defined types."""
-        return MemoryFind(self._process, *args, **kwargs)
+        return self._MemoryFind(self._process, *args, **kwargs)
 
     def describe_address(self, address, color=False):
         """Takes in address and attempts to return a better description of what's there.
@@ -206,82 +208,6 @@ class Memory(object):
 
         return desc
 
-    def create_c_function(self, func_str, **kwargs):
-        """Compile and inject function from c string definition.
-
-        Args:
-            func_str (str): The string to compile and inject.
-            **kwargs (optional): Keyword arguments will be used to expose
-                other functions in the binary. See examples.
-
-        Returns:
-            revenge.memory.MemoryBytes: Instantitated object, ready for calling.
-
-        Examples:
-            .. code-block:: python3
-
-                func = r"int add(int x, int y) { return x+y; }"
-                add = process.memory.create_c_function(func)
-                assert add(1,2) == 3
-
-                # If we want to call "time", we need to call it dynamically at
-                # runtime. kwargs are used to simplify this.
-                time = process.memory[':time']
-                time.argument_types = types.Int
-                time.return_type = types.Int
-                func = r"int do_time() { return time(0); }"
-                do_time = process.memory.create_c_function(func, time=time)
-                do_time()
-
-                # OR
-                strlen = process.memory[':strlen']
-
-                strlen.argument_types = types.StringUTF8
-                strlen.return_type = types.Int
-
-                my_strlen = process.memory.create_c_function(r\"\"\"
-                    int my_strlen(char *s) { return strlen(s); }
-                    \"\"\", strlen=strlen)
-
-                assert my_strlen("blerg") == 5
-        """
-        
-        # q = p.memory.create_c_function(r"""int q2() { return ((int (*)(int)) 0x7fffde1caf10)(0); }""")
-        # q = p.memory.create_c_function(r"""int (*t)(int) = (int (*)(int)) 0x7fffde1caf10;""") 
-        # TODO: Integrate c parsing into this to discover and set arg and return types
-        js = r"""var f = new CModule("{func}"); send(f);"""
-
-        # Add in any runtime resolutions (such as function calls)
-        for name, mem_bytes in kwargs.items():
-            if not isinstance(mem_bytes, MemoryBytes):
-                raise exceptions.RevengeInvalidArgumentType("Dynamic function calls must be of type MemoryBytes.")
-
-            mem_bytes.name = name
-            func_str = mem_bytes._dynamic_assembly_call_str + "\n" + func_str
-
-        func_str = func_str.replace("\n", "\\\n")
-        js = js.format(func=func_str.replace('"','\"'))
-
-        logger.debug("CModule inject: " + js)
-        out = self._process.run_script_generic(js, raw=True, unload=False, runtime='v8')[0][0]
-        
-        ret = []
-        for func_name, func_addr in out.items():
-            # Ignoring our injected things
-            if func_name in kwargs.keys():
-                continue
-
-            func_addr = common.auto_int(func_addr)
-            logger.debug("Found injected function '{}' at '{}'".format(func_name, hex(func_addr)))
-            ret.append(self._process.memory[func_addr])
-
-        logger.warning("This method does not auto-set your function arguments or return type for you yet. Be aware.")
-
-        if len(ret) == 1:
-            return ret[0]
-
-        return ret
-
     def _type_to_search_string(self, thing):
         """Converts the given object into something relevant that can be fed into a memory search query."""
 
@@ -341,7 +267,7 @@ class Memory(object):
             item = int(item)
 
         if isinstance(item, int):
-            return MemoryBytes(self._process, item)
+            return self._MemoryBytes(self._process, item)
 
         elif type(item) == slice:
 
@@ -349,7 +275,7 @@ class Memory(object):
                 logger.error("Memory slices must have start and stop and not contain a step option.")
                 return
 
-            return MemoryBytes(self._process, item.start, item.stop)
+            return self._MemoryBytes(self._process, item.start, item.stop)
 
         logger.error("Unhandled memory type of {}".format(type(item)))
 
@@ -412,7 +338,7 @@ class Memory(object):
     @property
     def maps(self):
         """Return a list of memory ranges that are currently allocated."""
-        return MemoryMap(self._process)
+        return self._MemoryMap(self._process)
 
     def __str__(self):
         
@@ -430,10 +356,5 @@ class Memory(object):
 
         return str(table)
 
-from . import MemoryBytes
-from . import MemoryRange
-from . import MemoryFind
-from . import MemoryMap
 from ..exceptions import *
-
-Memory.find.__doc__ = MemoryFind.__init__.__doc__
+#Memory.find.__doc__ = MemoryFind.__init__.__doc__

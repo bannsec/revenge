@@ -26,7 +26,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 class Process(object):
 
     def __init__(self, target, resume=False, verbose=False, load_symbols=None,
-            device=None, envp=None):
+            device=None, envp=None, engine=None):
         """
 
         Args:
@@ -41,6 +41,8 @@ class Process(object):
             envp (dict, optional): Specify what you want the environment
                 pointer list to look like. Defaults to whatever the current
                 envp is.
+            engine (str, optional): What engine to use. Options are in
+                revenge.engines. Default: frida
 
         Examples:
             .. code-block:: python3
@@ -54,6 +56,7 @@ class Process(object):
 
         # Just variable to ensure we don't garbage collect
         self._scripts = []
+        self._engine = engine if engine is not None else "frida"
         # Cache common module addrs
         self._module_by_addr_cache = {}
         self.session = None

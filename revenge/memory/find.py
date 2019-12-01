@@ -22,16 +22,11 @@ class MemoryFind(object):
         self.thing = thing
         self.ranges = ranges
 
-        # Loaded script to unload once we're done
-        self._script = None
-
         # Not completed yet
         self.completed = False
 
         # Memory locations we discovered
         self.found = set()
-
-        self._start()
 
     def sleep_until_completed(self):
         """This call sleeps and only returns once the search is completed."""
@@ -41,34 +36,7 @@ class MemoryFind(object):
 
     def _start(self):
         """Starts the search."""
-
-        replace = {
-                "SCAN_PATTERN_HERE": self.search_string,
-                "SEARCH_SPACE_HERE": json.dumps(self._ranges_js),
-                }
-
-        self._process.run_script_generic("find_in_memory.js", replace=replace, unload=False, on_message=self._on_message)
-        self._script = self._process._scripts.pop(0)
-
-    def _on_message(self, m,d):
-        """Catch messages from our search."""
-        payload = m['payload']
-
-        if type(payload) is list:
-            for addr in payload:
-                self.found.add(types.Pointer(common.auto_int(addr['address'])))
-        
-        elif type(payload) is str and payload == 'DONE':
-            self.completed = True
-
-        else:
-            logger.error("Unexpected message: {} {}".format(m,d))
-
-    def __del__(self):
-        # Be sure to unload our script
-        if self._script is not None:
-            self._script[0].unload()
-            self._script = None
+        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
 
     def __repr__(self):
         attr = ["MemoryFind"]
@@ -100,11 +68,6 @@ class MemoryFind(object):
         assert type(completed) is bool
         self.__completed = completed
 
-        # Clean up our search script when we're done.
-        if completed and self._script is not None:
-            self._script[0].unload()
-            self._script = None
-
     @property
     def search_string(self):
         """The search string for this thing."""
@@ -124,16 +87,6 @@ class MemoryFind(object):
             raise Exception(error)
 
         self.__thing = thing
-
-    @property
-    def _ranges_js(self):
-        """Returns the ranges as a list for insertion into js."""
-        l = []
-        for range in self.ranges:
-            d = {'base': range.base.js, 'size': range.size}
-            l.append(d)
-
-        return l
 
     @property
     def ranges(self):
@@ -161,4 +114,5 @@ class MemoryFind(object):
 
         self.__ranges = ranges
 
+import inspect
 from . import MemoryRange

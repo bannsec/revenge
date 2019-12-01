@@ -2,7 +2,6 @@ Native
 ======
 
 .. toctree::
-    :glob:
     :caption: Native
 
     cpu

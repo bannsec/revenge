@@ -466,6 +466,7 @@ class Struct(Pointer):
         return int(self)
 
 class Telescope(BasicBasic):
+    # TODO: Telescope needs to be abstracted by engine
     _flyweight_cache = weakref.WeakValueDictionary()
 
     def __init__(self, process, address=None, data=None):
@@ -638,7 +639,8 @@ class Telescope(BasicBasic):
 frida_types = (Pointer, Int8, UInt8, Int16, UInt16, Int32, UInt32, Int64, UInt64, Char, UChar, Short, UShort, Int, UInt, Long, ULong, Float, Double)
 all_types = frida_types + (Struct, Padding, StringUTF8, StringUTF16)
 
-from .memory import MemoryBytes, MemoryRange
+from .memory import MemoryBytes
+from .engines.frida.memory import MemoryRange
 from .process import Process
 from .symbols import Symbol
 from .cpu.assembly import AssemblyInstruction
