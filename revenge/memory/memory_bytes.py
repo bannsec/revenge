@@ -138,7 +138,7 @@ class MemoryBytes(object):
         """Call this memory location as a function.
         
         *args will be parsed and passed to the actual function
-        **kwargs will be passed to Process.run_script_generic
+        **kwargs will be passed to Process.engine.run_script_generic
         """
         pass
 

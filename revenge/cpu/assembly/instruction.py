@@ -78,7 +78,7 @@ class AssemblyInstruction(object):
         self.__groups = inst['groups']
 
     def _load_from_address(self):
-        inst = self._process.run_script_generic("""send(Instruction.parse({}));""".format(self.address.js), raw=True, unload=True)[0][0]
+        inst = self._process.engine.run_script_generic("""send(Instruction.parse({}));""".format(self.address.js), raw=True, unload=True)[0][0]
         self._parse_instruction(inst)
 
     def __str__(self):

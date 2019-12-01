@@ -22,7 +22,7 @@ class NativeTimelessTrace(object):
     def start(self):
         """Start tracing."""
         s = "timeless_trace({})".format(self._thread.id)
-        self._process.run_script_generic(s, 
+        self._process.engine.run_script_generic(s, 
                 raw=True,
                 include_js=("dispose.js", "send_batch.js", "stalk.js", "telescope.js", "timeless.js"),
                 unload=False,
@@ -30,7 +30,7 @@ class NativeTimelessTrace(object):
                 runtime='v8'
         )
 
-        self._script = self._process._scripts.pop(0)
+        self._script = self._process.engine._scripts.pop(0)
         self._process.techniques._active_stalks[self._thread.id] = self
 
     def stop(self):

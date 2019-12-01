@@ -346,7 +346,7 @@ class JavaClass(object):
             )
         
         # Save it off
-        self._process.java._implementations[str(self)] = [implementation] + self._process._scripts.pop(0)
+        self._process.java._implementations[str(self)] = [implementation] + self._process.engine._scripts.pop(0)
 
     @property
     def _implementation_message(self):

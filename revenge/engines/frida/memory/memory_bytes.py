@@ -185,7 +185,7 @@ class FridaMemoryBytes(MemoryBytes):
         """Call this memory location as a function.
         
         *args will be parsed and passed to the actual function
-        **kwargs will be passed to Process.run_script_generic
+        **kwargs will be passed to Process.engine.run_script_generic
         """
 
         # Generically use pointers and figure it out later
@@ -260,7 +260,7 @@ class FridaMemoryBytes(MemoryBytes):
 
         
         # Something about v8 is broken here... Breaks after doing a function replace->call. Not sure why.
-        ret = self._process.run_script_generic(js, raw=True, unload=True, runtime='duk', **kwargs)
+        ret = self._process.engine.run_script_generic(js, raw=True, unload=True, runtime='duk', **kwargs)
 
         # If we changed on_message or context, this might be None. That's ok.
         if ret is None:
@@ -412,8 +412,8 @@ class FridaMemoryBytes(MemoryBytes):
                 "FUNCTION_ARG_TYPES": str([])
             }
 
-            self._process.run_script_generic("replace_function.js", replace=replace_vars, unload=False, runtime='v8')
-            script = self._process._scripts.pop(0)
+            self._process.engine.run_script_generic("replace_function.js", replace=replace_vars, unload=False, runtime='v8')
+            script = self._process.engine._scripts.pop(0)
             self._process.memory._active_replacements[self.address] = (replace, script)
 
         #
@@ -436,10 +436,10 @@ class FridaMemoryBytes(MemoryBytes):
                 "FUNCTION_ARG_TYPES": arg_types
             }
 
-            self._process.run_script_generic("replace_function.js",
+            self._process.engine.run_script_generic("replace_function.js",
                     replace=replace_vars, unload=False,
                     on_message=self.replace_on_message)
-            script = self._process._scripts.pop(0)
+            script = self._process.engine._scripts.pop(0)
             self._process.memory._active_replacements[self.address] = (replace, script)
 
         else:
@@ -487,7 +487,7 @@ class FridaMemoryBytes(MemoryBytes):
 
         if isinstance(on_enter, str):
 
-            self._process.run_script_generic("""var listener = Interceptor.attach({this_func}, {{onEnter: {on_enter}}});""".format(
+            self._process.engine.run_script_generic("""var listener = Interceptor.attach({this_func}, {{onEnter: {on_enter}}});""".format(
                         this_func = self.address.js,
                         on_enter = on_enter,
                     ),
@@ -495,7 +495,7 @@ class FridaMemoryBytes(MemoryBytes):
                     on_message=self.replace_on_message,
                     runtime='v8',
                     )
-            script = self._process._scripts.pop(0)
+            script = self._process.engine._scripts.pop(0)
             self._process.memory._active_on_enter[self.address] = (on_enter, script)
 
         else:
@@ -513,128 +513,128 @@ class FridaMemoryBytes(MemoryBytes):
     @property
     def int8(self):
         """Signed 8-bit int"""
-        return types.Int8(self._process.run_script_generic("""send(ptr("{}").readS8())""".format(hex(self.address)), raw=True, unload=True)[0][0])
+        return types.Int8(self._process.engine.run_script_generic("""send(ptr("{}").readS8())""".format(hex(self.address)), raw=True, unload=True)[0][0])
 
     @int8.setter
     def int8(self, val):
-        self._process.run_script_generic("""send(ptr("{}").writeS8({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
+        self._process.engine.run_script_generic("""send(ptr("{}").writeS8({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
 
     @property
     def uint8(self):
         """Unsigned 8-bit int"""
-        return types.UInt8(self._process.run_script_generic("""send(ptr("{}").readU8())""".format(hex(self.address)), raw=True, unload=True)[0][0])
+        return types.UInt8(self._process.engine.run_script_generic("""send(ptr("{}").readU8())""".format(hex(self.address)), raw=True, unload=True)[0][0])
 
     @uint8.setter
     def uint8(self, val):
-        self._process.run_script_generic("""send(ptr("{}").writeU8({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
+        self._process.engine.run_script_generic("""send(ptr("{}").writeU8({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
 
     @property
     def int16(self):
         """Signed 16-bit int"""
-        return types.Int16(self._process.run_script_generic("""send(ptr("{}").readS16())""".format(hex(self.address)), raw=True, unload=True)[0][0])
+        return types.Int16(self._process.engine.run_script_generic("""send(ptr("{}").readS16())""".format(hex(self.address)), raw=True, unload=True)[0][0])
 
     @int16.setter
     def int16(self, val):
-        self._process.run_script_generic("""send(ptr("{}").writeS16({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
+        self._process.engine.run_script_generic("""send(ptr("{}").writeS16({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
 
     @property
     def uint16(self):
         """Unsigned 16-bit int"""
-        return types.UInt16(self._process.run_script_generic("""send(ptr("{}").readU16())""".format(hex(self.address)), raw=True, unload=True)[0][0])
+        return types.UInt16(self._process.engine.run_script_generic("""send(ptr("{}").readU16())""".format(hex(self.address)), raw=True, unload=True)[0][0])
 
     @uint16.setter
     def uint16(self, val):
-        self._process.run_script_generic("""send(ptr("{}").writeU16({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
+        self._process.engine.run_script_generic("""send(ptr("{}").writeU16({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
 
     @property
     def int32(self):
         """Signed 32-bit int"""
-        return types.Int32(self._process.run_script_generic("""send(ptr("{}").readS32())""".format(hex(self.address)), raw=True, unload=True)[0][0])
+        return types.Int32(self._process.engine.run_script_generic("""send(ptr("{}").readS32())""".format(hex(self.address)), raw=True, unload=True)[0][0])
 
     @int32.setter
     def int32(self, val):
-        self._process.run_script_generic("""send(ptr("{}").writeS32({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
+        self._process.engine.run_script_generic("""send(ptr("{}").writeS32({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
 
     @property
     def uint32(self):
         """Unsigned 32-bit int"""
-        return types.UInt32(self._process.run_script_generic("""send(ptr("{}").readU32())""".format(hex(self.address)), raw=True, unload=True)[0][0])
+        return types.UInt32(self._process.engine.run_script_generic("""send(ptr("{}").readU32())""".format(hex(self.address)), raw=True, unload=True)[0][0])
 
     @uint32.setter
     def uint32(self, val):
-        self._process.run_script_generic("""send(ptr("{}").writeU32({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
+        self._process.engine.run_script_generic("""send(ptr("{}").writeU32({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
 
     @property
     def int64(self):
         """Signed 64-bit int"""
-        return types.Int64(common.auto_int(self._process.run_script_generic("""send(ptr("{}").readS64())""".format(hex(self.address)), raw=True, unload=True)[0][0]))
+        return types.Int64(common.auto_int(self._process.engine.run_script_generic("""send(ptr("{}").readS64())""".format(hex(self.address)), raw=True, unload=True)[0][0]))
 
     @int64.setter
     def int64(self, val):
-        self._process.run_script_generic("""ptr("{}").writeS64(int64('{}'))""".format(hex(self.address), val), raw=True, unload=True)
+        self._process.engine.run_script_generic("""ptr("{}").writeS64(int64('{}'))""".format(hex(self.address), val), raw=True, unload=True)
     
     @property
     def uint64(self):
         """Unsigned 64-bit int"""
-        return types.UInt64(common.auto_int(self._process.run_script_generic("""send(ptr("{}").readU64())""".format(hex(self.address)), raw=True, unload=True)[0][0]))
+        return types.UInt64(common.auto_int(self._process.engine.run_script_generic("""send(ptr("{}").readU64())""".format(hex(self.address)), raw=True, unload=True)[0][0]))
 
     @uint64.setter
     def uint64(self, val):
-        self._process.run_script_generic("""ptr("{}").writeU64(uint64('{}'))""".format(hex(self.address), val), raw=True, unload=True)
+        self._process.engine.run_script_generic("""ptr("{}").writeU64(uint64('{}'))""".format(hex(self.address), val), raw=True, unload=True)
 
     @property
     def string_ansi(self):
         """Read as ANSI string"""
-        return self._process.run_script_generic("""send(ptr("{}").readAnsiString())""".format(hex(self.address)), raw=True, unload=True)[0][0]
+        return self._process.engine.run_script_generic("""send(ptr("{}").readAnsiString())""".format(hex(self.address)), raw=True, unload=True)[0][0]
 
     @string_ansi.setter
     def string_ansi(self, val):
-        self._process.run_script_generic("""send(ptr("{}").writeAnsiString(\"{}\"))""".format(hex(self.address), val), raw=True, unload=True)
+        self._process.engine.run_script_generic("""send(ptr("{}").writeAnsiString(\"{}\"))""".format(hex(self.address), val), raw=True, unload=True)
 
     @property
     def string_utf8(self):
         """Read as utf-8 string"""
-        return self._process.run_script_generic("""send(ptr("{}").readUtf8String())""".format(hex(self.address)), raw=True, unload=True)[0][0]
+        return self._process.engine.run_script_generic("""send(ptr("{}").readUtf8String())""".format(hex(self.address)), raw=True, unload=True)[0][0]
 
     @string_utf8.setter
     def string_utf8(self, val):
-        self._process.run_script_generic("""send(ptr("{}").writeUtf8String(\"{}\"))""".format(hex(self.address), val), raw=True, unload=True)
+        self._process.engine.run_script_generic("""send(ptr("{}").writeUtf8String(\"{}\"))""".format(hex(self.address), val), raw=True, unload=True)
 
     @property
     def string_utf16(self):
         """Read as utf-16 string"""
-        return self._process.run_script_generic("""send(ptr("{}").readUtf16String())""".format(hex(self.address)), raw=True, unload=True)[0][0]
+        return self._process.engine.run_script_generic("""send(ptr("{}").readUtf16String())""".format(hex(self.address)), raw=True, unload=True)[0][0]
 
     @string_utf16.setter
     def string_utf16(self, val):
-        self._process.run_script_generic("""send(ptr("{}").writeUtf16String(\"{}\"))""".format(hex(self.address), val), raw=True, unload=True)
+        self._process.engine.run_script_generic("""send(ptr("{}").writeUtf16String(\"{}\"))""".format(hex(self.address), val), raw=True, unload=True)
 
     @property
     def double(self):
         """Read as double val"""
-        return types.Double(self._process.run_script_generic("""send(ptr("{}").readDouble())""".format(hex(self.address)), raw=True, unload=True)[0][0])
+        return types.Double(self._process.engine.run_script_generic("""send(ptr("{}").readDouble())""".format(hex(self.address)), raw=True, unload=True)[0][0])
 
     @double.setter
     def double(self, val):
-        self._process.run_script_generic("""send(ptr("{}").writeDouble({}))""".format(hex(self.address), val), raw=True, unload=True)
+        self._process.engine.run_script_generic("""send(ptr("{}").writeDouble({}))""".format(hex(self.address), val), raw=True, unload=True)
 
     @property
     def float(self):
         """Read as float val"""
-        return types.Float(self._process.run_script_generic("""send(ptr("{}").readFloat())""".format(hex(self.address)), raw=True, unload=True)[0][0])
+        return types.Float(self._process.engine.run_script_generic("""send(ptr("{}").readFloat())""".format(hex(self.address)), raw=True, unload=True)[0][0])
 
     @float.setter
     def float(self, val):
-        self._process.run_script_generic("""send(ptr("{}").writeFloat({}))""".format(hex(self.address), val), raw=True, unload=True)
+        self._process.engine.run_script_generic("""send(ptr("{}").writeFloat({}))""".format(hex(self.address), val), raw=True, unload=True)
     
     @property
     def pointer(self):
         """Read as pointer val"""
-        return types.Pointer(common.auto_int(self._process.run_script_generic("""send(ptr("{}").readPointer())""".format(hex(self.address)), raw=True, unload=True)[0][0]))
+        return types.Pointer(common.auto_int(self._process.engine.run_script_generic("""send(ptr("{}").readPointer())""".format(hex(self.address)), raw=True, unload=True)[0][0]))
 
     @pointer.setter
     def pointer(self, val):
-        common.auto_int(self._process.run_script_generic("""send(ptr("{}").writePointer(ptr("{}")))""".format(hex(self.address), hex(val)), raw=True, unload=True)[0][0])
+        common.auto_int(self._process.engine.run_script_generic("""send(ptr("{}").writePointer(ptr("{}")))""".format(hex(self.address), hex(val)), raw=True, unload=True)[0][0])
 
     @property
     def breakpoint(self):
@@ -654,7 +654,7 @@ class FridaMemoryBytes(MemoryBytes):
                 return
 
             # Remove breakpoint
-            self._process.run_script_generic("""ptr("{}").writeS8(1);""".format(hex(self._process.memory._active_breakpoints[self.address])), raw=True, unload=True)
+            self._process.engine.run_script_generic("""ptr("{}").writeS8(1);""".format(hex(self._process.memory._active_breakpoints[self.address])), raw=True, unload=True)
             self._process.memory._active_breakpoints.pop(self.address)
 
         # Add breakpoint
@@ -663,7 +663,7 @@ class FridaMemoryBytes(MemoryBytes):
             if self.breakpoint:
                 return
 
-            unbreak = int(self._process.run_script_generic('generic_suspend_until_true.js', replace={"FUNCTION_HERE": hex(self.address)})[0][0],16)
+            unbreak = int(self._process.engine.run_script_generic('generic_suspend_until_true.js', replace={"FUNCTION_HERE": hex(self.address)})[0][0],16)
             #print('Unsuspend pointer: ' + hex(unbreak))
             self._process.memory._active_breakpoints[self.address] = unbreak
 
@@ -676,7 +676,7 @@ class FridaMemoryBytes(MemoryBytes):
         else:
             length = self.address_stop - self.address
 
-        return self._process.run_script_generic("""send('array', ptr("{}").readByteArray({}))""".format(hex(self.address), hex(length)), raw=True, unload=True)[1][0]
+        return self._process.engine.run_script_generic("""send('array', ptr("{}").readByteArray({}))""".format(hex(self.address), hex(length)), raw=True, unload=True)[1][0]
 
     @bytes.setter
     def bytes(self, b):
@@ -692,7 +692,7 @@ class FridaMemoryBytes(MemoryBytes):
         if self.size is not None and len(b) > self.size:
             logger.warning("Writing more bytes than it appears is allocated.")
 
-        self._process.run_script_generic("""ptr("{}").writeByteArray({});""".format(
+        self._process.engine.run_script_generic("""ptr("{}").writeByteArray({});""".format(
             hex(self.address),
             json.dumps(list(b)),
             ), raw=True, unload=True)

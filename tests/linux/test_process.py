@@ -47,7 +47,7 @@ def test_send_batch_js_include():
     # Test drain interval (500ms)
     #
 
-    process.run_script_generic(r"""send_batch(1); send_batch(2); send_batch(3);""",
+    process.engine.run_script_generic(r"""send_batch(1); send_batch(2); send_batch(3);""",
             include_js=['dispose.js', 'send_batch.js'], raw=True, unload=False,
             timeout=0, on_message=on_message)
 
@@ -61,7 +61,7 @@ def test_send_batch_js_include():
     # Test dispose before drain
     #
 
-    process.run_script_generic(r"""send_batch(1); send_batch(2); send_batch(3);""",
+    process.engine.run_script_generic(r"""send_batch(1); send_batch(2); send_batch(3);""",
             include_js=['dispose.js', 'send_batch.js'], raw=True, unload=True,
             on_message=on_message)
 
@@ -166,7 +166,7 @@ def test_process_run_script_generic_async():
     x = list(basic_one.memory.maps)[0]
 
     # Async mem scan
-    out = basic_one.run_script_generic(r"Memory.scan(ptr('{addr}'), 1024, '00', {{onMatch: function (i, size) {{ send(i); }}, onComplete: function () {{send('DONE');}}}});".format(addr=hex(x.base)), unload=True, raw=True, onComplete="DONE")
+    out = basic_one.engine.run_script_generic(r"Memory.scan(ptr('{addr}'), 1024, '00', {{onMatch: function (i, size) {{ send(i); }}, onComplete: function () {{send('DONE');}}}});".format(addr=hex(x.base)), unload=True, raw=True, onComplete="DONE")
 
     # For now, just make sure we got something back
     assert out[0][0] != []
@@ -182,8 +182,8 @@ def test_process_run_script_generic_include_js():
 
     process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
 
-    process.run_script_generic("add_echo()", raw=True, on_message=on_message, unload=False, include_js="echo.js")
-    script = process._scripts[0][0]
+    process.engine.run_script_generic("add_echo()", raw=True, on_message=on_message, unload=False, include_js="echo.js")
+    script = process.engine._scripts[0][0]
     script.exports.echo("blergy")
     time.sleep(0.1)
     assert len(messages) == 1
@@ -203,7 +203,7 @@ def test_process_run_script_generic_include_js_dispose():
 
     script = """dispose_push(function () {{ {}.writeS32(1337); }}); dispose_push(function () {{ {}.writeS32(1337); }});""".format(mem1.address.js, mem2.address.js)
 
-    process.run_script_generic(script, raw=True, unload=True, include_js="dispose.js")
+    process.engine.run_script_generic(script, raw=True, unload=True, include_js="dispose.js")
 
     assert mem1.int32 == 1337
     assert mem2.int32 == 1337

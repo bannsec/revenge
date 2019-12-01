@@ -70,7 +70,7 @@ def test_frida_thread_dummy():
     process = revenge.Process(basic_threads_path, resume=False, verbose=False, load_symbols='basic_threads')
 
     # Frida hides it's own threads from you. revenge will create a dummy thread object when this is requested
-    tid = process.run_script_generic(r"""send(Process.getCurrentThreadId())""", unload=True, raw=True)[0][0]
+    tid = process.engine.run_script_generic(r"""send(Process.getCurrentThreadId())""", unload=True, raw=True)[0][0]
     t = process.threads[tid]
     assert t.id == tid
 

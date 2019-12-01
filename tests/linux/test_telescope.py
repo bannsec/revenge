@@ -48,7 +48,7 @@ def test_telescope_int_hex():
 def test_telescope_js_basic():
 
     def do_telescope(addr):
-        return process.run_script_generic("send(telescope(ptr('{}')))".format(hex(addr)), raw=True, unload=True, include_js="telescope.js")[0][0]
+        return process.engine.run_script_generic("send(telescope(ptr('{}')))".format(hex(addr)), raw=True, unload=True, include_js="telescope.js")[0][0]
 
     process = revenge.Process(telescope_path, resume=True, verbose=False)
 

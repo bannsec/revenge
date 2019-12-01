@@ -13,7 +13,7 @@ class FridaMemoryRange(MemoryRange):
             "x" if execute else "-"
         )
 
-        self._process.run_script_generic("""Memory.protect({}, {}, '{}')""".format(
+        self._process.engine.run_script_generic("""Memory.protect({}, {}, '{}')""".format(
             self.base.js,
             hex(self.size),
             protection,

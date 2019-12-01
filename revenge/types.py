@@ -502,7 +502,7 @@ class Telescope(BasicBasic):
         return telescope
 
     def _telescope(self):
-        d = self._process.run_script_generic(r"""send(telescope({}));""".format(
+        d = self._process.engine.run_script_generic(r"""send(telescope({}));""".format(
                 int(self.address)),
             raw=True,
             include_js="telescope.js",
@@ -599,7 +599,7 @@ class Telescope(BasicBasic):
 
         self.__address = address
         self._parse_dict(
-            self._process.run_script_generic(
+            self._process.engine.run_script_generic(
                     r"""send(telescope({}));""".format(self.address),
                     raw=True,
                     include_js="telescope.js",

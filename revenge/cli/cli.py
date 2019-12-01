@@ -110,7 +110,7 @@ def replace_function(process, f):
             "FUNCTION_ADDRESS_HERE": hex(replace_location),
             }
 
-    self.run_script_generic("replace_function.js", replace=replace_vars)
+    self.engine.run_script_generic("replace_function.js", replace=replace_vars)
 
 def main():
     args = parse_args()
@@ -119,7 +119,7 @@ def main():
 
     if args.rw_everything:
         print("RW'ing memory areas\t\t... ", end='', flush=True)
-        process.run_script_generic('rw_everything.js', unload=True)
+        process.engine.run_script_generic('rw_everything.js', unload=True)
         cprint('[ DONE ]', 'green')
 
 

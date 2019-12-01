@@ -117,7 +117,7 @@ class BatchContext(object):
         self.return_buffer_size = return_buffer_size or 1024
         self.on_message = on_message
         self._script = None
-        self._proxy_run_script_generic = run_script_generic or self._process.run_script_generic
+        self._proxy_run_script_generic = run_script_generic or self._process.engine.run_script_generic
         self._handler_pre = handler_pre or ""
         self._handler_post = handler_post or ""
 
@@ -130,11 +130,11 @@ class BatchContext(object):
         Args:
             script (str): This is the script that will be evaluated by js.
         
-        This should be called from Process.run_script_generic since that will
+        This should be called from Process.engine.run_script_generic since that will
         take care of the pre-processing for this.
 
         IF YOU CALL THIS DIRECTLY, IT'S ON YOU TO MAKE SURE THINGS ARE
-        FORMATTED CORRECTLY! USE Process.run_script_generic INSTEAD!
+        FORMATTED CORRECTLY! USE Process.engine.run_script_generic INSTEAD!
         """
 
         # Process.run_script_generic gets called with this context
@@ -236,7 +236,7 @@ class BatchContext(object):
                 on_message=self._context_on_message,
                 )
 
-        self._script = self._process._scripts.pop(0)
+        self._script = self._process.engine._scripts.pop(0)
 
     def _unload_script(self):
         # TODO: This might be called before we're done processing...

@@ -59,7 +59,7 @@ class Modules(object):
                 "FUNCTION_OFFSET_HERE": offset,
                 }
 
-        location_resolved = self._process.run_script_generic("resolve_location_address.js", replace=replace_vars, unload=True)[0]
+        location_resolved = self._process.engine.run_script_generic("resolve_location_address.js", replace=replace_vars, unload=True)[0]
 
         if location_resolved == []:
             raise RevengeSymbolLookupFailure("Cannot resolve symbol.")
@@ -164,7 +164,7 @@ class Modules(object):
 
         # Time to update the cache
         if datetime.datetime.now() - self.__last_update > datetime.timedelta(seconds=0.5):
-            mods = self._process.run_script_generic("""send(Process.enumerateModulesSync());""", raw=True, unload=True)[0][0]
+            mods = self._process.engine.run_script_generic("""send(Process.enumerateModulesSync());""", raw=True, unload=True)[0][0]
             self.__modules = [Module(self._process, name=mod['name'], base=mod['base'], size=mod['size'], path=mod['path']) for mod in mods]
             self.__last_update = datetime.datetime.now()
 

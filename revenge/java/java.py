@@ -27,7 +27,7 @@ class Java:
         Args:
             main_thread (bool, optional): Run this on the main Java thread.
 
-        Calls the Process.run_script_generic as below:
+        Calls the Process.engine.run_script_generic as below:
         """
 
         context = kwargs.get("context", None)
@@ -52,7 +52,7 @@ class Java:
 
         #kwargs['timeout'] = None
 
-        return self._process.run_script_generic(script, raw=True, *args, **kwargs)
+        return self._process.engine.run_script_generic(script, raw=True, *args, **kwargs)
 
     def find_active_instance(self, klass, invalidate_cache=False):
         """Look through memory and finds an active instance of the given klass.
@@ -129,5 +129,5 @@ from ..contexts.batch import BatchContext
 from .. import common
 
 # Fixup docs
-Java.run_script_generic.__doc__ += Process.run_script_generic.__doc__
+#Java.run_script_generic.__doc__ += Process.run_script_generic.__doc__
 Java.BatchContext.__doc__ += BatchContext.__init__.__doc__

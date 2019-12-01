@@ -27,8 +27,8 @@ class FridaMemory(Memory):
 
         assert type(size) is int
 
-        pointer = common.auto_int(self._process.run_script_generic("""var p = Memory.alloc(uint64('{}')); send(p);""".format(hex(size)), raw=True, unload=False)[0][0])
-        script = self._process._scripts.pop(0) # We want to hold on to it here
+        pointer = common.auto_int(self._process.engine.run_script_generic("""var p = Memory.alloc(uint64('{}')); send(p);""".format(hex(size)), raw=True, unload=False)[0][0])
+        script = self._process.engine._scripts.pop(0) # We want to hold on to it here
 
         self._allocated_memory[pointer] = script
         return MemoryBytes(self._process, pointer, pointer+size)
@@ -90,7 +90,7 @@ class FridaMemory(Memory):
         js = js.format(func=func_str.replace('"','\"'))
 
         logger.debug("CModule inject: " + js)
-        out = self._process.run_script_generic(js, raw=True, unload=False, runtime='v8')[0][0]
+        out = self._process.engine.run_script_generic(js, raw=True, unload=False, runtime='v8')[0][0]
         
         ret = []
         for func_name, func_addr in out.items():
