@@ -9,7 +9,6 @@ import struct
 from termcolor import cprint, colored
 
 import importlib
-import inspect
 
 from .. import common, types, symbols
 
@@ -62,6 +61,7 @@ class Memory(object):
         mod = importlib.import_module('...engines.{engine}.memory'.format(engine=engine), package=__name__)
         return super(Memory, klass).__new__(mod.Memory)
 
+    @common.implement_in_engine()
     def alloc(self, size):
         """Allocate size bytes of memory and get a MemoryBytes object back to use it.
     
@@ -71,7 +71,7 @@ class Memory(object):
         Returns:
             revenge.memory.MemoryBytes: Object for the new memory location.
         """
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     def alloc_struct(self, struct):
         """Short-hand to alloc appropriate space for the struct and write it in.

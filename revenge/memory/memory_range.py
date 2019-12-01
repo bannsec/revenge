@@ -1,6 +1,8 @@
 import logging
 logger = logging.getLogger(__name__)
 
+from .. import common, types, exceptions
+
 class MemoryRange(object):
 
     def __init__(self, process, base, size, protection, file=None):
@@ -10,6 +12,7 @@ class MemoryRange(object):
         self.protection = protection
         self._file = file
 
+    @common.implement_in_engine()
     def set_protection(self, read, write, execute):
         """Sets the protection for this memory page.
 
@@ -21,7 +24,7 @@ class MemoryRange(object):
         This will call appropriate mprotect or similar. This can be done
         implicitly from the .protection property.
         """
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     def __repr__(self):
         value = ["MemoryRange", hex(self.base), '-', hex(self.base+self.size), self.protection]
@@ -104,5 +107,3 @@ class MemoryRange(object):
     def base(self, base):
         self.__base = types.Pointer(common.auto_int(base))
 
-import inspect
-from .. import common, types, exceptions

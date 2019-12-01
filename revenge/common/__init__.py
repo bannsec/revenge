@@ -197,6 +197,16 @@ def on_msg_print(m, d, TAG=None):
 # Decorators
 #
 
+class implement_in_engine(object):
+    """Decorator to require a method to be implemented in the engine"""
+
+    def __call__(self, func):
+        def wrapper(*args, **kwargs):
+            raise NotImplementedError(func.__name__ + ": not yet implemented in " + args[0].__class__.__name__ + ".")
+
+        return wrapper
+
+
 class retry_on_exception(object):
     """Decorator to retry the given function up to retry times if an
     exception is caught from the given list/tuple.

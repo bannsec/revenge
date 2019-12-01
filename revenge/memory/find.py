@@ -34,9 +34,10 @@ class MemoryFind(object):
         while not self.completed:
             time.sleep(0.1)
 
+    @common.implement_in_engine()
     def _start(self):
         """Starts the search."""
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     def __repr__(self):
         attr = ["MemoryFind"]
@@ -114,5 +115,4 @@ class MemoryFind(object):
 
         self.__ranges = ranges
 
-import inspect
 from . import MemoryRange

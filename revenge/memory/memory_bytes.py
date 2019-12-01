@@ -6,7 +6,6 @@ import json
 import time
 from .. import common, types
 from ..exceptions import *
-import inspect
 
 class MemoryBytes(object):
     """Meta-class used for resolving bytes into something else."""
@@ -35,9 +34,10 @@ class MemoryBytes(object):
         self.address_stop = address_stop
         self.return_type = types.Pointer # Default
 
+    @common.implement_in_engine()
     def free(self):
         """bool: Free this memory location. This is only valid if this memory location has been allocated by us."""
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     def cast(self, cast_to):
         """Returns this memory cast to whatever type you give it.
@@ -117,9 +117,10 @@ class MemoryBytes(object):
         else:
             logger.error("Unhandled memory cast type of {}".format(cast_type))
 
+    @common.implement_in_engine()
     def _call_as_thread(self, *args, **kwargs):
         """This is meant to be called by __call__ handler. Don't call directly unless you know what you're doing."""
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     def __repr__(self):
         attrs = ['MemoryBytes', hex(self.address)]
@@ -132,24 +133,27 @@ class MemoryBytes(object):
 
         return "<{}>".format(' '.join(attrs))
 
+    @common.implement_in_engine()
     def __call__(self, *args, **kwargs):
         """Call this memory location as a function.
         
         *args will be parsed and passed to the actual function
         **kwargs will be passed to Process.run_script_generic
         """
+        pass
 
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
-
+    @common.implement_in_engine()
     def _remove_replace(self):
         """Reverts any replacement of this function."""
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
+    @common.implement_in_engine()
     def _remove_on_enter(self):
         """Reverts any on_enter hook of this function."""
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @property
+    @common.implement_in_engine()
     def replace_on_message(self):
         """callable: Optional callable to be called if/when something inside the function replace sends data back.
         
@@ -162,19 +166,22 @@ class MemoryBytes(object):
 
                 strlen.replace_on_message = on_message
         """
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @replace_on_message.setter
+    @common.implement_in_engine()
     def replace_on_message(self, replace_on_message):
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @property
+    @common.implement_in_engine()
     def replace(self):
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @replace.setter
+    @common.implement_in_engine()
     def replace(self, replace):
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @property
     def implementation(self):
@@ -238,149 +245,181 @@ class MemoryBytes(object):
         self.replace = self.replace
 
     @property
+    @common.implement_in_engine()
     def int8(self):
         """Signed 8-bit int"""
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @int8.setter
+    @common.implement_in_engine()
     def int8(self, val):
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @property
+    @common.implement_in_engine()
     def uint8(self):
         """Unsigned 8-bit int"""
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @uint8.setter
+    @common.implement_in_engine()
     def uint8(self, val):
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @property
+    @common.implement_in_engine()
     def int16(self):
         """Signed 16-bit int"""
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @int16.setter
+    @common.implement_in_engine()
     def int16(self, val):
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @property
+    @common.implement_in_engine()
     def uint16(self):
         """Unsigned 16-bit int"""
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @uint16.setter
+    @common.implement_in_engine()
     def uint16(self, val):
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @property
+    @common.implement_in_engine()
     def int32(self):
         """Signed 32-bit int"""
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @int32.setter
+    @common.implement_in_engine()
     def int32(self, val):
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @property
+    @common.implement_in_engine()
     def uint32(self):
         """Unsigned 32-bit int"""
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @uint32.setter
+    @common.implement_in_engine()
     def uint32(self, val):
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @property
+    @common.implement_in_engine()
     def int64(self):
         """Signed 64-bit int"""
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @int64.setter
+    @common.implement_in_engine()
     def int64(self, val):
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
     
     @property
+    @common.implement_in_engine()
     def uint64(self):
         """Unsigned 64-bit int"""
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @uint64.setter
+    @common.implement_in_engine()
     def uint64(self, val):
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @property
+    @common.implement_in_engine()
     def string_ansi(self):
         """Read as ANSI string"""
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @string_ansi.setter
+    @common.implement_in_engine()
     def string_ansi(self, val):
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @property
+    @common.implement_in_engine()
     def string_utf8(self):
         """Read as utf-8 string"""
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @string_utf8.setter
+    @common.implement_in_engine()
     def string_utf8(self, val):
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @property
+    @common.implement_in_engine()
     def string_utf16(self):
         """Read as utf-16 string"""
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @string_utf16.setter
+    @common.implement_in_engine()
     def string_utf16(self, val):
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @property
+    @common.implement_in_engine()
     def double(self):
         """Read as double val"""
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @double.setter
+    @common.implement_in_engine()
     def double(self, val):
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @property
+    @common.implement_in_engine()
     def float(self):
         """Read as float val"""
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @float.setter
+    @common.implement_in_engine()
     def float(self, val):
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
     
     @property
+    @common.implement_in_engine()
     def pointer(self):
         """Read as pointer val"""
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @pointer.setter
+    @common.implement_in_engine()
     def pointer(self, val):
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @property
+    @common.implement_in_engine()
     def breakpoint(self):
         """bool: Does this address have an active breakpoint?"""
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @breakpoint.setter
+    @common.implement_in_engine()
     def breakpoint(self, val):
         """bool: Set this as a breakpoint or remove the breakpoint."""
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @property
+    @common.implement_in_engine()
     def bytes(self):
         """bytes: Return this as raw bytes."""
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @bytes.setter
+    @common.implement_in_engine()
     def bytes(self, b):
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @property
     def size(self):
@@ -443,8 +482,9 @@ class MemoryBytes(object):
         raise NotImplementedError
 
     @struct.setter
+    @common.implement_in_engine()
     def struct(self, struct):
-        raise NotImplementedError(inspect.currentframe().f_code.co_name + ": not implemented in this engine yet.")
+        pass
 
     @property
     def name(self):
