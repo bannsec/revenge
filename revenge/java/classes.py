@@ -3,6 +3,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from fnmatch import fnmatch
+from .. import common
 
 class JavaClasses(object):
 
@@ -22,10 +23,10 @@ class JavaClasses(object):
 
     def __getitem__(self, item):
         if isinstance(item, int):
-            return JavaClass(self._process, list(self)[item])
+            return self._process.engine.java.JavaClass(self._process, list(self)[item])
 
         elif isinstance(item, str):
-            match = [JavaClass(self._process, x) for x in self if fnmatch(x, item)]
+            match = [self._process.engine.java.JavaClass(self._process, x) for x in self if fnmatch(x, item)]
             if len(match) > 1:
                 return match
             if match == []:
@@ -37,18 +38,7 @@ class JavaClasses(object):
             return
 
     @property
+    @common.implement_in_engine()
     def classes(self):
         """list: The actual list of classes."""
-        try:
-            return self.__classes
-        except AttributeError:
-            self.__classes = self._process.java.run_script_generic(
-                    r"""send( Java.enumerateLoadedClassesSync() ); send("DONE");""",
-                    raw=True,
-                    unload=True,
-                    timeout=0,
-                    onComplete='DONE',
-                    )[0][0]
-            return self.__classes
-
-from .java_class import JavaClass
+        pass

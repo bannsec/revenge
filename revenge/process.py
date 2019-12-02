@@ -82,9 +82,10 @@ class Process(object):
         atexit.register(self._at_exit)
         self.engine.start_session()
 
-        # TODO: move this into frida engine
-        if self.engine.run_script_generic(r"""send(Java.available)""", raw=True, unload=True)[0][0]:
-            self.java = Java(self)
+        # TODO: Generalize plugin loading
+        java = self.engine.java.Java(self)
+        if java._is_valid:
+            self.java = java
 
         # TODO: move this into frida engine
         # ELF binaries start up in ptrace, which causes some issues, shim at entrypoint so we can remove ptrace
@@ -334,18 +335,6 @@ class Process(object):
     def device(self, device):
         assert isinstance(device, devices.BaseDevice), "Device must be an instantiation of one of the devices defined in revenge.devices."
         self.__device = device
-        """
-        if isinstance(device, devices.LocalDevice):
-            self.__device = device.device
-
-        elif isinstance(device, devices.AndroidDevice):
-            self.__device = device.device
-
-        else:
-            error = "Unexpected/unhandled device type of {}".format(type(device))
-            logger.error(error)
-            raise Exception(error)
-        """
     
     @property
     def BatchContext(self):

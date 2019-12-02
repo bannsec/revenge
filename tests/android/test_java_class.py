@@ -8,7 +8,8 @@ here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "bins")
 
 from revenge import Process, types, common, devices
-from revenge.java.java_class import JavaClass
+#from revenge.java.java_class import JavaClass
+from revenge.engines.frida.java import JavaClass
 
 android = devices.AndroidDevice(type="usb")
 android._wait_for_frida_server()

@@ -7,6 +7,7 @@ from .. import Engine
 class FridaEngine(Engine):
 
     def __init__(self, *args, **kwargs):
+        kwargs['klass'] = self.__class__
         super().__init__(*args, **kwargs)
 
         self._scripts = []
