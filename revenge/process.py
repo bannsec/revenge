@@ -118,13 +118,6 @@ class Process(object):
             else:
                 self.device.device.resume(self._spawned_pid)
 
-
-    def pause_at(self, location):
-        """Pause at a given point in execution."""
-
-        pause_location = self._resolve_location_string(location)
-        self.engine.run_script_generic('pause_at2.js', replace={"FUNCTION_ADDRESS_HERE": hex(pause_location)})
-
     def quit(self):
         """Call to quit your session without exiting. Do NOT continue to use this object after.
         
