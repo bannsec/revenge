@@ -33,7 +33,7 @@ class Java:
         context = kwargs.get("context", None)
 
         if not raw:
-            script = self._process.load_js(script_name)
+            script = self._process.engine.load_js(script_name)
         else:
             # NOTE: This is meant to transparently convert the java_class and
             # others into the corresponding code. Do not remove str call!
