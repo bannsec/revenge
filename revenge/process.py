@@ -58,7 +58,6 @@ class Process(object):
 
         self._engine = engine if engine is not None else "frida"
         # Cache common module addrs
-        self._module_by_addr_cache = {}
         self.__file_name = None
         self.__file_type = None
         self.__entrypoint = None
@@ -147,25 +146,6 @@ class Process(object):
         # Probably process name
         except:
             return x
-
-    def get_module_by_addr(self, addr):
-
-        addr = common.auto_int(addr)
-
-        try:
-            return self._module_by_addr_cache[addr]
-        except:
-            pass
-
-        for module in self.modules:
-            base = module.base
-            size = module.size
-
-            if addr >= base and addr <= base+size:
-                self._module_by_addr_cache[addr] = module.name # Add to cache
-                return module.name
-
-        return None
 
     def _resolve_location_string(self, location):
         """Take location string and resolve it into an integer address."""

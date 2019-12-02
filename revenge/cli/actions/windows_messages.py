@@ -32,7 +32,8 @@ class ActionWindowsMessages:
             # REMINDER: The JavaScript is filtering out dups. We will only be getting each handler once.
 
             handler_ip = int(message['payload'], 16)
-            handler_module = self._process.get_module_by_addr(handler_ip)
+            handler_module = self._process.modules[handler_ip]
+            if handler_module is not None: handler_module = handler_module.name
             handler_offset = handler_ip - self._process.modules[handler_module]['base']
 
             self._known_windows_message_handlers.append(handler_ip)

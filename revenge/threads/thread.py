@@ -78,7 +78,8 @@ class Thread(object):
     def module(self) -> str:
         """What module is the thread's program counter in? i.e.:
         libc-2.27.so."""
-        return self._process.get_module_by_addr(self.pc) or "Unknown"
+        mod = self._process.modules[self.pc]
+        return mod.name if mod is not None else "Unknown"
     
     @property
     def trace(self):
