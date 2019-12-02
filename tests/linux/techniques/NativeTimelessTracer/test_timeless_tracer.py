@@ -1,5 +1,5 @@
 import logging
-logging.basicConfig(level=logging.WARN)
+logging.basicConfig(level=logging.DEBUG)
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +21,7 @@ timeless_three_path = os.path.join(bin_location, "timeless_three")
 
 def test_timeless_basic_two_i386():
 
-    p = revenge.Process(timeless_two_i386_path, resume=False, verbose=False)
+    p = revenge.Process(timeless_two_i386_path, resume=False, verbose=True)
 
     timeless = p.techniques.NativeTimelessTracer()
     timeless.apply()
@@ -205,7 +205,7 @@ def test_timeless_basic_two_i386():
 
 def test_timeless_basic_three_amd64():
 
-    p = revenge.Process(timeless_three_path, resume=False, verbose=False)
+    p = revenge.Process(timeless_three_path, resume=False, verbose=True)
 
     timeless = p.techniques.NativeTimelessTracer()
     timeless.apply()
@@ -265,7 +265,7 @@ def test_timeless_basic_three_amd64():
 
 def test_timeless_basic_two_amd64():
 
-    p = revenge.Process(timeless_two_path, resume=False, verbose=False)
+    p = revenge.Process(timeless_two_path, resume=False, verbose=True)
 
     timeless = p.techniques.NativeTimelessTracer()
     timeless.apply()
@@ -451,7 +451,7 @@ def test_timeless_basic_two_amd64():
 
 def test_timeless_basic_amd64():
 
-    p = revenge.Process(timeless_one_path, resume=False, verbose=False)
+    p = revenge.Process(timeless_one_path, resume=False, verbose=True)
 
     timeless = p.techniques.NativeTimelessTracer()
     repr(timeless)

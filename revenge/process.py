@@ -57,7 +57,6 @@ class Process(object):
         """
 
         self._engine = engine if engine is not None else "frida"
-        # Cache common module addrs
         self.__file_name = None
         self.__file_type = None
         self.__entrypoint = None
