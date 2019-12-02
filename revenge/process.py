@@ -137,88 +137,8 @@ class Process(object):
 
     def _at_exit(self):
         """Called to clean-up at exit."""
+        self.engine._at_exit()
 
-        # TODO: Remove this once pytest fixes their at_exit issue
-        logging.getLogger().setLevel(logging.WARN)
-
-        try:
-
-            # Remove breakpoints
-            for addr in copy(self.memory._active_breakpoints):
-                logger.debug("Removing breakpoint: " + hex(addr))
-                self.memory[addr].breakpoint = False
-
-            # Remove function replacements
-            for addr in copy(self.memory._active_replacements):
-                self.memory[addr].replace = None
-
-            # Remove any on_enter interceptors
-            for addr in copy(self.memory._active_on_enter):
-                self.memory[addr].on_enter = None
-
-            # Remove any instruction traces
-            for t in self.threads:
-                if t.trace is not None:
-                    t.trace.stop()
-
-            self.engine.run_script_generic("""Interceptor.detachAll()""", raw=True, unload=True)
-
-            # Unallocate our memory
-            for addr in copy(self.memory._allocated_memory):
-                logger.debug("Unallocating memory: " + hex(addr))
-                self.memory[addr].free()
-
-            # Unload our scripts
-            for script, text in self.engine._scripts:
-                logger.debug("Unloading Script: %s", text)
-
-                try:
-                    script.unload()
-                except frida.InvalidOperationError:
-                    # Already unloaded probably
-                    pass
-
-            logger.debug("Done unloading")
-
-        except (frida.InvalidOperationError, frida.TransportError) as e:
-            # Looks like the program terminated. Possibly finished execution before we finished cleanup.
-            if 'detached' in e.args[0] or 'closed' in e.args[0]:
-                return
-
-        # If we spawned it, kill it
-        try:
-            if self._spawned_pid is not None:
-                return self.device.device.kill(self._spawned_pid)
-
-        except (frida.PermissionDeniedError, frida.ProcessNotFoundError) as e:
-            # This can indicate the process is already dead.
-            try:
-                next(x for x in self.device.device.enumerate_processes() if x.pid == self._spawned_pid)
-                logger.error("Device kill permission error, with process apparently %d still alive.", self._spawned_pid)
-                raise e
-            except StopIteration:
-                return
-
-        # Unload anything we loaded first
-        #for script in self._scripts:
-        #    script.unload()
-
-        try:
-
-            # Genericall unstalk everything
-            for thread in self.threads:
-                if thread.trace is not None:
-                    thread.trace.stop()
-                #self.engine.run_script_generic("Stalker.unfollow({tid})".format(tid=thread.id), raw=True, unload=True)
-        
-        except frida.InvalidOperationError:
-            # Session is already detached.
-            pass
-
-        # Detach our session
-        self.engine.session.detach()
-
-    
     def target_type(self, x):
         # Maybe it's PID
         try:

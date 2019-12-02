@@ -14,3 +14,7 @@ class Engine(object):
     def start_session(self):
         """This call is responsible for getting the engine up and running."""
         pass
+
+    def _at_exit(self):
+        """Cleanup stuff."""
+        return
