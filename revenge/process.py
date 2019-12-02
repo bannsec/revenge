@@ -180,7 +180,7 @@ class Process(object):
 
         if self.__entrypoint is None:
             if self.file_type == 'ELF':
-                self.__entrypoint = types.Pointer(int(self.engine.run_script_generic("""send(Memory.readPointer(ptr(Number(Process.getModuleByName('{}').base) + 0x18)))""".format(self.file_name), raw=True, unload=True)[0][0],16))
+                self.__entrypoint = self.memory[mod.base+0x18].pointer
                 
                 if mod.elf.type_str == 'DYN':
                     self.__entrypoint = types.Pointer(self.__entrypoint + mod.base)
