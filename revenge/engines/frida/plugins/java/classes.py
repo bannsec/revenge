@@ -1,7 +1,7 @@
 import logging
 LOGGER = logging.getLogger(__name__)
 
-from ....java import JavaClasses
+from .....plugins.java import JavaClasses
 
 class FridaJavaClasses(JavaClasses):
 

@@ -3,7 +3,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from fnmatch import fnmatch
-from .. import common
+from ... import common
 
 class JavaClasses(object):
 
@@ -23,10 +23,10 @@ class JavaClasses(object):
 
     def __getitem__(self, item):
         if isinstance(item, int):
-            return self._process.engine.java.JavaClass(self._process, list(self)[item])
+            return self._process.engine.plugins.java.JavaClass(self._process, list(self)[item])
 
         elif isinstance(item, str):
-            match = [self._process.engine.java.JavaClass(self._process, x) for x in self if fnmatch(x, item)]
+            match = [self._process.engine.plugins.java.JavaClass(self._process, x) for x in self if fnmatch(x, item)]
             if len(match) > 1:
                 return match
             if match == []:

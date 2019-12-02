@@ -80,11 +80,7 @@ class Process(object):
 
         atexit.register(self._at_exit)
         self.engine.start_session()
-
-        # TODO: Generalize plugin loading
-        java = self.engine.java.Java(self)
-        if java._is_valid:
-            self.java = java
+        self._register_plugins()
 
         # TODO: move this into frida engine
         # ELF binaries start up in ptrace, which causes some issues, shim at entrypoint so we can remove ptrace
@@ -117,6 +113,15 @@ class Process(object):
             
             else:
                 self.device.device.resume(self._spawned_pid)
+
+    def _register_plugins(self):
+        """Figures out which plugins to load and loads them."""
+
+        # TODO: Generalize plugin loading
+        java = self.engine.plugins.java.Java(self)
+        if java._is_valid:
+            self.java = java
+
 
     def quit(self):
         """Call to quit your session without exiting. Do NOT continue to use this object after.
@@ -377,7 +382,6 @@ from . import common, types, config, devices
 from .memory import Memory
 from .threads import Threads
 from .modules import Modules
-from .java import Java
 from .contexts import BatchContext
 from .exceptions import *
 from .techniques import Techniques

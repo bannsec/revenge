@@ -6,4 +6,4 @@ logger = logging.getLogger(__name__)
 class JavaClass(object):
     pass
 
-from .. import config, common
+from ... import config, common

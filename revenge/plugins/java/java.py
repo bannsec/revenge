@@ -3,7 +3,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import collections
-from .. import common
+from ... import common
 
 class Java(object):
 

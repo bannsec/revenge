@@ -140,7 +140,7 @@ class Trace(object):
         address = self._process.memory[address].address
 
         # TODO: Optimize this so I don't keep checking the same IPs over and over
-        while True:
+        while self._process.alive:
             try:
                 next(x for x in self._trace if x.from_ip == address)
                 break

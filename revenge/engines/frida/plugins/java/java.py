@@ -3,7 +3,7 @@ import logging
 LOGGER = logging.getLogger(__name__)
 
 import collections
-from ....java import Java
+from .....plugins.java import Java
 
 class FridaJava(Java):
 
@@ -103,9 +103,9 @@ class FridaJava(Java):
 
 from .classes import FridaJavaClasses as JavaClasses
 from .java_class import FridaJavaClass as JavaClass
-from ....process import Process
-from ....contexts.batch import BatchContext
-from .... import common
+from .....process import Process
+from .....contexts.batch import BatchContext
+from ..... import common
 
 # Fixup docs
 #Java.run_script_generic.__doc__ += Process.run_script_generic.__doc__

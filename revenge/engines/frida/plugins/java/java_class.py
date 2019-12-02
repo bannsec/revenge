@@ -2,7 +2,7 @@
 import logging
 LOGGER = logging.getLogger(__name__)
 
-from ....java import JavaClass
+from .....plugins.java import JavaClass
 
 class FridaJavaClass(JavaClass):
     _in_init = set()
@@ -371,6 +371,6 @@ class FridaJavaClass(JavaClass):
         safe = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_'
         return all(char in safe for char in name)
 
-from .... import config, common
+from ..... import config, common
 
 JavaClass = FridaJavaClass
