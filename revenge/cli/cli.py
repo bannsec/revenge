@@ -103,7 +103,7 @@ def replace_function(process, f):
     assert type(f) == str, "Unexpected replace function argument type of {}".format(type(f))
 
     location, return_value = f.split("?")
-    replace_location = process._resolve_location_string(location)
+    replace_location = process.modules.lookup_symbol(location)
 
     replace_vars = {
             "FUNCTION_RETURN_VALUE_HERE": return_value,

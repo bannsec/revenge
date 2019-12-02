@@ -137,7 +137,7 @@ class Trace(object):
 
     def wait_for(self, address):
         """Don't return until the given address is hit in the trace."""
-        address = self._process._resolve_location_string(address)
+        address = self._process.memory[address].address
 
         # TODO: Optimize this so I don't keep checking the same IPs over and over
         while True:

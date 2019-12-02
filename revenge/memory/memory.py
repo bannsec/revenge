@@ -258,7 +258,7 @@ class Memory(object):
 
         if type(item) == str:
             # Assume it's something we need to resolve
-            item = self._process._resolve_location_string(item)
+            item = self._process.modules.lookup_symbol(item)
 
         if isinstance(item, symbols.Symbol):
             item = item.address

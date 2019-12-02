@@ -140,14 +140,6 @@ class Process(object):
         except:
             return x
 
-    def _resolve_location_string(self, location):
-        """Take location string and resolve it into an integer address."""
-        #assert type(location) is str, "Invalid call to resolve_location_string with type {}".format(type(location))
-        if isinstance(location, int):
-            return types.Pointer(location)
-
-        return self.modules.lookup_symbol(location)
-
     def __repr__(self):
         attrs = ['Process', self.file_name + ":" + str(self.pid)]
         return '<' + ' '.join(attrs) + '>'
