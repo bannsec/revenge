@@ -183,7 +183,7 @@ class Process(object):
                 self.__entrypoint = self.memory[mod.base+0x18].pointer
                 
                 if mod.elf.type_str == 'DYN':
-                    self.__entrypoint = types.Pointer(self.__entrypoint + mod.base)
+                    self.__entrypoint = self.__entrypoint + mod.base
 
             else:
                 logger.warn('entrypoint not implemented for file of type {}'.format(self.file_type))
