@@ -11,6 +11,7 @@ class Engine(object):
     def __init__(self, process, klass):
         self._process = process
         self.java = importlib.import_module('.java', package=klass.__module__)
+        self.memory = importlib.import_module('.memory', package=klass.__module__)
 
     @common.implement_in_engine()
     def start_session(self):

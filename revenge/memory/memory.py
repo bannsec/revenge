@@ -8,8 +8,6 @@ import operator
 import struct
 from termcolor import cprint, colored
 
-import importlib
-
 from .. import common, types, symbols
 
 class Memory(object):
@@ -49,6 +47,7 @@ class Memory(object):
         # key == address of onEnter function, value = tuple: what it's being hooked with, script so we can unload later
         self._active_on_enter = {}
 
+    """
     def __new__(klass, process, engine=None):
         
         # If we're in a proper subclass, don't monkey with the engine
@@ -60,6 +59,7 @@ class Memory(object):
 
         mod = importlib.import_module('...engines.{engine}.memory'.format(engine=engine), package=__name__)
         return super(Memory, klass).__new__(mod.Memory)
+    """
 
     @common.implement_in_engine()
     def alloc(self, size):
