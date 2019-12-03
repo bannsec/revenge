@@ -4,8 +4,9 @@ logger = logging.getLogger(__name__)
 
 import collections
 from ... import common
+from .. import Plugin
 
-class Java(object):
+class Java(Plugin):
 
     def __init__(self, process):
         """Handles performing Java related activities."""
@@ -41,8 +42,10 @@ class Java(object):
             means you can use the object without instantiating it yourself.
 
         Example:
-            MainActivity = p.java.find_active_class("ooo.defcon2019.quals.veryandroidoso.MainActivity")
-            MainActivity.parse("test")
+            .. code-block:: python3
+
+                MainActivity = p.java.find_active_class("ooo.defcon2019.quals.veryandroidoso.MainActivity")
+                MainActivity.parse("test")
         """
         pass
 
@@ -50,9 +53,3 @@ class Java(object):
     def classes(self):
         """JavaClasses: Returns java classes object."""
         return self._JavaClasses(self._process)
-
-#from ..process import Process
-
-# Fixup docs
-#Java.run_script_generic.__doc__ += Process.run_script_generic.__doc__
-#Java.BatchContext.__doc__ += BatchContext.__init__.__doc__

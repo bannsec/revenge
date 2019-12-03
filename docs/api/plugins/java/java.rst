@@ -1,7 +1,8 @@
+====
 Java
 ====
 
-.. autoclass:: revenge.java.Java
+.. autoclass:: revenge.plugins.java.Java
     :members:
     :undoc-members:
     :show-inheritance:

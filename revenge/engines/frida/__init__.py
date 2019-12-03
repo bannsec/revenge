@@ -72,7 +72,6 @@ class FridaEngine(Engine):
             tuple: msg, data return from the script
         """
 
-
         msg = []
         data = []
         if include_js is None:

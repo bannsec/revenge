@@ -117,11 +117,21 @@ class Process(object):
     def _register_plugins(self):
         """Figures out which plugins to load and loads them."""
 
-        # TODO: Generalize plugin loading
-        java = self.engine.plugins.java.Java(self)
-        if java._is_valid:
-            self.java = java
+        for plugin_name in dir(self.engine.plugins):
+            if plugin_name.startswith("_"):
+                continue
 
+            plugin_mod = getattr(self.engine.plugins, plugin_name)
+
+            for item, value in plugin_mod.__dict__.items():
+
+                if inspect.isclass(value) and issubclass(value, Plugin):
+
+                    # Instantiate the plugin
+                    plugin = value(self)
+
+                    if plugin._is_valid:
+                        setattr(self, item.lower(), plugin)
 
     def quit(self):
         """Call to quit your session without exiting. Do NOT continue to use this object after.
@@ -378,6 +388,7 @@ class Process(object):
             return self.__engine
 
 
+import inspect
 from . import common, types, config, devices
 from .memory import Memory
 from .threads import Threads
@@ -385,6 +396,7 @@ from .modules import Modules
 from .contexts import BatchContext
 from .exceptions import *
 from .techniques import Techniques
+from .plugins import Plugin
 
 # Doc fixups
 Process.BatchContext.__doc__ += BatchContext.__init__.__doc__

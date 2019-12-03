@@ -103,10 +103,10 @@ class FridaJava(Java):
 
 from .classes import FridaJavaClasses as JavaClasses
 from .java_class import FridaJavaClass as JavaClass
-from .....process import Process
+from .....engines.frida import FridaEngine
 from .....contexts.batch import BatchContext
 from ..... import common
 
 # Fixup docs
-#Java.run_script_generic.__doc__ += Process.run_script_generic.__doc__
-#Java.BatchContext.__doc__ += BatchContext.__init__.__doc__
+FridaJava.run_script_generic.__doc__ += FridaEngine.run_script_generic.__doc__
+FridaJava.BatchContext.__doc__ += BatchContext.__init__.__doc__
