@@ -383,10 +383,8 @@ class Process(object):
         try:
             return self.__engine
         except AttributeError:
-            mod = importlib.import_module('..engines.{engine}'.format(engine=self._engine), package=__name__)
-            self.__engine = mod.Engine(self)
+            self.__engine = Engine._from_string(self, self._engine)
             return self.__engine
-
 
 import inspect
 from . import common, types, config, devices
@@ -397,6 +395,7 @@ from .contexts import BatchContext
 from .exceptions import *
 from .techniques import Techniques
 from .plugins import Plugin
+from .engines import Engine
 
 # Doc fixups
 Process.BatchContext.__doc__ += BatchContext.__init__.__doc__
