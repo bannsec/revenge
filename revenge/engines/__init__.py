@@ -12,7 +12,8 @@ class Engine(object):
 
     def __init__(self, process, klass):
         self._process = process
-        self.memory = importlib.import_module('.memory', package=klass.__module__)
+        self._memory = importlib.import_module('.memory', package=klass.__module__)
+        self.memory = self._memory.Memory(self._process)
         
         #
         # Dynamically populate the plugins from our base mix-in

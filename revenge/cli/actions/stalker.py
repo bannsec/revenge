@@ -60,8 +60,13 @@ class ActionStalker:
     def action_stalk(self):
         """Start the stalker."""
 
+        done = []
+
         def stalk_cb(tid, ti):
             print(ti)
+
+        def on_done(msg, x):
+            done.append(True)
         
         trace = self._process.techniques.NativeInstructionTracer(
                 from_modules = self.from_modules,
@@ -75,10 +80,14 @@ class ActionStalker:
 
         trace.apply(self.tid)
 
-        # Make sure we're not blocking
-        for addr in list(self._process.memory._active_breakpoints):
-            self._process.memory[addr].breakpoint = False
+        # Figure out when we're done...
+        for bp in ['exit', '_exit']:
+            bp = self._process.memory[bp]
+            bp.breakpoint = False
+            bp.replace_on_message = on_done
+            bp.replace = "function () { send('here'); Thread.sleep(0.5) ; }"
 
-        while self._process.alive:
-            sleep(0.1)
+        self._process.memory[self._process.entrypoint].breakpoint = False
 
+        # Wait til done
+        while done == []: continue

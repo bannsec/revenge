@@ -73,7 +73,8 @@ class Process(object):
             load_symbols = [load_symbols]
         self._load_symbols = load_symbols
 
-        self.memory = self.engine.memory.Memory(self)
+        #self.memory = self.engine.memory.Memory(self)
+        self.memory = self.engine.memory
         self.threads = Threads(self)
         self.modules = Modules(self)
         self.techniques = Techniques(self)
