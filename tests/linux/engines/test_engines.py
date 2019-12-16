@@ -16,7 +16,12 @@ def test_engine_init():
 
     process = revenge.Process(os.path.join(bin_location, 'basic_one'), resume=False, verbose=False, load_symbols=['basic_one'])
 
-    isinstance(revenge.engines.Engine._from_string(process, 'pseudo'), PseudoEngine)
-    isinstance(revenge.engines.Engine._from_string(process, 'frida'), FridaEngine)
+    eng = revenge.engines.Engine._from_string(process, 'pseudo')
+    assert isinstance(eng, PseudoEngine)
+    assert isinstance(eng.memory, revenge.memory.Memory)
+
+    eng = revenge.engines.Engine._from_string(process, 'frida')
+    assert isinstance(eng, FridaEngine)
+    assert isinstance(eng.memory, revenge.memory.Memory)
 
     process.quit()
