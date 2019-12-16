@@ -10,6 +10,28 @@ import revenge
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "bins")
 
+def test_common_int_to_signed():
+
+    assert revenge.common.int_to_signed(0, 8) == 0
+    assert revenge.common.int_to_signed(127, 8) == 127
+    assert revenge.common.int_to_signed(128, 8) == -128
+    assert revenge.common.int_to_signed(255, 8) == -1
+
+    assert revenge.common.int_to_signed(0, 16) == 0
+    assert revenge.common.int_to_signed(2**15-1, 16) == 2**15-1
+    assert revenge.common.int_to_signed(2**15, 16) == -2**15
+    assert revenge.common.int_to_signed(2**16-1, 16) == -1
+
+    assert revenge.common.int_to_signed(0, 32) == 0
+    assert revenge.common.int_to_signed(2**31-1, 32) == 2**31-1
+    assert revenge.common.int_to_signed(2**31, 32) == -2**31
+    assert revenge.common.int_to_signed(2**32-1, 32) == -1
+
+    assert revenge.common.int_to_signed(0, 64) == 0
+    assert revenge.common.int_to_signed(2**63-1, 64) == 2**63-1
+    assert revenge.common.int_to_signed(2**63, 64) == -2**63
+    assert revenge.common.int_to_signed(2**64-1, 64) == -1
+
 def test_common_auto_int():
 
     assert revenge.common.auto_int(1) == 1

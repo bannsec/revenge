@@ -27,6 +27,15 @@ with open(os.path.join(here, 'windows_keys_by_id.json')) as f:
     # JSON doesn't support int keys
     windows_keys_by_id = {int(x):y for x,y in windows_keys_by_id.items()}
 
+def int_to_signed(i, n):
+    """Takes int i and bits n, and converts to signed."""
+
+    if n > 2**n -1:
+        raise RevengeInvalidArgumentType("Int i is greater than the size n.")
+
+    mask = 1 << (n-1)
+    return (i^mask) - mask
+
 def auto_int(x):
     """Sometimes frida returns ints as a string instead of int. Just auto detect and return as int."""
     if isinstance(x, int):
