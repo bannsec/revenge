@@ -617,7 +617,7 @@ class Telescope(BasicBasic):
             self.__memory_range = None
 
         else:
-            self.__memory_range = MemoryRange._from_frida_find_json(self._process, memory_range)
+            self.__memory_range = MemoryRange._from_frida_find_json(self._process.engine, memory_range)
 
     @property
     def description(self):

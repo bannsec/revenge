@@ -509,7 +509,7 @@ def test_memory_range_class():
     # Just try the repr
     y = [repr(x) for x in util.memory.maps]
 
-    mr = MemoryRange(util, 0x123, 0x5, 'rw-', {'offset': 12, 'path': '/bin/ls'})
+    mr = MemoryRange(util.engine, 0x123, 0x5, 'rw-', {'offset': 12, 'path': '/bin/ls'})
     
     assert mr.file == '/bin/ls'
     assert mr.base == 0x123
@@ -520,7 +520,7 @@ def test_memory_range_class():
     assert not mr.executable
     assert hash(mr) == hash(mr)
 
-    mr2 = MemoryRange(util, 0x123, 0x5, 'rw-')
+    mr2 = MemoryRange(util.engine, 0x123, 0x5, 'rw-')
     assert mr2.file is None
     assert mr2.file_offset is None
     assert hash(mr2) == hash(mr2)

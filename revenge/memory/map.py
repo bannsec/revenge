@@ -6,8 +6,9 @@ from .. import common, types
 class MemoryMap(object):
     """Small wrapper to simply memory map lookups."""
 
-    def __init__(self, process):
-        self._process = process
+    def __init__(self, engine):
+        self._engine = engine
+        self._process = self._engine._process
 
     def __iter__(self):
         return self._ranges.__iter__()
@@ -20,7 +21,7 @@ class MemoryMap(object):
         return "<{}>".format(' '.join(attrs))
 
     def __str__(self):
-        return str(self._process.memory)
+        return str(self._engine.memory)
 
     def __getitem__(self, item):
 

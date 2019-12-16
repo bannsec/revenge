@@ -10,11 +10,11 @@ from ..exceptions import *
 class MemoryBytes(object):
     """Meta-class used for resolving bytes into something else."""
 
-    def __init__(self, process, address, address_stop=None):
+    def __init__(self, engine, address, address_stop=None):
         """Abstracting what memory location is.
 
         Args:
-            process: Util object
+            engine (revenge.engines.Engine): The engine this is tied to.
             address (int): Starting address of the memory location.
             address_stop (int, optional): Optional stopping memory location.
 
@@ -29,7 +29,8 @@ class MemoryBytes(object):
                 win("input", techniques=trace)
                 print(trace)
         """
-        self._process = process
+        self._engine = engine
+        self._process = self._engine._process
         self.address = address
         self.address_stop = address_stop
         self.return_type = types.Pointer # Default

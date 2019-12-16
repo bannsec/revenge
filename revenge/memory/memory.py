@@ -29,8 +29,9 @@ class Memory(object):
             memory[0x12345] = types.StringUTF8("hello!")
     """
 
-    def __init__(self, process):
-        self._process = process
+    def __init__(self, engine):
+        self._engine = engine
+        self._process = engine._process
 
         # Keep track of where we've inserted breakpoints
         # key == address of breakpoint, value == memory location to un-breakpoint it
@@ -143,7 +144,7 @@ class Memory(object):
 
     def find(self, *args, **kwargs):
         """Search for thing in memory. Must be one of the defined types."""
-        return self._MemoryFind(self._process, *args, **kwargs)
+        return self._MemoryFind(self._engine, *args, **kwargs)
 
     def describe_address(self, address, color=False):
         """Takes in address and attempts to return a better description of what's there.
@@ -267,7 +268,7 @@ class Memory(object):
             item = int(item)
 
         if isinstance(item, int):
-            return self._MemoryBytes(self._process, item)
+            return self._MemoryBytes(self._engine, item)
 
         elif type(item) == slice:
 
@@ -275,7 +276,7 @@ class Memory(object):
                 logger.error("Memory slices must have start and stop and not contain a step option.")
                 return
 
-            return self._MemoryBytes(self._process, item.start, item.stop)
+            return self._MemoryBytes(self._engine, item.start, item.stop)
 
         logger.error("Unhandled memory type of {}".format(type(item)))
 
@@ -286,7 +287,7 @@ class Memory(object):
             return
 
         # Grab the mem
-        mem = self._process.memory[index]
+        mem = self._engine.memory[index]
 
         # TODO: Implement char?
         if isinstance(value, types.Struct):
@@ -338,7 +339,7 @@ class Memory(object):
     @property
     def maps(self):
         """Return a list of memory ranges that are currently allocated."""
-        return self._MemoryMap(self._process)
+        return self._MemoryMap(self._engine)
 
     def __str__(self):
         

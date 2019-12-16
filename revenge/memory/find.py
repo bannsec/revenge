@@ -9,16 +9,17 @@ import time
 
 class MemoryFind(object):
 
-    def __init__(self, process, thing, ranges=None):
+    def __init__(self, engine, thing, ranges=None):
         """Find something in memory.
 
         Args:
-            process: Base process instantiation
+            engine: Base engine instantiation
             thing: Some instantiated type to search for from types module
             ranges(list, optional): List of MemoryRange objects to limit the search
                 to. By default, search everything.
         """
-        self._process = process
+        self._engine = engine
+        self._process = self._engine._process
         self.thing = thing
         self.ranges = ranges
 

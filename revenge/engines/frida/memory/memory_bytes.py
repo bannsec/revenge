@@ -14,12 +14,12 @@ class FridaMemoryBytes(MemoryBytes):
         """bool: Free this memory location. This is only valid if this memory location has been allocated by us."""
 
         # Make sure we allocated it
-        if self.address not in self._process.memory._allocated_memory:
+        if self.address not in self._engine.memory._allocated_memory:
             logger.error("Can't free this memory as we didn't allocate it.")
             return False
 
         # Free it implicitly by freeing our script
-        script = self._process.memory._allocated_memory.pop(self.address)
+        script = self._engine.memory._allocated_memory.pop(self.address)
         script[0].unload()
         return True
 
@@ -57,14 +57,14 @@ class FridaMemoryBytes(MemoryBytes):
 
             # Make temporary string first
             if type(arg) in [types.StringUTF16, types.StringUTF8]:
-                s = self._process.memory.alloc_string(arg)
+                s = self._engine.memory.alloc_string(arg)
                 #args_resolved.append("(void *) " + hex(s.address))
                 args_resolved.append(s.address)
                 to_free.append(s)
 
             # Make temporary string in memory
             elif type(arg) in [str, bytes]:
-                s = self._process.memory.alloc_string(arg)
+                s = self._engine.memory.alloc_string(arg)
                 #args_resolved.append("(void *) " + hex(s.address))
                 args_resolved.append(s.address)
                 to_free.append(s)
@@ -92,23 +92,23 @@ class FridaMemoryBytes(MemoryBytes):
         # cache_hash key == address:arg1:arg2:arg3
         cache_hash = hex(self.address) + ":" + ":".join(arg.__name__ for arg in args_types)
 
-        if cache_hash in self._process.memory._thread_call_cache:
+        if cache_hash in self._engine.memory._thread_call_cache:
             # popping so we don't accidentally use this at the same time as another call
-            cache = self._process.memory._thread_call_cache.pop(cache_hash)
+            cache = self._engine.memory._thread_call_cache.pop(cache_hash)
 
         else:
             # Create a cache entry
 
-            tmp_mem = self._process.memory.alloc(8)
+            tmp_mem = self._engine.memory.alloc(8)
             tmp_mem.int64 = 0
 
-            malloc = self._process.memory['malloc']
+            malloc = self._engine.memory['malloc']
             malloc.argument_types = types.Int
             malloc.return_type = types.Pointer
 
             # Allocate heap memory for function arguments so we can reuse the CModule
             # TODO: Determine correct size for allocations?
-            func_args_alloc = [self._process.memory.alloc(16) for _ in args]
+            func_args_alloc = [self._engine.memory.alloc(16) for _ in args]
 
             func_args = ', '.join("*("+t.ctype+"*)" + hex(arg.address) for arg, t in zip(func_args_alloc, args_types))
 
@@ -121,7 +121,7 @@ class FridaMemoryBytes(MemoryBytes):
                         )
 
             # Create a new thread for this
-            tmp_func = self._process.memory.create_c_function("""void* func() {{ int volatile * const mem_addr = (int *){mem_addr}; while ( *mem_addr == 0 ) {{ ; }}; *mem_addr = 0; {func_body} }}""".format(
+            tmp_func = self._engine.memory.create_c_function("""void* func() {{ int volatile * const mem_addr = (int *){mem_addr}; while ( *mem_addr == 0 ) {{ ; }}; *mem_addr = 0; {func_body} }}""".format(
                     mem_addr = hex(tmp_mem.address),
                     func_body = func_body,
                     ),
@@ -137,13 +137,13 @@ class FridaMemoryBytes(MemoryBytes):
         
         # Write in the variables for the function
         for arg,t,alloc in zip(args_resolved, args_types, cache["func_args_alloc"]):
-            self._process.memory[alloc.address] = t(arg)
+            self._engine.memory[alloc.address] = t(arg)
 
         tmp_thread = self._process.threads.create(cache["func"])
 
         for technique in replacers + stalkers:
             # Can't use memory.maps since frida it hiding it from us
-            technique._technique_code_range(MemoryRange(self._process, cache["func"].address, 0x1000, 'rwx'))
+            technique._technique_code_range(MemoryRange(self._engine, cache["func"].address, 0x1000, 'rwx'))
             technique.apply(tmp_thread)
 
         # Let the thread run
@@ -154,15 +154,15 @@ class FridaMemoryBytes(MemoryBytes):
             return_val = self.return_type(tmp_thread.join())
         else:
             return_ptr = tmp_thread.join()
-            return_val = self._process.memory[return_ptr].cast(self.return_type)
-            self._process.memory['free'](return_ptr)
+            return_val = self._engine.memory[return_ptr].cast(self.return_type)
+            self._engine.memory['free'](return_ptr)
 
         # Remove techniques
         for technique in replacers + stalkers:
             technique.remove()
 
         # Push the cache entry back
-        self._process.memory._thread_call_cache[cache_hash] = cache
+        self._engine.memory._thread_call_cache[cache_hash] = cache
 
         # Free stuff up
         for alloc in to_free:
@@ -206,14 +206,14 @@ class FridaMemoryBytes(MemoryBytes):
 
             # Make temporary string first
             if type(arg) in [types.StringUTF16, types.StringUTF8]:
-                s = self._process.memory.alloc_string(arg)
+                s = self._engine.memory.alloc_string(arg)
                 args_resolved.append('ptr("' + hex(s.address) + '")')
                 to_free.append(s)
                 args_types.append('pointer')
 
             # Make temporary string in memory
             elif type(arg) in [str, bytes]:
-                s = self._process.memory.alloc_string(arg)
+                s = self._engine.memory.alloc_string(arg)
                 args_resolved.append('ptr("' + hex(s.address) + '")')
                 to_free.append(s)
                 args_types.append('pointer')
@@ -260,7 +260,7 @@ class FridaMemoryBytes(MemoryBytes):
 
         
         # Something about v8 is broken here... Breaks after doing a function replace->call. Not sure why.
-        ret = self._process.engine.run_script_generic(js, raw=True, unload=True, runtime='duk', **kwargs)
+        ret = self._engine.run_script_generic(js, raw=True, unload=True, runtime='duk', **kwargs)
 
         # If we changed on_message or context, this might be None. That's ok.
         if ret is None:
@@ -286,16 +286,16 @@ class FridaMemoryBytes(MemoryBytes):
     def _remove_replace(self):
         """Reverts any replacement of this function."""
 
-        if self.address in self._process.memory._active_replacements:
-            self._process.memory._active_replacements[self.address][1][0].unload()
-            self._process.memory._active_replacements.pop(self.address)
+        if self.address in self._engine.memory._active_replacements:
+            self._engine.memory._active_replacements[self.address][1][0].unload()
+            self._engine.memory._active_replacements.pop(self.address)
 
     def _remove_on_enter(self):
         """Reverts any on_enter hook of this function."""
 
-        if self.address in self._process.memory._active_on_enter:
-            self._process.memory._active_on_enter[self.address][1][0].unload()
-            self._process.memory._active_on_enter.pop(self.address)
+        if self.address in self._engine.memory._active_on_enter:
+            self._engine.memory._active_on_enter[self.address][1][0].unload()
+            self._engine.memory._active_on_enter.pop(self.address)
 
     @property
     def replace_on_message(self):
@@ -375,7 +375,7 @@ class FridaMemoryBytes(MemoryBytes):
                 assert alarm(1) == 1
         """
         try:
-            return self._process.memory._active_replacements[self.address][0]
+            return self._engine.memory._active_replacements[self.address][0]
         except:
             return None
 
@@ -412,9 +412,9 @@ class FridaMemoryBytes(MemoryBytes):
                 "FUNCTION_ARG_TYPES": str([])
             }
 
-            self._process.engine.run_script_generic("replace_function.js", replace=replace_vars, unload=False, runtime='v8')
-            script = self._process.engine._scripts.pop(0)
-            self._process.memory._active_replacements[self.address] = (replace, script)
+            self._engine.run_script_generic("replace_function.js", replace=replace_vars, unload=False, runtime='v8')
+            script = self._engine._scripts.pop(0)
+            self._engine.memory._active_replacements[self.address] = (replace, script)
 
         #
         # Replace function with js
@@ -436,11 +436,11 @@ class FridaMemoryBytes(MemoryBytes):
                 "FUNCTION_ARG_TYPES": arg_types
             }
 
-            self._process.engine.run_script_generic("replace_function.js",
+            self._engine.run_script_generic("replace_function.js",
                     replace=replace_vars, unload=False,
                     on_message=self.replace_on_message)
-            script = self._process.engine._scripts.pop(0)
-            self._process.memory._active_replacements[self.address] = (replace, script)
+            script = self._engine._scripts.pop(0)
+            self._engine.memory._active_replacements[self.address] = (replace, script)
 
         else:
             logger.error("Invalid replacement type of {}".format(type(replace)))
@@ -469,7 +469,7 @@ class FridaMemoryBytes(MemoryBytes):
                 malloc(12) # Should get a message printed out about this malloc call
         """
         try:
-            return self._process.memory._active_on_enter[self.address][0]
+            return self._engine.memory._active_on_enter[self.address][0]
         except:
             return None
 
@@ -487,7 +487,7 @@ class FridaMemoryBytes(MemoryBytes):
 
         if isinstance(on_enter, str):
 
-            self._process.engine.run_script_generic("""var listener = Interceptor.attach({this_func}, {{onEnter: {on_enter}}});""".format(
+            self._engine.run_script_generic("""var listener = Interceptor.attach({this_func}, {{onEnter: {on_enter}}});""".format(
                         this_func = self.address.js,
                         on_enter = on_enter,
                     ),
@@ -495,8 +495,8 @@ class FridaMemoryBytes(MemoryBytes):
                     on_message=self.replace_on_message,
                     runtime='v8',
                     )
-            script = self._process.engine._scripts.pop(0)
-            self._process.memory._active_on_enter[self.address] = (on_enter, script)
+            script = self._engine._scripts.pop(0)
+            self._engine.memory._active_on_enter[self.address] = (on_enter, script)
 
         else:
             logger.error("Invalid on_enter type of {}".format(type(on_enter)))
@@ -513,133 +513,133 @@ class FridaMemoryBytes(MemoryBytes):
     @property
     def int8(self):
         """Signed 8-bit int"""
-        return types.Int8(self._process.engine.run_script_generic("""send(ptr("{}").readS8())""".format(hex(self.address)), raw=True, unload=True)[0][0])
+        return types.Int8(self._engine.run_script_generic("""send(ptr("{}").readS8())""".format(hex(self.address)), raw=True, unload=True)[0][0])
 
     @int8.setter
     def int8(self, val):
-        self._process.engine.run_script_generic("""send(ptr("{}").writeS8({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
+        self._engine.run_script_generic("""send(ptr("{}").writeS8({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
 
     @property
     def uint8(self):
         """Unsigned 8-bit int"""
-        return types.UInt8(self._process.engine.run_script_generic("""send(ptr("{}").readU8())""".format(hex(self.address)), raw=True, unload=True)[0][0])
+        return types.UInt8(self._engine.run_script_generic("""send(ptr("{}").readU8())""".format(hex(self.address)), raw=True, unload=True)[0][0])
 
     @uint8.setter
     def uint8(self, val):
-        self._process.engine.run_script_generic("""send(ptr("{}").writeU8({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
+        self._engine.run_script_generic("""send(ptr("{}").writeU8({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
 
     @property
     def int16(self):
         """Signed 16-bit int"""
-        return types.Int16(self._process.engine.run_script_generic("""send(ptr("{}").readS16())""".format(hex(self.address)), raw=True, unload=True)[0][0])
+        return types.Int16(self._engine.run_script_generic("""send(ptr("{}").readS16())""".format(hex(self.address)), raw=True, unload=True)[0][0])
 
     @int16.setter
     def int16(self, val):
-        self._process.engine.run_script_generic("""send(ptr("{}").writeS16({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
+        self._engine.run_script_generic("""send(ptr("{}").writeS16({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
 
     @property
     def uint16(self):
         """Unsigned 16-bit int"""
-        return types.UInt16(self._process.engine.run_script_generic("""send(ptr("{}").readU16())""".format(hex(self.address)), raw=True, unload=True)[0][0])
+        return types.UInt16(self._engine.run_script_generic("""send(ptr("{}").readU16())""".format(hex(self.address)), raw=True, unload=True)[0][0])
 
     @uint16.setter
     def uint16(self, val):
-        self._process.engine.run_script_generic("""send(ptr("{}").writeU16({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
+        self._engine.run_script_generic("""send(ptr("{}").writeU16({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
 
     @property
     def int32(self):
         """Signed 32-bit int"""
-        return types.Int32(self._process.engine.run_script_generic("""send(ptr("{}").readS32())""".format(hex(self.address)), raw=True, unload=True)[0][0])
+        return types.Int32(self._engine.run_script_generic("""send(ptr("{}").readS32())""".format(hex(self.address)), raw=True, unload=True)[0][0])
 
     @int32.setter
     def int32(self, val):
-        self._process.engine.run_script_generic("""send(ptr("{}").writeS32({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
+        self._engine.run_script_generic("""send(ptr("{}").writeS32({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
 
     @property
     def uint32(self):
         """Unsigned 32-bit int"""
-        return types.UInt32(self._process.engine.run_script_generic("""send(ptr("{}").readU32())""".format(hex(self.address)), raw=True, unload=True)[0][0])
+        return types.UInt32(self._engine.run_script_generic("""send(ptr("{}").readU32())""".format(hex(self.address)), raw=True, unload=True)[0][0])
 
     @uint32.setter
     def uint32(self, val):
-        self._process.engine.run_script_generic("""send(ptr("{}").writeU32({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
+        self._engine.run_script_generic("""send(ptr("{}").writeU32({}))""".format(hex(self.address), val), raw=True, unload=True)[0][0]
 
     @property
     def int64(self):
         """Signed 64-bit int"""
-        return types.Int64(common.auto_int(self._process.engine.run_script_generic("""send(ptr("{}").readS64())""".format(hex(self.address)), raw=True, unload=True)[0][0]))
+        return types.Int64(common.auto_int(self._engine.run_script_generic("""send(ptr("{}").readS64())""".format(hex(self.address)), raw=True, unload=True)[0][0]))
 
     @int64.setter
     def int64(self, val):
-        self._process.engine.run_script_generic("""ptr("{}").writeS64(int64('{}'))""".format(hex(self.address), val), raw=True, unload=True)
+        self._engine.run_script_generic("""ptr("{}").writeS64(int64('{}'))""".format(hex(self.address), val), raw=True, unload=True)
     
     @property
     def uint64(self):
         """Unsigned 64-bit int"""
-        return types.UInt64(common.auto_int(self._process.engine.run_script_generic("""send(ptr("{}").readU64())""".format(hex(self.address)), raw=True, unload=True)[0][0]))
+        return types.UInt64(common.auto_int(self._engine.run_script_generic("""send(ptr("{}").readU64())""".format(hex(self.address)), raw=True, unload=True)[0][0]))
 
     @uint64.setter
     def uint64(self, val):
-        self._process.engine.run_script_generic("""ptr("{}").writeU64(uint64('{}'))""".format(hex(self.address), val), raw=True, unload=True)
+        self._engine.run_script_generic("""ptr("{}").writeU64(uint64('{}'))""".format(hex(self.address), val), raw=True, unload=True)
 
     @property
     def string_ansi(self):
         """Read as ANSI string"""
-        return self._process.engine.run_script_generic("""send(ptr("{}").readAnsiString())""".format(hex(self.address)), raw=True, unload=True)[0][0]
+        return self._engine.run_script_generic("""send(ptr("{}").readAnsiString())""".format(hex(self.address)), raw=True, unload=True)[0][0]
 
     @string_ansi.setter
     def string_ansi(self, val):
-        self._process.engine.run_script_generic("""send(ptr("{}").writeAnsiString(\"{}\"))""".format(hex(self.address), val), raw=True, unload=True)
+        self._engine.run_script_generic("""send(ptr("{}").writeAnsiString(\"{}\"))""".format(hex(self.address), val), raw=True, unload=True)
 
     @property
     def string_utf8(self):
         """Read as utf-8 string"""
-        return self._process.engine.run_script_generic("""send(ptr("{}").readUtf8String())""".format(hex(self.address)), raw=True, unload=True)[0][0]
+        return self._engine.run_script_generic("""send(ptr("{}").readUtf8String())""".format(hex(self.address)), raw=True, unload=True)[0][0]
 
     @string_utf8.setter
     def string_utf8(self, val):
-        self._process.engine.run_script_generic("""send(ptr("{}").writeUtf8String(\"{}\"))""".format(hex(self.address), val), raw=True, unload=True)
+        self._engine.run_script_generic("""send(ptr("{}").writeUtf8String(\"{}\"))""".format(hex(self.address), val), raw=True, unload=True)
 
     @property
     def string_utf16(self):
         """Read as utf-16 string"""
-        return self._process.engine.run_script_generic("""send(ptr("{}").readUtf16String())""".format(hex(self.address)), raw=True, unload=True)[0][0]
+        return self._engine.run_script_generic("""send(ptr("{}").readUtf16String())""".format(hex(self.address)), raw=True, unload=True)[0][0]
 
     @string_utf16.setter
     def string_utf16(self, val):
-        self._process.engine.run_script_generic("""send(ptr("{}").writeUtf16String(\"{}\"))""".format(hex(self.address), val), raw=True, unload=True)
+        self._engine.run_script_generic("""send(ptr("{}").writeUtf16String(\"{}\"))""".format(hex(self.address), val), raw=True, unload=True)
 
     @property
     def double(self):
         """Read as double val"""
-        return types.Double(self._process.engine.run_script_generic("""send(ptr("{}").readDouble())""".format(hex(self.address)), raw=True, unload=True)[0][0])
+        return types.Double(self._engine.run_script_generic("""send(ptr("{}").readDouble())""".format(hex(self.address)), raw=True, unload=True)[0][0])
 
     @double.setter
     def double(self, val):
-        self._process.engine.run_script_generic("""send(ptr("{}").writeDouble({}))""".format(hex(self.address), val), raw=True, unload=True)
+        self._engine.run_script_generic("""send(ptr("{}").writeDouble({}))""".format(hex(self.address), val), raw=True, unload=True)
 
     @property
     def float(self):
         """Read as float val"""
-        return types.Float(self._process.engine.run_script_generic("""send(ptr("{}").readFloat())""".format(hex(self.address)), raw=True, unload=True)[0][0])
+        return types.Float(self._engine.run_script_generic("""send(ptr("{}").readFloat())""".format(hex(self.address)), raw=True, unload=True)[0][0])
 
     @float.setter
     def float(self, val):
-        self._process.engine.run_script_generic("""send(ptr("{}").writeFloat({}))""".format(hex(self.address), val), raw=True, unload=True)
+        self._engine.run_script_generic("""send(ptr("{}").writeFloat({}))""".format(hex(self.address), val), raw=True, unload=True)
     
     @property
     def pointer(self):
         """Read as pointer val"""
-        return types.Pointer(common.auto_int(self._process.engine.run_script_generic("""send(ptr("{}").readPointer())""".format(hex(self.address)), raw=True, unload=True)[0][0]))
+        return types.Pointer(common.auto_int(self._engine.run_script_generic("""send(ptr("{}").readPointer())""".format(hex(self.address)), raw=True, unload=True)[0][0]))
 
     @pointer.setter
     def pointer(self, val):
-        common.auto_int(self._process.engine.run_script_generic("""send(ptr("{}").writePointer(ptr("{}")))""".format(hex(self.address), hex(val)), raw=True, unload=True)[0][0])
+        common.auto_int(self._engine.run_script_generic("""send(ptr("{}").writePointer(ptr("{}")))""".format(hex(self.address), hex(val)), raw=True, unload=True)[0][0])
 
     @property
     def breakpoint(self):
         """bool: Does this address have an active breakpoint?"""
-        return self.address in self._process.memory._active_breakpoints
+        return self.address in self._engine.memory._active_breakpoints
 
     @breakpoint.setter
     def breakpoint(self, val):
@@ -654,8 +654,8 @@ class FridaMemoryBytes(MemoryBytes):
                 return
 
             # Remove breakpoint
-            self._process.engine.run_script_generic("""ptr("{}").writeS8(1);""".format(hex(self._process.memory._active_breakpoints[self.address])), raw=True, unload=True)
-            self._process.memory._active_breakpoints.pop(self.address)
+            self._engine.run_script_generic("""ptr("{}").writeS8(1);""".format(hex(self._engine.memory._active_breakpoints[self.address])), raw=True, unload=True)
+            self._engine.memory._active_breakpoints.pop(self.address)
 
         # Add breakpoint
         else:
@@ -663,9 +663,9 @@ class FridaMemoryBytes(MemoryBytes):
             if self.breakpoint:
                 return
 
-            unbreak = int(self._process.engine.run_script_generic('generic_suspend_until_true.js', replace={"FUNCTION_HERE": hex(self.address)})[0][0],16)
+            unbreak = int(self._engine.run_script_generic('generic_suspend_until_true.js', replace={"FUNCTION_HERE": hex(self.address)})[0][0],16)
             #print('Unsuspend pointer: ' + hex(unbreak))
-            self._process.memory._active_breakpoints[self.address] = unbreak
+            self._engine.memory._active_breakpoints[self.address] = unbreak
 
 
     @property
@@ -676,7 +676,7 @@ class FridaMemoryBytes(MemoryBytes):
         else:
             length = self.address_stop - self.address
 
-        return self._process.engine.run_script_generic("""send('array', ptr("{}").readByteArray({}))""".format(hex(self.address), hex(length)), raw=True, unload=True)[1][0]
+        return self._engine.run_script_generic("""send('array', ptr("{}").readByteArray({}))""".format(hex(self.address), hex(length)), raw=True, unload=True)[1][0]
 
     @bytes.setter
     def bytes(self, b):
@@ -692,7 +692,7 @@ class FridaMemoryBytes(MemoryBytes):
         if self.size is not None and len(b) > self.size:
             logger.warning("Writing more bytes than it appears is allocated.")
 
-        self._process.engine.run_script_generic("""ptr("{}").writeByteArray({});""".format(
+        self._engine.run_script_generic("""ptr("{}").writeByteArray({});""".format(
             hex(self.address),
             json.dumps(list(b)),
             ), raw=True, unload=True)
@@ -778,7 +778,7 @@ class FridaMemoryBytes(MemoryBytes):
 
                 # Write in member
                 # TODO: But what if this is a struct? I.e.: nested structs
-                self._process.memory[addr] = member
+                self._engine.memory[addr] = member
                 member._process = self._process # Just in case for sizeof
                 addr += member.sizeof
 

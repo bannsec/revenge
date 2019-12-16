@@ -23,8 +23,8 @@ class FridaMemoryFind(MemoryFind):
                 "SEARCH_SPACE_HERE": json.dumps(self._ranges_js),
                 }
 
-        self._process.engine.run_script_generic("find_in_memory.js", replace=replace, unload=False, on_message=self._on_message)
-        self._script = self._process.engine._scripts.pop(0)
+        self._engine.run_script_generic("find_in_memory.js", replace=replace, unload=False, on_message=self._on_message)
+        self._script = self._engine._scripts.pop(0)
 
     def _on_message(self, m,d):
         """Catch messages from our search."""

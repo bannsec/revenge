@@ -5,8 +5,9 @@ from .. import common, types, exceptions
 
 class MemoryRange(object):
 
-    def __init__(self, process, base, size, protection, file=None):
-        self._process = process
+    def __init__(self, engine, base, size, protection, file=None):
+        self._engine = engine
+        self._process = self._engine._process
         self.base = base
         self.size = size
         self.protection = protection
