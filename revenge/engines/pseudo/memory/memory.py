@@ -20,6 +20,8 @@ class PseudoMemory(Memory):
         self._MemoryFind = MemoryFind
         self._MemoryMap = MemoryMap
 
+        self._memory_raw = {}
+
 from .... import common, types, symbols
 from . import MemoryBytes, MemoryMap, MemoryFind
 from ....exceptions import *

@@ -11,21 +11,27 @@ class PseudoMemoryBytes(MemoryBytes):
 
     @property
     def int8(self):
-        pass
+        try:
+            return self._engine.memory._memory_raw[self.address]
+        except KeyError:
+            return RevengeMemoryReadError("Memory at address {} not initialized.".format(hex(self.address)))
 
     @int8.setter
     def int8(self, val):
-        pass
+        self._engine.memory._memory_raw[self.address] = val
 
-    """
     @property
     def uint8(self):
-        pass
+        try:
+            return self._engine.memory._memory_raw[self.address]
+        except KeyError:
+            return RevengeMemoryReadError("Memory at address {} not initialized.".format(hex(self.address)))
 
     @uint8.setter
     def uint8(self, val):
-        pass
+        self._engine.memory._memory_raw[self.address] = val
 
+    """
     @property
     def int16(self):
         pass

@@ -109,6 +109,10 @@ class FloatBasic:
             logger.warning("Subtracting incompatible types {} and {}. Un-casting back to float.".format(type(self), type(other)))
             return float(self) - float(other)
 
+# TODO: Add actual size checks and stuff here (
+# In [57]: np.int8(0b10000000)
+# Out[57]: -128
+# That's failing rn
 class Int8(Basic, int):
     type = "int8"
     ctype = "char"

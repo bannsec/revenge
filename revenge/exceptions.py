@@ -20,3 +20,9 @@ class RevengeThreadCreateError(RevengeError):
 
 class RevengeImmutableError(RevengeError):
     pass
+
+class RevengeMemoryError(RevengeError):
+    pass
+
+class RevengeMemoryReadError(RevengeMemoryError):
+    pass
