@@ -11,7 +11,7 @@ from termcolor import cprint, colored
 
 from ....memory import Memory
 
-class PseudoMemory(Memory):
+class UnicornMemory(Memory):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

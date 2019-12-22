@@ -31,7 +31,6 @@ class Memory(object):
 
     def __init__(self, engine):
         self._engine = engine
-        self._process = engine._process
 
         # Keep track of where we've inserted breakpoints
         # key == address of breakpoint, value == memory location to un-breakpoint it
@@ -356,6 +355,10 @@ class Memory(object):
                 ])
 
         return str(table)
+
+    @property
+    def _process(self):
+        return self._engine._process
 
 from ..exceptions import *
 #Memory.find.__doc__ = MemoryFind.__init__.__doc__

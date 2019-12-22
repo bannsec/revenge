@@ -21,8 +21,13 @@ class BaseDevice:
     pass
 
 class LocalDevice(BaseDevice):
-    """Connect to whatever this is locally running on."""
+    """Connect to whatever this is locally running on.
+    
+    Args:
+        engine (str, optional): What engine to use? Defualt: frida
+    """
     def __init__(self):
         self.device = frida.get_local_device()
 
+from ..engines import Engine
 from .android import AndroidDevice

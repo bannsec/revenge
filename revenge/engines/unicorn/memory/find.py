@@ -6,7 +6,7 @@ import time
 
 from ....memory import MemoryFind
 
-class PseudoMemoryFind(MemoryFind):
+class UnicornMemoryFind(MemoryFind):
     pass
 
 from .... import common, types

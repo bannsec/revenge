@@ -384,7 +384,8 @@ class Process(object):
         try:
             return self.__engine
         except AttributeError:
-            self.__engine = Engine._from_string(self, self._engine)
+            self.__engine = Engine._from_string(self._engine)
+            self.__engine._process = self
             return self.__engine
 
 import inspect

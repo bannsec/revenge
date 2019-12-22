@@ -7,7 +7,7 @@ import time
 
 from ....memory import MemoryBytes
 
-class PseudoMemoryBytes(MemoryBytes):
+class UnicornMemoryBytes(MemoryBytes):
 
     @property
     def int8(self):

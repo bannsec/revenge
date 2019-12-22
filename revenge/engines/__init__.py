@@ -10,8 +10,8 @@ import importlib
 class Engine(object):
     """Base for Revenge Engines."""
 
-    def __init__(self, process, klass):
-        self._process = process
+    def __init__(self, klass):
+        #self._process = process
         self._memory = importlib.import_module('.memory', package=klass.__module__)
         self.memory = self._memory.Memory(self)
         
@@ -25,11 +25,10 @@ class Engine(object):
                 setattr(self.plugins, modname, importlib.import_module(".plugins." + modname, package=klass.__module__))
 
     @staticmethod
-    def _from_string(process, engine):
+    def _from_string(engine):
         """Instantitate an engine based on the string name for it.
 
         Args:
-            process (revenge.Process): Process to bind this to
             engine (str): What engine? I.e.: 'frida' or 'pseudo'
 
         Returns:
@@ -37,7 +36,7 @@ class Engine(object):
         """
 
         mod = importlib.import_module('..engines.{engine}'.format(engine=engine), package=__name__)
-        return mod.Engine(process)
+        return mod.Engine()
 
     @common.implement_in_engine()
     def start_session(self):
