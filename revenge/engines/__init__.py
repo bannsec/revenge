@@ -6,12 +6,17 @@ from .. import common
 import importlib
 import pkgutil
 import importlib
+import functools
 
 class Engine(object):
     """Base for Revenge Engines."""
 
     def __init__(self, klass):
-        #self._process = process
+
+        Process = importlib.import_module('.process', package=klass.__module__).Process
+        self.Process = functools.partial(Process, engine=self)
+        functools.update_wrapper(self.Process, BaseProcess)
+
         self._memory = importlib.import_module('.memory', package=klass.__module__)
         self.memory = self._memory.Memory(self)
         
@@ -29,7 +34,7 @@ class Engine(object):
         """Instantitate an engine based on the string name for it.
 
         Args:
-            engine (str): What engine? I.e.: 'frida' or 'pseudo'
+            engine (str): What engine? I.e.: 'frida' or 'unicorn'
 
         Returns:
             Instantiated Engine object for that engine.
@@ -46,3 +51,5 @@ class Engine(object):
     def _at_exit(self):
         """Cleanup stuff."""
         return
+
+from ..process import Process as BaseProcess

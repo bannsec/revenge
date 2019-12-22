@@ -19,7 +19,6 @@ import atexit
 import signal
 import json
 import pprint
-from copy import copy
 
 import importlib
 
@@ -43,8 +42,8 @@ class Process(object):
             envp (dict, optional): Specify what you want the environment
                 pointer list to look like. Defaults to whatever the current
                 envp is.
-            engine (str, optional): What engine to use. Options are in
-                revenge.engines. Default: frida
+            engine (revenge.engines.Engine): Instantiated Engine for this
+                process
 
         Examples:
             .. code-block:: python3
@@ -56,7 +55,8 @@ class Process(object):
                 p = revenge.Process(["/bin/ls","/tmp/"], envp={'var1':'thing1'})
         """
 
-        self._engine = engine if engine is not None else "frida"
+        #self._engine = engine if engine is not None else "frida"
+        self.__engine = engine
         self.__file_name = None
         self.__file_type = None
         self.__entrypoint = None
@@ -381,12 +381,13 @@ class Process(object):
     @property
     def engine(self):
         """The current engine revenge is using."""
+
         try:
-            return self.__engine
+            self.__engine._process
         except AttributeError:
-            self.__engine = Engine._from_string(self._engine)
             self.__engine._process = self
-            return self.__engine
+
+        return self.__engine
 
 import inspect
 from . import common, types, config, devices
