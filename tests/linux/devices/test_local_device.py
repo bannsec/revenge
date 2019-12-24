@@ -16,3 +16,10 @@ def test_local_device_processes():
     procs = d.processes
     
     assert len(procs) > 0
+
+def test_local_device_platform():
+
+    # This test should always be on linux...
+    d = devices.LocalDevice()
+
+    assert d.platform == 'linux'
