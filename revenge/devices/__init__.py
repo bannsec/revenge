@@ -6,6 +6,8 @@ import frida
 import subprocess
 import shlex
 import os
+import platform
+from .. import common
 
 # Standardize for Frida conventions
 uname_standard = {
@@ -18,16 +20,32 @@ uname_standard = {
 }
 
 class BaseDevice:
-    pass
 
-class LocalDevice(BaseDevice):
-    """Connect to whatever this is locally running on.
-    
-    Args:
-        engine (str, optional): What engine to use? Defualt: frida
-    """
-    def __init__(self):
-        self.device = frida.get_local_device()
+    @common.implement_in_engine()
+    def spawn(self, argv):
+        """Spawn a new process.
+
+        Args:
+            argv (list, str): Process to spawn or argv list.
+
+        Returns:
+            revenge.process.Process object
+        """
+        pass
+
+    @property
+    @common.implement_in_engine()
+    def platform(self):
+        """str: What platform is this?"""
+        pass
+
+    @property
+    @common.implement_in_engine()
+    def processes(self):
+        """list: Currently running processes"""
+        pass
+
 
 from ..engines import Engine
 from .android import AndroidDevice
+from .local import LocalDevice

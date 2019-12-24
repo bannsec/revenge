@@ -55,7 +55,6 @@ class Process(object):
                 p = revenge.Process(["/bin/ls","/tmp/"], envp={'var1':'thing1'})
         """
 
-        #self._engine = engine if engine is not None else "frida"
         self.__engine = engine
         self.__file_name = None
         self.__file_type = None
