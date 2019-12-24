@@ -20,7 +20,11 @@ class LocalDevice(BaseDevice):
         procs = []
 
         for proc in psutil.process_iter():
-            procs.append( Process(name=proc.name(), pid=proc.pid) )
+            procs.append( Process(
+                name=proc.name(),
+                pid=proc.pid,
+                ppid=proc.ppid(),
+                ) )
 
         return Processes(procs)
 

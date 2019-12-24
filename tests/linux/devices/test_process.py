@@ -18,3 +18,12 @@ def test_process_basic():
 
     str(p)
     repr(p)
+
+    p = Process(name="calc.exe", pid=1337, ppid=7331)
+
+    assert p.name == "calc.exe"
+    assert p.pid == 1337
+    assert p.ppid == 7331
+
+    str(p)
+    repr(p)

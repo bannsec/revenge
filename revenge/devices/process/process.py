@@ -3,16 +3,18 @@ logger = logging.getLogger(__name__)
 
 class Process:
     
-    def __init__(self, name, pid):
+    def __init__(self, name, pid, ppid=None):
         """Describes a process on this device.
 
         Args:
             name (str): What is the name of this process
             pid (int): Process ID
+            ppid (int, optional): Process Parent ID
         """
 
         self.name = name
         self.pid = pid
+        self.ppid = ppid
 
     def __repr__(self):
         attrs = [
@@ -38,5 +40,14 @@ class Process:
     @pid.setter
     def pid(self, pid):
         self.__pid = pid
+
+    @property
+    def ppid(self):
+        """int: Process Parent ID"""
+        return self.__ppid
+
+    @ppid.setter
+    def ppid(self, ppid):
+        self.__ppid = ppid
 
 Process.__doc__ = Process.__init__.__doc__
