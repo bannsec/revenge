@@ -15,5 +15,17 @@ class LocalDevice(BaseDevice):
     def platform(self):
         return platform.system().lower()
 
+    @property
+    def processes(self):
+        procs = []
+
+        for proc in psutil.process_iter():
+            procs.append( Process(name=proc.name(), pid=proc.pid) )
+
+        return Processes(procs)
+
 import frida
 import platform
+import psutil
+
+from ..process import Process, Processes
