@@ -8,8 +8,12 @@ class LocalDevice(BaseDevice):
         engine (str, optional): What engine to use? Defualt: frida
     """
     def __init__(self, engine=None):
-        self._engine = engine
+        self._engine = engine or 'frida'
         self.device = frida.get_local_device()
+
+    def spawn(self, *args, **kwargs):
+        kwargs['device'] = self
+        return Engine._from_string(self._engine).Process(*args, **kwargs)
 
     @property
     def platform(self):
@@ -33,3 +37,7 @@ import platform
 import psutil
 
 from ..process import Process, Processes
+from ...engines import Engine
+from ...process import Process as ProcessBase
+
+LocalDevice.spawn.__doc__ = ProcessBase.__init__.__doc__

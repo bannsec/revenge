@@ -23,3 +23,15 @@ def test_local_device_platform():
     d = devices.LocalDevice()
 
     assert d.platform == 'linux'
+
+def test_local_device_spawn():
+
+    # This test should always be on linux...
+    d = devices.LocalDevice()
+
+    p = d.spawn(basic_one_path)
+
+    assert p.alive
+    assert p.device is d
+
+    p.quit()
