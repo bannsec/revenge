@@ -11,11 +11,9 @@ class LocalDevice(BaseDevice):
     """
     def __init__(self, engine=None):
         self._engine = engine or 'frida'
-        self.device = frida.get_local_device()
 
-    def spawn(self, *args, **kwargs):
-        kwargs['device'] = self
-        return Engine._from_string(self._engine).Process(*args, **kwargs)
+    def Process(self, *args, **kwargs):
+        return Engine._from_string(self._engine, device=self).Process(*args, **kwargs)
 
     def resume(self, pid):
         try:
@@ -58,4 +56,4 @@ from ..process import Process, Processes
 from ...engines import Engine
 from ...process import Process as ProcessBase
 
-LocalDevice.spawn.__doc__ = ProcessBase.__init__.__doc__
+LocalDevice.Process.__doc__ = ProcessBase.__init__.__doc__

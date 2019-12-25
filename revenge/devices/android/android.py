@@ -12,10 +12,11 @@ from .. import BaseDevice
 from ... import common
 
 class AndroidDevice(BaseDevice):
-    def __init__(self, id=None, type=None, frida_server_release=None):
+    def __init__(self, engine=None, id=None, type=None, frida_server_release=None):
         """Describes and Android device.
 
         Args:
+            engine (str, optional): What Engine to use? Default: frida
             id (str, optional): Unique ID for this android device
             type (str, optional): Connection type for this device.
             frida_server_release (str, optional): Specify a specific version
@@ -25,6 +26,8 @@ class AndroidDevice(BaseDevice):
             AndroidDevice(id="emulator-5554")
             AndroidDevice(type="usb")
         """
+
+        self._engine = engine or 'frida'
         self.id = id
         self._frida_server_release = frida_server_release
         self.type = type.lower()
@@ -135,7 +138,7 @@ class AndroidDevice(BaseDevice):
             # Sometimes it gates anyway
             self.device.resume(pid)
 
-        return Process(pid, device=self, load_symbols=load_symbols)
+        return Engine._from_string(self._engine, device=self).Process(pid, load_symbols=load_symbols)
 
     @common.retry_on_exception((frida.TransportError,))
     def attach(self, application, load_symbols=None):
@@ -157,7 +160,7 @@ class AndroidDevice(BaseDevice):
         else:
             pid = self.applications[application].pid
 
-        return Process(pid, device=self, load_symbols=load_symbols)
+        return Engine._from_string(self._engine, device=self).Process(pid, load_symbols=load_symbols)
 
     def install(self, package):
         """Install package onto android device.
@@ -235,5 +238,5 @@ class AndroidDevice(BaseDevice):
 
 from .applications import AndroidApplications
 from .. import uname_standard
-from ...process import Process
+from ...engines import Engine
 

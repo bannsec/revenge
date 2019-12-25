@@ -13,20 +13,59 @@ class FridaEngine(Engine):
         self._scripts = []
         self.session = None
 
+        self._connect_frida_device()
+
+    def _connect_frida_device(self):
+        """Handle setting up the actual frida device connection."""
+
+        if isinstance(self.device, LocalDevice):
+            # Local Frida device
+            self._frida_device = frida.get_local_device()
+
+        elif isinstance(self.device, AndroidDevice):
+            self._connect_frida_device_android()
+
+        else:
+            raise RevengeInvalidArgumentType("Device type {} is not yet supported for FridaEngine.".format(device.__class__))
+
+    def _connect_frida_device_android(self):
+
+        if self.device.id:
+            self._frida_device = frida.get_device(self.device.id)
+            return
+
+        if self.device.type == "usb":
+            usbs = [x for x in frida.enumerate_devices() if x.type == 'usb']
+            if usbs == []:
+                error = "Cannot find USB device."
+                logger.error(error)
+                raise Exception(error)
+
+            if len(usbs) > 1:
+                logger.warn("Found more than 1 usb device. Selecting first one...")
+
+            self._frida_device = usbs[0]
+            self.device.id = self._frida_device.id
+            return
+
+        error = "Couldn't find the device you requested..."
+        logger.error(error)
+        raise Exception(error)
+
     def start_session(self):
 
         self._process._spawned_pid = None
 
         if self._process._spawn_target is not None:
             print("Spawning file\t\t\t... ", end='', flush=True)
-            self._process._spawned_pid = self._process.device.device.spawn(self._process._spawn_target, argv=self._process.argv, envp=self._process._envp)
+            self._process._spawned_pid = self._frida_device.spawn(self._process._spawn_target, argv=self._process.argv, envp=self._process._envp)
             cprint("[ DONE ]", "green")
 
         print('Attaching to the session\t... ', end='', flush=True)
 
         try:
             # Default attach to what we just spawned
-            self.session = self._process.device.device.attach(self._process._spawned_pid or self._process.target)
+            self.session = self._frida_device.attach(self._process._spawned_pid or self._process.target)
         except frida.ProcessNotFoundError:
             logger.error('Could not find that target process to attach to!')
             exit(1)
@@ -168,6 +207,9 @@ class FridaEngine(Engine):
 
         return msg, data
 
+    def resume(self, pid):
+        return self._frida_device.resume(pid)
+
     def _at_exit(self):
 
         # TODO: Remove this once pytest fixes their at_exit issue
@@ -220,12 +262,12 @@ class FridaEngine(Engine):
         # If we spawned it, kill it
         try:
             if self._process._spawned_pid is not None:
-                return self._process.device.device.kill(self._process._spawned_pid)
+                return self._frida_device.kill(self._process._spawned_pid)
 
         except (frida.PermissionDeniedError, frida.ProcessNotFoundError) as e:
             # This can indicate the process is already dead.
             try:
-                next(x for x in self._process.device.device.enumerate_processes() if x.pid == self._process._spawned_pid)
+                next(x for x in self._frida_device.enumerate_processes() if x.pid == self._process._spawned_pid)
                 logger.error("Device kill permission error, with process apparently %d still alive.", self._process._spawned_pid)
                 raise e
             except StopIteration:
@@ -257,6 +299,9 @@ import colorama
 import time
 from copy import copy
 from termcolor import cprint, colored
+
+from ...devices import LocalDevice, AndroidDevice
+from ...exceptions import *
 
 Engine = FridaEngine
 here = os.path.dirname(os.path.abspath(__file__))

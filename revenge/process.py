@@ -27,7 +27,7 @@ here = os.path.dirname(os.path.abspath(__file__))
 class Process(object):
 
     def __init__(self, target, resume=False, verbose=False, load_symbols=None,
-            device=None, envp=None, engine=None):
+            envp=None, engine=None):
         """
 
         Args:
@@ -37,8 +37,6 @@ class Process(object):
             verbose (bool, optional): Enable verbose logging
             load_symbols (list, optional): Only load symbols from those modules
                 in the list. Saves some startup time. Can use glob ('libc*')
-            device (revenge.devices.*, optional): Define what device
-                to connect to.
             envp (dict, optional): Specify what you want the environment
                 pointer list to look like. Defaults to whatever the current
                 envp is.
@@ -64,7 +62,6 @@ class Process(object):
         self.__bits = None
         self._spawn_target = None
         self.verbose = verbose
-        self.device = device or devices.LocalDevice()
         self._envp = envp
         self.target = target
 
@@ -94,7 +91,7 @@ class Process(object):
                 self.memory[c].breakpoint = True
 
             # Resume to remove ptrace
-            self.device.device.resume(self._spawned_pid)
+            self.engine.resume(self._spawned_pid)
 
         if self.device_platform == 'linux':
             try:
@@ -110,7 +107,7 @@ class Process(object):
                 self.memory[self.entrypoint].breakpoint = False
             
             else:
-                self.device.device.resume(self._spawned_pid)
+                self.engine.resume(self._spawned_pid)
 
     def _register_plugins(self):
         """Figures out which plugins to load and loads them."""
@@ -310,7 +307,7 @@ class Process(object):
 
         # Check if this is a pid
         try:
-            p = next(x for x in self.device.device.enumerate_processes() if x.pid == common.auto_int(target))
+            p = next(x for x in self.engine._frida_device.enumerate_processes() if x.pid == common.auto_int(target))
             target = p.pid
             self.__file_name = p.name
             self.argv[0] = p.name
@@ -333,21 +330,16 @@ class Process(object):
     def alive(self):
         """bool: Is this process still alive?"""
         try:
-            next(True for x in self.device.device.enumerate_processes() if x.pid == self.pid)
+            next(True for x in self.engine._frida_device.enumerate_processes() if x.pid == self.pid)
             return True
         except StopIteration:
             return False
 
     @property
     def device(self):
-        """frida.core.Device: Frida device object for this connection."""
-        return self.__device
+        """revenge.devices.BaseDevice: What device is this process associated with?"""
+        return self.engine.device
 
-    @device.setter
-    def device(self, device):
-        assert isinstance(device, devices.BaseDevice), "Device must be an instantiation of one of the devices defined in revenge.devices."
-        self.__device = device
-    
     @property
     def BatchContext(self):
         """Returns a BatchContext class for this process.

@@ -78,7 +78,8 @@ def parse_location_string(s):
 def load_file(process, file_path):
     """Attempt to load the file with file_path. Use local loading if connection is local, and remote otherwise."""
 
-    if process.device.device.type == 'local':
+    # Fucking import hell..
+    if process.device.__class__.__name__ == "LocalDevice":
         return load_file_local(process, file_path)
     else:
         return load_file_remote(process, file_path)
@@ -252,3 +253,4 @@ class retry_on_exception(object):
                         logger.error("Ran out of retries... {}".format(str(e)))
                         raise
         return wrapper
+

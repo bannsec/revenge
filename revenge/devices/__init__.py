@@ -22,7 +22,7 @@ uname_standard = {
 class BaseDevice:
 
     @common.implement_in_engine()
-    def spawn(self, *args, **kwargs):
+    def Process(self, *args, **kwargs):
         pass
 
     @common.implement_in_engine()
@@ -48,6 +48,5 @@ class BaseDevice:
         pass
 
 
-from ..engines import Engine
 from .android import AndroidDevice
 from .local import LocalDevice

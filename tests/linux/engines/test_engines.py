@@ -14,14 +14,12 @@ bin_location = os.path.join(here, "..", "bins")
 
 def test_engine_init():
 
-    process = revenge.Process(os.path.join(bin_location, 'basic_one'), resume=False, verbose=False, load_symbols=['basic_one'])
-
-    eng = revenge.engines.Engine._from_string('unicorn')
+    d = revenge.devices.LocalDevice(engine='unicorn')
+    eng = revenge.engines.Engine._from_string('unicorn', device=d)
     assert isinstance(eng, UnicornEngine)
     assert isinstance(eng.memory, revenge.memory.Memory)
 
-    eng = revenge.engines.Engine._from_string('frida')
+    d = revenge.devices.LocalDevice(engine='frida')
+    eng = revenge.engines.Engine._from_string('frida', device=d)
     assert isinstance(eng, FridaEngine)
     assert isinstance(eng.memory, revenge.memory.Memory)
-
-    process.quit()
