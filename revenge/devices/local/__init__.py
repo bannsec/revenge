@@ -1,3 +1,5 @@
+import logging
+logger = logging.getLogger(__name__)
 
 from .. import BaseDevice
 
@@ -14,6 +16,22 @@ class LocalDevice(BaseDevice):
     def spawn(self, *args, **kwargs):
         kwargs['device'] = self
         return Engine._from_string(self._engine).Process(*args, **kwargs)
+
+    def resume(self, pid):
+        try:
+            p = psutil.Process(pid)
+        except psutil.NoSuchProcess:
+            raise RevengeInvalidArgumentType("Couldn't find pid to resume.")
+
+        p.resume()
+
+    def suspend(self, pid):
+        try:
+            p = psutil.Process(pid)
+        except psutil.NoSuchProcess:
+            raise RevengeInvalidArgumentType("Couldn't find pid to suspend.")
+
+        p.suspend()
 
     @property
     def platform(self):

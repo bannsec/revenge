@@ -96,8 +96,6 @@ class Process(object):
             # Resume to remove ptrace
             self.device.device.resume(self._spawned_pid)
 
-            #time.sleep(0.2)
-
         if self.device_platform == 'linux':
             try:
                 str(self.threads)

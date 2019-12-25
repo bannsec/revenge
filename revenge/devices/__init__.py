@@ -22,15 +22,17 @@ uname_standard = {
 class BaseDevice:
 
     @common.implement_in_engine()
-    def spawn(self, argv):
-        """Spawn a new process.
+    def spawn(self, *args, **kwargs):
+        pass
 
-        Args:
-            argv (list, str): Process to spawn or argv list.
+    @common.implement_in_engine()
+    def suspend(self, pid):
+        """Suspend a given process."""
+        pass
 
-        Returns:
-            revenge.process.Process object
-        """
+    @common.implement_in_engine()
+    def resume(self, pid):
+        """Resume a given process."""
         pass
 
     @property
