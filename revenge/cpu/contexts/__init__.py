@@ -92,11 +92,15 @@ class CPUContext(object):
         elif arch == "ia32":
             return X86Context(process, *args, **kwargs)
 
+        elif arch == "arm":
+            return ARMContext(process, *args, **kwargs)
+
         else:
             logger.error("Currently unsupported architecture of {}".format(arch))
 
 from prettytable import PrettyTable
 from .x64 import X64Context
 from .x86 import X86Context
+from .arm import ARMContext
 from ... import types, common
 
