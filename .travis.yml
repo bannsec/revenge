@@ -72,6 +72,28 @@ matrix:
               - docker run -dit --rm --network host --privileged --device /dev/kvm bannsec/revenge_testenv_android-29_default_x86_64 /opt/emulator/emulator @test -no-window -verbose -no-snapshot -camera-back none -camera-front none -selinux permissive -qemu -m 2048
               - docker run -it --rm --privileged --network host --cap-add ALL -e TRAVIS=1 -e TRAVIS_BRANCH=$TRAVIS_BRANCH -e COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN -e COVERALLS_PARALLEL=True -e TRAVIS_JOB_ID=$TRAVIS_JOB_ID bannsec/revenge bash -c 'cd /opt/revenge && ./test_android.sh && if [ ! -z "$COVERALLS_REPO_TOKEN" ]; then coveralls; fi'
 
+        #
+        # Android API 24 - ARM
+        #
+        - os: linux
+          name: "Android: system-images;android-24;default;armeabi-v7a"
+          env:
+              - DOCKERFILE=Dockerfile
+              - ANDROID_HOME=/usr/local/android-sdk
+              - QEMU_AUDIO_DRV=none
+              - TOOLS=${ANDROID_HOME}/tools
+          before_install:
+              - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+              - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+              - sudo apt-get update
+              - sudo apt-get -y install docker-ce qemu-kvm libvirt-bin ubuntu-vm-builder bridge-utils cpu-checker
+              - sudo kvm-ok
+          install:
+              - docker build -t bannsec/revenge -f $DOCKERFILE .
+          script:
+              - docker run -dit --rm --network host --privileged --device /dev/kvm bannsec/revenge_testenv_android-24_default_armeabi-v7 /opt/emulator/emulator @test -no-window -no-snapshot -camera-back none -camera-front none -selinux permissive -qemu -m 2048
+              - docker run -it --rm --privileged --network host --cap-add ALL -e TRAVIS=1 -e TRAVIS_BRANCH=$TRAVIS_BRANCH -e COVERALLS_REPO_TOKEN=$COVERALLS_REPO_TOKEN -e COVERALLS_PARALLEL=True -e TRAVIS_JOB_ID=$TRAVIS_JOB_ID bannsec/revenge bash -c 'cd /opt/revenge && ./test_android.sh && if [ ! -z "$COVERALLS_REPO_TOKEN" ]; then coveralls; fi'
+
 env:
     global:
         secure: DSXns4hOc8LSs6vsId086QB1iE8uaFb8ggQVLjy93kFD0zTwpHWHi1uxVoxHdT8pTv4DpGWAfUT+Ltxtji2dbmWhGxuQ9TSDRxnsdDlRCx00KsN7CvxkjPeTIgQmSTvhvMBBWUIJrCmF9x9G3L5aN4lxvLiY92d7gTjn7DbyPwyfFE51LvfRPyu+1/chKks/+QVj5CYGV5etEEZ69pLJvoYdm60VdBLxwzwfKsYbVtssoGthCXbCx+UrH1zLit+aLt5De61QsIXcIRpWcHL5hBJEillHJO62XzE923Gw7xZHi8EY8bjOaiCVpq0xnI6Tntvt/qaAE11xPE1A2pFKMcIjlnRIKaUA3IwazB7mzJwf33SXfPEipDECza/E4Piuw313iBwNq6A9yWF+AOVsQi7W4OiWcgNP4rJ5PKQYC4SUPLA9MXlh3HzFQy1zi8x7pC4HrgZKoWs7YjJ7G1lrfz3arADMGDyZwxV/A0NoJ30CrYwhiT0V5FGwp78040ap3n3bYs6KP4NMMBBVgl2Xy3vnFZxOX3yIDA/kc0bMqgExx1BRp95mIiv4ykTDF4DDra1PGOMoCSDEEvU4W9nRm6LLdHjtd4W2KFp8dVWqpOs9YMfJStDmVOu9kiII1cf9bUE+UD+iGYeXKcrQRARYfkiCAYLDXxOhglkaZl+hr1M=
