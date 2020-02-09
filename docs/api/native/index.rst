@@ -5,7 +5,7 @@ Native
     :caption: Native
 
     cpu
-    devices
+    devices/index
     errors
     exceptions
     process

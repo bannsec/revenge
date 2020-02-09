@@ -2,6 +2,16 @@
 CPU
 ===
 
+CPUContextBase
+==============
+
+This is the base mix-in class when defining new CPUs to support.
+
+.. autoclass:: revenge.cpu.contexts.CPUContextBase
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 CPUContext
 ==========
 
@@ -20,6 +30,13 @@ x64
 x86
 ---
 .. autoclass:: revenge.cpu.contexts.x86.X86Context
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+arm
+---
+.. autoclass:: revenge.cpu.contexts.arm.ARMContext
     :members:
     :undoc-members:
     :show-inheritance:

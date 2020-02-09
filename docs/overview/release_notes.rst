@@ -2,6 +2,25 @@
 Release Notes
 =============
 
+Version 0.17
+============
+
+- Added support for :class:`~revenge.cpu.contexts.arm.ARMContext` (Android on
+  ARM emulator works now)
+- Drastically improved performance for
+  :class:`~revenge.techniques.native_timeless_tracer.NativeTimelessTracer`
+- Updates to :mod:`~revenge.cpu.contexts`
+  
+  - Tracking changed registers in
+    :attr:`~revenge.cpu.contexts.CPUContextBase.changed_registers`
+  - Auto highlighting changed registers when printing cpu context
+  - Consolidated and simplified handling of CPU contexts
+
+- Lookups of the form "mod:sym:offset" work now
+- New :class:`~revenge.devices.LocalDevice` class
+- Bunch of restructuring to eventually support multiple engines
+
+
 Version 0.16
 ============
 

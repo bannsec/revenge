@@ -2,6 +2,12 @@
 Devices
 =======
 
+.. toctree::
+    :hidden:
+
+    android
+    local
+
 .. automodule:: revenge.devices
     :members:
     :undoc-members:
@@ -10,6 +16,7 @@ Devices
 =======
 Process
 =======
+
 .. autoclass:: revenge.devices.process.process.Process
     :members:
     :undoc-members:
@@ -18,6 +25,7 @@ Process
 =========
 Processes
 =========
+
 .. autoclass:: revenge.devices.process.processes.Processes
     :members:
     :undoc-members:
