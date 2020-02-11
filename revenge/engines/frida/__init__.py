@@ -58,7 +58,7 @@ class FridaEngine(Engine):
 
         if self._process._spawn_target is not None:
             print("Spawning file\t\t\t... ", end='', flush=True)
-            self._process._spawned_pid = self._frida_device.spawn(self._process._spawn_target, argv=self._process.argv, envp=self._process._envp)
+            self._process._spawned_pid = self._frida_device.spawn(self._process._spawn_target, argv=self._process.argv, envp=self._process._envp, stdio='pipe')
             cprint("[ DONE ]", "green")
 
         print('Attaching to the session\t... ', end='', flush=True)

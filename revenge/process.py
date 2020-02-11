@@ -21,6 +21,7 @@ import json
 import pprint
 
 import importlib
+from . import common
 
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -28,7 +29,7 @@ class Process(object):
 
     def __init__(self, target, resume=False, verbose=False, load_symbols=None,
             envp=None, engine=None):
-        """
+        """Represents a process..
 
         Args:
             target (str, int, list): File name or pid to attach to. If target
@@ -51,6 +52,19 @@ class Process(object):
 
                 # Kick off ls for /tmp with custom environment
                 p = revenge.Process(["/bin/ls","/tmp/"], envp={'var1':'thing1'})
+
+                #
+                # Interaction
+                #
+
+                # Write to stdin
+                p.stdin(b"hello\n")
+
+                # Read from stdout
+                p.stdout(16)
+
+                # Interact like a shell
+                p.interactive()
         """
 
         self.__engine = engine
@@ -149,6 +163,43 @@ class Process(object):
         # Probably process name
         except:
             return x
+
+    @common.implement_in_engine()
+    def stdout(self, n):
+        """bytes: Read n bytes from stdout.
+        
+        Args:
+            n (int, str): Number of bytes to read. Or 'all' to read everything
+        """
+        pass
+
+    @common.implement_in_engine()
+    def stderr(self, n):
+        """Read n bytes from stderr.
+        
+        Args:
+            n (int, str): Number of bytes to read. Or 'all' to read everything
+
+        Returns:
+            bytes: The bytes from stderr.
+        """
+        pass
+
+    @common.implement_in_engine()
+    def stdin(self, thing):
+        """Write thing to stdin.
+        
+        Args:
+            thing (str, bytes): If str, it will be encoded as latin-1.
+
+        Note: There's no newline auto appended. Remember to add one if you want it.
+        """
+        pass
+
+    @common.implement_in_engine()
+    def interactve(self):
+        """Go interactive. Return back to your shell with ctrl-c."""
+        pass
 
     def __repr__(self):
         attrs = ['Process', self.file_name + ":" + str(self.pid)]
@@ -379,7 +430,7 @@ class Process(object):
         return self.__engine
 
 import inspect
-from . import common, types, config, devices
+from . import types, config, devices
 from .memory import Memory
 from .threads import Threads
 from .modules import Modules

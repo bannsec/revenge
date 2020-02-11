@@ -28,6 +28,12 @@ Just Show Me
     # This will remove the breakpoint and resume execution
     p.memory[p.entrypoint_rebased].breakpoint = False
 
+    # Interact with the process
+    p.stdout(12) # Read 12 bytes of stdout
+    p.stderr(12) # Read 12 bytes of stderr
+    p.stdin(b"hello!\n") # Write to stdin
+    p.interactive() # Quasi-interactive shell. ctrl-c to exit.
+
 Check out the examples for each platform for more quick start ideas.
 
 A Little Deeper
