@@ -8,6 +8,7 @@ Plugins
     :hidden:
 
     java/index.rst
+    handles/index.rst
 
 .. autoclass:: revenge.plugins.Plugin
     :members:
