@@ -25,6 +25,22 @@ basic_one_ia32_nopie_path = os.path.join(bin_location, "basic_one_ia32_nopie")
 
 chess_path = os.path.join(bin_location, "ChessAI.so")
 
+def test_modules_lookup_offset():
+    process = revenge.Process(basic_one_path, resume=False, verbose=False)
+
+    assert process.modules.lookup_offset('basic_one:func') == ('basic_one', 0x64a)
+    assert process.modules.lookup_offset('basic_one:i64') == ('basic_one', 0x201020)
+
+    process.quit()
+
+    process = revenge.Process(basic_one_ia32_nopie_path, resume=False, verbose=False)
+
+    assert process.modules.lookup_offset('basic_one_ia32_nopie:func') == ('basic_one_ia32_nopie', 0x426)
+    assert process.modules.lookup_offset('basic_one_ia32_nopie:i64') == ('basic_one_ia32_nopie', 0x2030)
+    #assert process.modules.lookup_offset('basic_one:i64') == ('basic_one', 0x201020)
+
+    process.quit()
+
 def test_memory_symbol_resolve():
     process = revenge.Process(basic_one_path, resume=False, verbose=False)
 

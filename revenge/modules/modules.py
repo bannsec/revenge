@@ -24,6 +24,24 @@ class Modules(object):
 
         self.__last_update = datetime.datetime(1970,1,1)
 
+    def lookup_offset(self, symbol):
+        """Lookup raw file offset to symbol.
+
+        Returns:
+            tuple: (module_name, offset) or None if cannot resolve
+
+        See examples from modules.lookup_symbol
+        """
+
+        # Resolve symbol
+        a = self._process.memory[symbol]
+        m = self[a.address]
+
+        if m is None:
+            return None
+
+        return (m.name, a.address - m.base)
+
     def lookup_symbol(self, symbol):
         """Generically resolve a symbol.
         
