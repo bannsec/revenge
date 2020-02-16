@@ -32,7 +32,7 @@ setup(
     ],
     keywords='frida python3 reversing dbi',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
-    install_requires=['frida', 'prettytable', 'colorama', 'termcolor', 'psutil', 'pyelftools', 'pefile', 'appdirs', 'bs4', 'requests', 'unicorn==1.0.2rc1', 'prompt-toolkit'],
+    install_requires=['frida', 'prettytable', 'colorama', 'termcolor', 'psutil', 'pyelftools', 'pefile', 'appdirs', 'bs4', 'requests', 'unicorn==1.0.2rc1', 'prompt-toolkit', 'r2pipe'],
     extras_require={
         'dev': ['ipython','twine','pytest','python-coveralls','coverage==4.5.4','pytest-cov','pytest-xdist','sphinxcontrib-napoleon', 'sphinx_rtd_theme','sphinx-autodoc-typehints', 'pyOpenSSL', 'numpy'],
     },

@@ -2,6 +2,13 @@
 Plugins
 =======
 
+.. toctree::
+    :maxdepth: 1
+    :caption: Plugins
+    :hidden:
+
+    radare2/index.rst
+
 Plugins are a means for ``revenge`` to expose support in a general way. Plugins
 are dynamically loaded at runtime based on the current engine and compatability
 of the process for this plugin.
@@ -24,3 +31,4 @@ The general layout is:
   in the current environment or not.
 
 That's it. You should now have a working plugin.
+

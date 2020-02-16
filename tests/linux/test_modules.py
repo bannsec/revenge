@@ -37,7 +37,6 @@ def test_modules_lookup_offset():
 
     assert process.modules.lookup_offset('basic_one_ia32_nopie:func') == ('basic_one_ia32_nopie', 0x426)
     assert process.modules.lookup_offset('basic_one_ia32_nopie:i64') == ('basic_one_ia32_nopie', 0x2030)
-    #assert process.modules.lookup_offset('basic_one:i64') == ('basic_one', 0x201020)
 
     process.quit()
 

@@ -25,7 +25,7 @@ an issue ticket to my `github <https://github.com/bannsec/revenge>`_.
     overview/release_notes
     overview/techniques
     overview/engines
-    overview/plugins
+    overview/plugins/index
     overview/writeups
 
 .. toctree::

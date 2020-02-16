@@ -63,7 +63,6 @@ class Handles(Plugin):
 
     @property
     def _is_valid(self):
-        """bool: Is this plugin valid for this environment? Used to enable/disable plugins at load time."""
         return True
 
 from . import linux
