@@ -9,6 +9,8 @@ from time import sleep
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "..", "..", "bins")
 
+cat_stderr_path = os.path.join(bin_location, "cat_stderr")
+
 def stdout_expect(process, thing):
     out = b""
 
@@ -39,11 +41,11 @@ def test_frida_process_stdio(capsys):
     assert "hello world" in capsys.readouterr().out
     process.quit()
 
-    process = revenge.Process(["/usr/bin/logger", "-s", "hello world"], verbose=False, resume=True)
+    process = revenge.Process([cat_stderr_path, "hello world"], verbose=False, resume=True)
     assert b"hello world" in stderr_expect(process, b"world")
     process.quit()
 
-    process = revenge.Process(["/usr/bin/logger", "-s", "Test2 Blerg"], verbose=False, resume=False)
+    process = revenge.Process([cat_stderr_path, "Test2 Blerg"], verbose=False, resume=False)
     process._stderr_echo = True
     process.memory[process.entrypoint].breakpoint = False
     sleep(0.5)
