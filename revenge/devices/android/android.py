@@ -236,6 +236,10 @@ class AndroidDevice(BaseDevice):
             self.__version = p.java.run_script_generic("send(Java.androidVersion)", raw=True, unload=True)[0][0]
             return self.__version
 
+    @property
+    def platform(self):
+        return "linux"
+
 from .applications import AndroidApplications
 from .. import uname_standard
 from ...engines import Engine
