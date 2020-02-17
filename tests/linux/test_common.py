@@ -6,9 +6,79 @@ logger = logging.getLogger(__name__)
 
 import os
 import revenge
+common = revenge.common
+from revenge.exceptions import *
+
+import pytest
 
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "bins")
+
+class Blerg:
+    @common.validate_argument_types(x=int, y=(float,str))
+    def my_func(self, x, y=None):
+        """mydoc"""
+        return (x, y)
+
+@common.validate_argument_types(x=int, y=(float,str))
+def my_func(x, y=None):
+    """mydoc"""
+    return (x, y)
+
+def test_common_validate_argument_types():
+
+    #
+    # Classes
+    # 
+
+    b = Blerg()
+
+    with pytest.raises(RevengeInvalidArgumentType):
+        b.my_func("test")
+
+    with pytest.raises(RevengeInvalidArgumentType):
+        b.my_func(x="test")
+
+    with pytest.raises(RevengeInvalidArgumentType):
+        b.my_func(1, 1)
+
+    with pytest.raises(RevengeInvalidArgumentType):
+        b.my_func(1, y=1)
+
+    with pytest.raises(RevengeInvalidArgumentType):
+        b.my_func(y=1)
+
+    assert b.my_func(1) == (1, None)
+    assert b.my_func(x=1) == (1, None)
+    assert b.my_func(1, 1.1) == (1, 1.1)
+    assert b.my_func(1, "1") == (1, "1")
+    assert b.my_func.__doc__ == "mydoc"
+
+    #
+    # Func
+    #
+
+    with pytest.raises(RevengeInvalidArgumentType):
+        my_func("test")
+
+    with pytest.raises(RevengeInvalidArgumentType):
+        my_func(x="test")
+
+    with pytest.raises(RevengeInvalidArgumentType):
+        my_func(1, 1)
+
+    with pytest.raises(RevengeInvalidArgumentType):
+        my_func(1, y=1)
+
+    with pytest.raises(RevengeInvalidArgumentType):
+        my_func(y=1)
+
+    assert my_func(1) == (1, None)
+    assert my_func(x=1) == (1, None)
+    assert my_func(1, 1.1) == (1, 1.1)
+    assert my_func(1, "1") == (1, "1")
+    assert my_func.__doc__ == "mydoc"
+    
 
 def test_common_int_to_signed():
 

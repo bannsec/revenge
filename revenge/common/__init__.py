@@ -11,6 +11,10 @@ import bs4
 import lzma
 import pprint
 import functools
+import inspect
+from types import FunctionType, MethodType
+
+from revenge.exceptions import *
 
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -218,6 +222,65 @@ class implement_in_engine(object):
 
         return wrapper
 
+class validate_argument_types(object):
+    """Standard way to check arguments are the right type.
+    
+    Example:
+        @validate_argument_types(arg1=int, arg2=(int, float))
+    """
+
+    def __init__(self, **kwargs):
+        self.validators = kwargs
+        pass
+
+    def __call__(self, func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            #raise NotImplementedError(func.__name__ + ": not yet implemented in " + args[0].__class__.__name__ + ".")
+            argspec = inspect.getfullargspec(func).args
+            
+            if argspec[0] == 'self':
+                class_name = args[0].__class__.__name__ + "."
+            else:
+                class_name = ""
+
+            func_name = class_name + func.__name__
+
+            # Loop through things we want to validate
+            for arg, t in self.validators.items():
+
+                # Standardize t into a list
+                if isinstance(t, list):
+                    t = tuple(t)
+
+                if not isinstance(t, tuple):
+                    t = (t,)
+
+                # If this is positional, what is it's position?
+                argindex = argspec.index(arg)
+
+                # If the arg was passed in as a kwarg
+                if arg in kwargs:
+                    input_arg = kwargs[arg]
+
+                elif len(args) > argindex:
+                    input_arg = args[argindex]
+
+                else:
+                    # This validator wasn't hit
+                    continue
+
+                if not isinstance(input_arg, t):
+                    raise RevengeInvalidArgumentType(func_name + ": Invalid type for argument '{arg}'. Expected type in {expect}. Got type {got}.".format(
+                        arg = arg,
+                        expect = t,
+                        got = type(arg),
+                        ))
+
+            # Pass it through
+            return func(*args, **kwargs)
+
+        return wrapper
 
 class retry_on_exception(object):
     """Decorator to retry the given function up to retry times if an

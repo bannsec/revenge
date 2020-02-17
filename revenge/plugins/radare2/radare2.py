@@ -1,5 +1,6 @@
 
 import logging
+from collections.abc import Iterable
 from ... import common
 from .. import Plugin
 
@@ -95,6 +96,7 @@ class Radare2(Plugin):
         # Now add the new color
         self._r2.cmd("ecHi " + color + "@" + hex(address))
 
+    @common.validate_argument_types(what=Iterable)
     def highlight(self, what):
         """Highlights an instruction or list of instructions.
 
@@ -198,7 +200,6 @@ import os
 import shutil
 import r2pipe
 from termcolor import colored, cprint
-from collections.abc import Iterable
 
 from ...exceptions import *
 
