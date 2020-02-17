@@ -22,6 +22,9 @@ class Modules(object):
         # key == address, value == symbol
         self._address_to_symbol = {}
 
+        # key == symbol, value = address (resolved global symbols)
+        self._global_symbol_to_address = {}
+
         self.__last_update = datetime.datetime(1970,1,1)
 
     def lookup_offset(self, symbol):
@@ -63,11 +66,19 @@ class Modules(object):
 
         module, offset, symbol = common.parse_location_string(symbol)
 
-        # First try to resolve with local symbol table
-        try:
-            return self._symbol_to_address[module][symbol] + int(offset, 16)
-        except KeyError:
-            pass
+        # Check the caches first
+        if module != "":
+            # First try to resolve with local symbol table
+            try:
+                return self._symbol_to_address[module][symbol] + int(offset, 16)
+            except KeyError:
+                pass
+
+        else:
+            try:
+                return self._global_symbol_to_address[symbol] + int(offset, 16)
+            except KeyError:
+                pass
         
         # Fall back to asking Frida to resolve it
 
@@ -82,7 +93,13 @@ class Modules(object):
         if location_resolved == []:
             raise RevengeSymbolLookupFailure("Cannot resolve symbol.")
 
-        return types.Pointer(common.auto_int(location_resolved[0]))
+        location_resolved = common.auto_int(location_resolved[0])
+
+        # Update the caches, but only with the base symbol, not with offset
+        if module == "":
+            self._global_symbol_to_address[symbol] = location_resolved - int(offset,16)
+
+        return types.Pointer(location_resolved)
 
     @common.validate_argument_types(library=str)
     def load_library(self, library):
