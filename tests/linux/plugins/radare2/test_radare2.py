@@ -7,6 +7,8 @@ import pytest
 import revenge
 types = revenge.types
 
+from time import sleep
+
 import r2pipe
 
 here = os.path.dirname(os.path.abspath(__file__))
@@ -23,6 +25,7 @@ def test_radare2_basic():
 
     local_r2 = r2pipe.open(basic_one_path)
     local_r2.cmd("=h& 54321")
+    sleep(0.2) # Little race condition...
     process.radare2.connect("http://127.0.0.1:54321")
     assert os.path.basename(process.radare2._r2.cmdj('ij')['core']['file']) == "basic_one"
 

@@ -13,6 +13,7 @@ import time
 from copy import copy
 
 from revenge.techniques.tracer.instruction_tracer import TraceItem, Trace
+from revenge.exceptions import *
 
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "..", "..", "bins")
@@ -531,7 +532,7 @@ def test_basic_one_traceitem_manual_creation():
         repr(ti)
         assert ti.type == i['type']
 
-    with pytest.raises(AssertionError):
+    with pytest.raises(RevengeInvalidArgumentType):
         ti.type = 12
 
     # Invalid type

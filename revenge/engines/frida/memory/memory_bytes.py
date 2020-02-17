@@ -6,6 +6,7 @@ import json
 import time
 
 from ....memory import MemoryBytes
+from .... import common, types
 
 class FridaMemoryBytes(MemoryBytes):
     """Meta-class used for resolving bytes into something else."""
@@ -474,6 +475,7 @@ class FridaMemoryBytes(MemoryBytes):
             return None
 
     @on_enter.setter
+    @common.validate_argument_types(on_enter=(str, type(None)))
     def on_enter(self, on_enter):
 
         self._remove_on_enter()
@@ -485,21 +487,16 @@ class FridaMemoryBytes(MemoryBytes):
         # Setup js hook
         #
 
-        if isinstance(on_enter, str):
-
-            self._engine.run_script_generic("""var listener = Interceptor.attach({this_func}, {{onEnter: {on_enter}}});""".format(
-                        this_func = self.address.js,
-                        on_enter = on_enter,
-                    ),
-                    raw=True, unload=False,
-                    on_message=self.replace_on_message,
-                    runtime='v8',
-                    )
-            script = self._engine._scripts.pop(0)
-            self._engine.memory._active_on_enter[self.address] = (on_enter, script)
-
-        else:
-            logger.error("Invalid on_enter type of {}".format(type(on_enter)))
+        self._engine.run_script_generic("""var listener = Interceptor.attach({this_func}, {{onEnter: {on_enter}}});""".format(
+                    this_func = self.address.js,
+                    on_enter = on_enter,
+                ),
+                raw=True, unload=False,
+                on_message=self.replace_on_message,
+                runtime='v8',
+                )
+        script = self._engine._scripts.pop(0)
+        self._engine.memory._active_on_enter[self.address] = (on_enter, script)
 
 
     @property
@@ -792,8 +789,8 @@ class FridaMemoryBytes(MemoryBytes):
             return None
 
     @name.setter
+    @common.validate_argument_types(name=(str, type(None)))
     def name(self, name):
-        if not isinstance(name, (str, type(None))): raise RevengeInvalidArgumentType("name must be of type str.")
         self.__name = name
 
     @property
@@ -825,7 +822,6 @@ class FridaMemoryBytes(MemoryBytes):
 #MemoryBytes.implementation.__doc__ = MemoryBytes.replace.__doc__
 #MemoryBytes.__doc__ = MemoryBytes.__init__.__doc__
 
-from .... import common, types
 from ....exceptions import *
 from ....cpu.assembly import AssemblyInstruction, AssemblyBlock
 from ....native_exception import NativeException

@@ -1,5 +1,6 @@
 
 from ...process import Process as ProcessBase
+from ... import common
 
 class Process(ProcessBase):
 
@@ -43,14 +44,14 @@ class Process(ProcessBase):
             else:
                 self.__stderr += data
 
+    @common.validate_argument_types(thing=(str, bytes))
     def stdin(self, thing):
         if isinstance(thing, str):
             thing = thing.encode('latin-1')
 
-        if not isinstance(thing, bytes): raise RevengeInvalidArgumentType("thing must be of type str or bytes.")
-
         self.engine._frida_device.input(self.pid, thing)
 
+    @common.validate_argument_types(n=(int, str))
     def stderr(self, n):
         
         if isinstance(n, str):
@@ -61,12 +62,11 @@ class Process(ProcessBase):
             else:
                 raise RevengeInvalidArgumentType("Only valid string is 'all'")
 
-        if not isinstance(n, int): raise RevengeInvalidArgumentType("n must be of type int.")
-
         ret = self.__stderr[:n]
         self.__stderr = self.__stderr[n:]
         return ret
 
+    @common.validate_argument_types(n=(int, str))
     def stdout(self, n):
         
         if isinstance(n, str):
@@ -76,8 +76,6 @@ class Process(ProcessBase):
                 return ret
             else:
                 raise RevengeInvalidArgumentType("Only valid string is 'all'")
-
-        if not isinstance(n, int): raise RevengeInvalidArgumentType("n must be of type int.")
 
         ret = self.__stdout[:n]
         self.__stdout = self.__stdout[n:]

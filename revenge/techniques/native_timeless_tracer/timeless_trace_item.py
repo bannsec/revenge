@@ -2,6 +2,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
+from ... import common
 
 class NativeTimelessTraceItem(object):
     
@@ -27,6 +28,7 @@ class NativeTimelessTraceItem(object):
         return "<{}>".format(' '.join(attrs))
 
     @classmethod
+    @common.validate_argument_types(snapshot=dict)
     def from_snapshot(klass, process, snapshot, previous=None):
         """Creates a NativeTimelessTraceItem from a snapshot returned by timeless_snapshot()
         
@@ -36,9 +38,6 @@ class NativeTimelessTraceItem(object):
             previous (NativeTimelessTraceItem, optional): Previous timeless
                 trace item to use for differential generation
         """
-
-        if not isinstance(snapshot, dict):
-            raise RevengeInvalidArgumentType("Invalid type for from_snapshot of {}. Expecting dict.".format(type(snapshot)))
 
         if "is_timeless_snapshot" not in snapshot or not snapshot["is_timeless_snapshot"]:
             raise RevengeInvalidArgumentType("from_snapshot does not appear to be timeless_snapshot dictionary.")
@@ -57,6 +56,7 @@ class NativeTimelessTraceItem(object):
         return self.__context
 
     @context.setter
+    @common.validate_argument_types(context=(dict, type(None)))
     def context(self, context):
         diff = self._previous.context if self._previous is not None else None
 
@@ -66,9 +66,6 @@ class NativeTimelessTraceItem(object):
 
         elif context is None:
             self.__context = None
-
-        else:
-            raise RevengeInvalidArgumentType("Unhandled context type of {}".format(type(context)))
 
 from ...exceptions import *
 from ...cpu import CPUContext

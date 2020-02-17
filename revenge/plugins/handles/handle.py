@@ -62,6 +62,7 @@ class Handle(object):
 
         return "<" + " ".join(attrs) + ">"
 
+    @common.validate_argument_types(n=int, position=(int, type(None)))
     def read(self, n, position=None):
         """Reads n bytes, optionally from a given position.
         
@@ -75,15 +76,13 @@ class Handle(object):
         When given position argument, this call will return the fd to it's original position after reading.
         """
 
-        if not isinstance(n, int): raise RevengeInvalidArgumentType("n must be of type int.")
-        if not isinstance(position, (int, type(None))): raise RevengeInvalidArgumentType("position must be of type int.")
-
         if self._process.device.platform == "linux":
             return linux.read_handle(self._process, self.handle, n, position)
 
         else:
             LOGGER.error("No support yet for platform " + self._process.device.platform)
 
+    @common.validate_argument_types(thing=(str, bytes), position=(int, type(None)))
     def write(self, thing, position=None):
         """Writes thing into the handle, optionally from a given position.
         
@@ -94,9 +93,6 @@ class Handle(object):
         Returns:
             int: Number of bytes written.
         """
-
-        if not isinstance(thing, (str, bytes)): raise RevengeInvalidArgumentType("thing must be of type str or bytes.")
-        if not isinstance(position, (int, type(None))): raise RevengeInvalidArgumentType("position must be of type int.")
 
         if self._process.device.platform == "linux":
             return linux.write_handle(self._process, self.handle, thing, position)
@@ -110,8 +106,8 @@ class Handle(object):
         return self.__handle
 
     @handle.setter
+    @common.validate_argument_types(handle=int)
     def handle(self, handle):
-        if not isinstance(handle, int): raise RevengeInvalidArgumentType("handle must be of type int.")
         self.__handle = handle
 
     @property
@@ -133,9 +129,8 @@ class Handle(object):
             LOGGER.error("No support yet for platform " + self._process.device.platform)
 
     @readable.setter
+    @common.validate_argument_types(readable=bool)
     def readable(self, readable):
-        if not isinstance(readable, bool):
-            raise RevengeInvalidArgumentType("readable must be a bool.")
 
         if self._process.device.platform == "linux":
             LOGGER.error("POSIX does not support changing read/write permissions on existing file descriptors.")
@@ -153,10 +148,8 @@ class Handle(object):
             LOGGER.error("No support yet for platform " + self._process.device.platform)
 
     @writable.setter
+    @common.validate_argument_types(writable=bool)
     def writable(self, writable):
-        if not isinstance(writable, bool):
-            raise RevengeInvalidArgumentType("readable must be a bool.")
-
         if self._process.device.platform == "linux":
             LOGGER.error("POSIX does not support changing read/write permissions on existing file descriptors.")
 
@@ -173,10 +166,8 @@ class Handle(object):
             LOGGER.error("No support yet for platform " + self._process.device.platform)
 
     @position.setter
+    @common.validate_argument_types(position=int)
     def position(self, position):
-        if not isinstance(position, int):
-            raise RevengeInvalidArgumentType("Position must be type int.")
-
         if self._process.device.platform == "linux":
             return linux.set_handle_position(self._process, self.handle, position)
 

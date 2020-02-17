@@ -73,6 +73,7 @@ class Memory(object):
         """
         pass
 
+    @common.validate_argument_types(struct=types.Struct)
     def alloc_struct(self, struct):
         """Short-hand to alloc appropriate space for the struct and write it in.
         
@@ -83,11 +84,6 @@ class Memory(object):
             revenge.types.Struct: The original struct, but now bound to the
             new memory location.
         """
-        if not isinstance(struct, types.Struct):
-            error = "Struct should be of type revenge.types.Struct. Got {}".format(type(struct))
-            logger.error(error)
-            raise RevengeInvalidArgumentType(error)
-
         struct._process = self._process
 
         # Allocate the amount of size needed

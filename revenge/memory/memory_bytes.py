@@ -497,8 +497,8 @@ class MemoryBytes(object):
             return None
 
     @name.setter
+    @common.validate_argument_types(name=(str, type(None)))
     def name(self, name):
-        if not isinstance(name, (str, type(None))): raise RevengeInvalidArgumentType("name must be of type str.")
         self.__name = name
 
     @property

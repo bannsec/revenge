@@ -274,7 +274,7 @@ class validate_argument_types(object):
                     raise RevengeInvalidArgumentType(func_name + ": Invalid type for argument '{arg}'. Expected type in {expect}. Got type {got}.".format(
                         arg = arg,
                         expect = t,
-                        got = type(arg),
+                        got = type(input_arg),
                         ))
 
             # Pass it through

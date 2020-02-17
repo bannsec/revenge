@@ -75,6 +75,7 @@ class Radare2(Plugin):
 
         LOGGER.debug("Couldn't find r2...")
 
+    @common.validate_argument_types(address=int, color=str)
     def _highlight_address(self, address, color):
         """Highlights this address with the given color.
 
@@ -96,7 +97,6 @@ class Radare2(Plugin):
         # Now add the new color
         self._r2.cmd("ecHi " + color + "@" + hex(address))
 
-    @common.validate_argument_types(what=Iterable)
     def highlight(self, what):
         """Highlights an instruction or list of instructions.
 
@@ -142,6 +142,7 @@ class Radare2(Plugin):
 
             self._highlight_address(r2base + addr, "cyan")
 
+    @common.validate_argument_types(web_server=str)
     def connect(self, web_server):
         """Connect to a separate session to work in tandem.
 

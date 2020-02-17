@@ -84,6 +84,7 @@ class Modules(object):
 
         return types.Pointer(common.auto_int(location_resolved[0]))
 
+    @common.validate_argument_types(library=str)
     def load_library(self, library):
         """Dynamically load a library into the program.
 
@@ -120,13 +121,6 @@ class Modules(object):
 
             self._flush_cache()
             return self[os.path.basename(library)]
-
-
-        if not isinstance(library, str):
-            error = "library argument must be of type str."
-            logger.error(error)
-            raise RevengeInvalidArgumentType(error)
-
 
         if self._process.device_platform == "linux":
             return load_linux(self, library)

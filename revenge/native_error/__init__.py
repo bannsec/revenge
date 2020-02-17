@@ -2,6 +2,8 @@
 import logging
 logger = logging.getLogger(__name__)
 
+from .. import common
+
 class NativeError(object):
 
     def __init__(self, process, errno=None):
@@ -74,10 +76,8 @@ class NativeError(object):
         return self.__errno
 
     @errno.setter
+    @common.validate_argument_types(errno=(int, type(None)))
     def errno(self, errno):
-        if not isinstance(errno, (int, type(None))):
-            raise RevengeInvalidArgumentType("errno must be of type int or None. Got type {}".format(type(errno)))
-
         # Throw away the cache
         try:
             del self.__description

@@ -12,6 +12,8 @@ from ... import types, common
 from ...threads import Thread
 from .. import Technique
 
+NoneType = type(None)
+
 class TraceItem(object):
 
     def __init__(self, process, item):
@@ -78,9 +80,8 @@ class TraceItem(object):
         return self.__type
 
     @type.setter
+    @common.validate_argument_types(t=(str, NoneType))
     def type(self, t):
-        assert isinstance(t, (str, type(None))), "Invalid type for type of {}".format(type(t))
-
         if t is None:
             self.__type = None
             return

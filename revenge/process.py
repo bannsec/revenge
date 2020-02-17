@@ -215,8 +215,8 @@ class Process(object):
         return self.__argv
 
     @argv.setter
+    @common.validate_argument_types(argv=(list, tuple))
     def argv(self, argv):
-        if not isinstance(argv, (list, tuple)): raise RevengeInvalidArgumentType("argv must be list or tuple type.")
         self.__argv = argv
 
     @property
@@ -412,10 +412,8 @@ class Process(object):
         return self.__envp
 
     @_envp.setter
+    @common.validate_argument_types(envp=(dict, type(None)))
     def _envp(self, envp):
-        if not isinstance(envp, (dict, type(None))):
-            raise RevengeInvalidArgumentType("_envp must be instance of dict or None. Got type {}".format(type(envp)))
-
         self.__envp = envp
 
     @property
