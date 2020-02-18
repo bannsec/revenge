@@ -22,12 +22,14 @@ def test_radare2_basic():
     # r2 should kick off right away
     assert process.radare2._r2 is not None
     assert os.path.basename(process.radare2._r2.cmdj('ij')['core']['file']) == "basic_one"
+    assert process.radare2.file == 'basic_one'
 
     local_r2 = r2pipe.open(basic_one_path)
     local_r2.cmd("=h& 54321")
     sleep(0.2) # Little race condition...
     process.radare2.connect("http://127.0.0.1:54321")
     assert os.path.basename(process.radare2._r2.cmdj('ij')['core']['file']) == "basic_one"
+    assert process.radare2.file == 'basic_one'
 
     # Make sure it's actually connected
     local_r2.cmd('CC hello world @ 0x123')
@@ -42,8 +44,15 @@ def test_radare2_basic():
 
     # Send it off
     process.radare2.highlight(t)
-
     # No real way to test this rn :-(
+
+    # There should be no functions without the analysis
+    assert process.radare2._r2.cmd("afl").strip() == ""
+
+    process.radare2.analyze()
+
+    # entry0 and others should now be recognized
+    assert "entry0" in process.radare2._r2.cmd("afl").strip()
 
     local_r2.quit()
     process.quit()

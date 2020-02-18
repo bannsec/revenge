@@ -39,8 +39,21 @@ class Radare2(Plugin):
         self._find_r2()
         self._load_file()
 
-        # TODO: Add test for ghidra plugin
         # TODO: Add base information about file
+
+    def analyze(self):
+        """Ask radare2 to run some auto analysis on this file.
+
+        Note:
+            This is NOT run by default due to the fact that it may take a while
+            to run. If you connect to a remote session that has already run
+            analysis, you do NOT need to run this.
+        """
+        if self._r2 is None:
+            return False
+
+        self._r2.cmd("aaa")
+        return True
 
     def _load_file(self):
         """Attempt to load this revenge file."""
@@ -127,20 +140,16 @@ class Radare2(Plugin):
             else:
                 LOGGER.error("Unhandled thing type of " + type(thing))
 
-        # What does r2 have open?
-        r2file = os.path.basename(self._r2.cmdj("ij")['core']['file'])
-        r2base = self._r2.cmdj('ij')['bin']['baddr']
-
         # Color-up
         for addr in addrs:
 
             name, addr = self._process.modules.lookup_offset(addr)
 
             # Don't both coloring things that aren't in our opened binary...
-            if name != r2file:
+            if name != self.file:
                 continue
 
-            self._highlight_address(r2base + addr, "cyan")
+            self._highlight_address(self.base_address + addr, "cyan")
 
     @common.validate_argument_types(web_server=str)
     def connect(self, web_server):
@@ -180,7 +189,7 @@ class Radare2(Plugin):
                 orig_r2.quit()
 
             # Verify name
-            if os.path.basename(self._r2.cmdj('ij')['core']['file']).lower() != self._process.file_name.lower():
+            if self.file.lower() != self._process.file_name.lower():
                 cprint("[ File Names Differ! ]", color='yellow')
             else:
                 cprint("[ OK ]", color='green')
@@ -197,12 +206,47 @@ class Radare2(Plugin):
     def _is_valid(self):
         return self._r2exe is not None
 
+    @property
+    def _has_ghidra(self):
+        """bool: Does this instance of r2 have the ghidra decompiler?"""
+        return "Ghidra" in self._r2.cmd('pdg?')
+
+    @property
+    def decompiler(self):
+        """Either returns an instance of a decompiler (if one is valid) or None."""
+        try:
+            return self.__decompiler
+        except AttributeError:
+            pass
+
+        if self._has_ghidra:
+            self.__decompiler = GhidraDecompiler(self)
+        else:
+            self.__decompiler = None
+
+        return self.__decompiler
+
+    @property
+    def file(self):
+        if self._r2 is None:
+            return
+
+        return os.path.basename(self._r2.cmdj("ij")['core']['file'])
+
+    @property
+    def base_address(self):
+        if self._r2 is None:
+            return
+
+        return self._r2.cmdj('ij')['bin']['baddr']
+
 import os
 import shutil
 import r2pipe
 from termcolor import colored, cprint
 
 from ...exceptions import *
+from .decompilers import GhidraDecompiler
 
 LOGGER = logging.getLogger(__name__)
 Radare2.__doc__ = Radare2.__init__.__doc__

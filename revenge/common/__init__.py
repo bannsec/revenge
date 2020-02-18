@@ -282,6 +282,18 @@ class validate_argument_types(object):
 
         return wrapper
 
+class require_imp(object):
+    """Simple wrapper to require that the imp property is not None. If it's None, wrapper will return None."""
+    def __call__(self, func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            if args[0].imp is None:
+                return None
+            return func(*args, **kwargs)
+    
+        return wrapper
+
+
 class retry_on_exception(object):
     """Decorator to retry the given function up to retry times if an
     exception is caught from the given list/tuple.
