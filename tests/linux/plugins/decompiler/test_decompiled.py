@@ -44,7 +44,7 @@ def test_decompiled_basic():
     decomp[0x99999].address = 0x99999
     decomp[0x99999].src = "blerg () "
 
-    assert list(decomp) == [0, 0x12345, 0x99999]
+    assert set(list(decomp)) == set([0, 0x12345, 0x99999])
 
     print(decomp)
     process.quit()

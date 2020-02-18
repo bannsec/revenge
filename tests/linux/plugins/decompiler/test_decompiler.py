@@ -18,6 +18,7 @@ bin_location = os.path.join(here, "..", "..", "bins")
 
 basic_one_path = os.path.join(bin_location, "basic_one")
 basic_one_ia32_nopie_path = os.path.join(bin_location, "basic_one_ia32_nopie")
+ls_path = os.path.join(bin_location, "ls")
 
 def test_decompiler_basic():
 
@@ -30,7 +31,7 @@ def test_decompiler_basic():
     process.radare2._r2.cmd("aaa")
     sleep(0.2)
 
-    a = process.decompiler.lookup_address("basic_one:0x66d")
+    a = process.decompiler.decompile_address("basic_one:0x66d")
     assert len(a) == 1
     assert 0x66d in a
     assert a[0x66d].address == 0x66d
@@ -47,10 +48,11 @@ def test_decompiler_basic():
     process.radare2._r2.cmd("aaa")
     sleep(0.2)
 
-    a = process.decompiler.lookup_address(0x08048460)
+    a = process.decompiler.decompile_address(0x08048460)
     assert len(a) == 1
     assert 0x08048460 in a
     assert a[0x08048460].address == 0x08048460
     assert "sym.func" in a[0x08048460].src
 
     process.quit()
+

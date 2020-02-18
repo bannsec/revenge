@@ -7,6 +7,7 @@ Plugins
     :caption: Plugins
     :hidden:
 
+    decompiler/index.rst
     radare2/index.rst
 
 Plugins are a means for ``revenge`` to expose support in a general way. Plugins

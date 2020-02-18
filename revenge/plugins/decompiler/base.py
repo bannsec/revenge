@@ -10,11 +10,26 @@ class DecompilerBase(object):
 
                 # Attempt to get corresponding source code from address 0x12345
                 process.decompiler[0x12345]
+
+                # Decompile a function
+                decomp = process.decompiler.decompile_function(0x12345)
+                # Or alternatively, specify it as a string to getitem
+                decomp = process.decompiler["my_func"]
+
+                # Programmatically iterate through it
+                for item in decomp:
+                    x = decomp[item]
+                    # stuff
+
+                # Or print it out to the screen
+                print(decomp)
+
+                # See decomp.highlight() as well.
         """
         self._process = process
 
     @common.implement_in_engine()
-    def lookup_address(self, address):
+    def decompile_address(self, address):
         """Lookup the corresponding decompiled code for a given address.
 
         Args:
@@ -39,7 +54,11 @@ class DecompilerBase(object):
         """
         pass
 
-    @common.validate_argument_types(item=int)
+    @common.validate_argument_types(item=(int,str))
     def __getitem__(self, item):
         if isinstance(item, int):
-            return self.lookup_address(item)
+            return self.decompile_address(item)
+        elif isinstance(item, str):
+            return self.decompile_function(item)
+
+DecompilerBase.__doc__ = DecompilerBase.__init__.__doc__

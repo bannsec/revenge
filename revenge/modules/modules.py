@@ -38,6 +38,11 @@ class Modules(object):
 
         # Resolve symbol
         a = self._process.memory[symbol]
+
+        if a is None:
+            logger.error("lookup_offset: Cannot resolve '{}'.".format(symbol))
+            return
+
         m = self[a.address]
 
         if m is None:

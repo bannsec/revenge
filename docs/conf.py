@@ -20,7 +20,7 @@ on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 # -- Project information -----------------------------------------------------
 
 project = 'revenge'
-copyright = '2019, Michael Bann'
+copyright = '2020, Michael Bann'
 author = 'Michael Bann'
 
 

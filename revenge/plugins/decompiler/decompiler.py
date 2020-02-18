@@ -14,6 +14,9 @@ class Decompiler(Plugin):
 
                 # Attempt to get corresponding source code from address 0x12345
                 process.decompiler[0x12345]
+
+        This is really just a light wrapper to lookup and call the correct
+        decompiler.
         """
         self._process = process
 
@@ -30,6 +33,12 @@ class Decompiler(Plugin):
 
     @property
     def imp(self):
+        """revenge.plugins.decompiler.DecompilerBase: The underlying implementation.
+
+        This will be guessed automatically based on what decompilers are
+        discovered. You can also instantiate your own and assign it directly
+        to imp.
+        """
         try:
             return self.__imp
         except AttributeError:
@@ -60,18 +69,19 @@ class Decompiler(Plugin):
         return self.imp.__getitem__(item)
 
     @common.require_imp()
-    def lookup_address(self, address):
-        return self.imp.lookup_address(address)
+    def decompile_address(self, address):
+        return self.imp.decompile_address(address)
 
     @common.require_imp()
     def decompile_function(self, address):
         return self.imp.decompile_function(address)
 
-from revenge.plugins.radare2.decompilers import GhidraDecompiler
 from revenge.plugins.decompiler.base import DecompilerBase
 
 # Docs fixup
-Decompiler.lookup_address.__doc__ = DecompilerBase.lookup_address.__doc__
+Decompiler.__init__.__doc__ = DecompilerBase.__init__.__doc__
+Decompiler.__doc__ = Decompiler.__init__.__doc__
+Decompiler.decompile_address.__doc__ = DecompilerBase.decompile_address.__doc__
 Decompiler.decompile_function.__doc__ = DecompilerBase.decompile_function.__doc__
 
 LOGGER = logging.getLogger(__name__)

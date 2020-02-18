@@ -226,6 +226,14 @@ class Radare2(Plugin):
 
         return self.__decompiler
 
+    @decompiler.setter
+    @common.validate_argument_types(decompiler=str)
+    def decompiler(self, decompiler):
+        if decompiler.lower() == "ghidra":
+            self.__decompiler = GhidraDecompiler(self)
+        else:
+            raise RevengeInvalidArgumentType("Radare2 Invalid decompiler selected. Options are: ghidra")
+
     @property
     def file(self):
         if self._r2 is None:
