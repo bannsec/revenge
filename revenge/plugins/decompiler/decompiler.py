@@ -20,12 +20,42 @@ class Decompiler(Plugin):
         """
         self._process = process
 
+        # priority: decompiler
+        self._decompilers = {}
+
+    @common.validate_argument_types(priority=int)
+    def _register_decompiler(self, decompiler, priority):
+        """Registers a decompiler to this plugin's stack.
+
+        Args:
+            decompiler (revenge.plugins.decompiler.DecompilerBase): The
+                decompiler to register
+            priority (int): What priority should this decompiler be used?
+                0 is lowest 100 is highest
+
+        Note:
+            Only register your decompiler if it is valid in the CURRENT INSTANCE
+            of revenge. I.e.: Check for needed dependencies prior to registering.
+
+        Registering a decompiler will place it in the list of available
+        decompilers.
+        """
+
+        if not issubclass(type(decompiler), DecompilerBase):
+            raise RevengeInvalidArgumentType("decompiler must be a subclass of DecompilerBase.")
+
+        if priority in self._decompilers:
+            raise RevengeInvalidArgumentType("Cannot register {}. Priority is already in use by: {}".format(self.decompiler, self._decompilers[priority]))
+
+        self._decompilers[priority] = decompiler
+
+
     def _select_decompiler(self):
         # Need to postpone selecting decompiler until all plugins are loaded...
-        decomp = self._process.radare2.decompiler
 
-        if decomp is not None:
-            self.imp = decomp
+        for priority in sorted(self._decompilers.keys(), reverse=True):
+            self.imp = self._decompilers[priority]
+            break
 
         else:
             self.imp = None

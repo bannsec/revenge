@@ -39,6 +39,10 @@ class Radare2(Plugin):
         self._find_r2()
         self._load_file()
 
+        # Register myself as a decompiler if Ghidra plugin is present
+        if isinstance(self.decompiler, GhidraDecompiler):
+            self._process.decompiler._register_decompiler(self.decompiler, 70)
+
         # TODO: Add base information about file
 
     def analyze(self):
@@ -105,7 +109,8 @@ class Radare2(Plugin):
             return
         
         # First gotta clear any existing color
-        self._r2.cmd("ecH-@" + hex(address))
+        # ecH- is broken atm. ecHi __should__ overwrite it though...
+        #self._r2.cmd("ecH-@" + hex(address))
         
         # Now add the new color
         self._r2.cmd("ecHi " + color + "@" + hex(address))
@@ -143,7 +148,13 @@ class Radare2(Plugin):
         # Color-up
         for addr in addrs:
 
-            name, addr = self._process.modules.lookup_offset(addr)
+            out = self._process.modules.lookup_offset(addr)
+
+            # Addr didn't end up in something mapped...
+            if out is None:
+                continue
+
+            name, addr = out
 
             # Don't both coloring things that aren't in our opened binary...
             if name != self.file:
@@ -219,8 +230,12 @@ class Radare2(Plugin):
         except AttributeError:
             pass
 
-        if self._has_ghidra:
-            self.__decompiler = GhidraDecompiler(self)
+        if self._r2 is not None:
+            if self._has_ghidra:
+                self.__decompiler = GhidraDecompiler(self)
+            else:
+                self.__decompiler = None
+
         else:
             self.__decompiler = None
 

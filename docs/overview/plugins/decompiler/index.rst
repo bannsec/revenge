@@ -27,7 +27,7 @@ See notes for each decompiler engine about possible caveats.
 Engines
 =======
 
- - :ref:`radare2_ghidra_decompiler`
+ - :ref:`radare2_ghidra_decompiler` (priority 70)
 
 Building A Decompiler
 =====================
@@ -39,4 +39,8 @@ decompile MUST return an instance of
 :class:`~revenge.plugins.decompiler.Decompiled`, which in turn must have 0 or
 more populated :class:`~revenge.plugins.decompiler.DecompiledItem` instances.
 
-Will soon have a way to register the decompiler directly...
+On initialization of your decompiler, if it's valid for the current configuration,
+register it as an option with ``process.decompiler._register_decompiler``.
+
+The priority is mostly a way to select from multiple competing decompilers. The higher
+the number the higher priority.

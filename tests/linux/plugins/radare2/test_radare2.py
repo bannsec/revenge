@@ -40,11 +40,16 @@ def test_radare2_basic():
     t = list(timeless)[0]
 
     process.memory[process.entrypoint].breakpoint = False
-    t.wait_for(process.memory['basic_one:0x692'].address) # ret
+    ret_addr = process.memory['basic_one:0x692'].address
+    t.wait_for(ret_addr) # ret
 
     # Send it off
     process.radare2.highlight(t)
-    # No real way to test this rn :-(
+    # ecH. appears to be fucked up rn... It doesn't reliably return the color.
+    assert "rgb:007f7f" in process.radare2._r2.cmd("ecH")
+
+    # Asking to highlight something not in the image should gracefully fail
+    process.radare2.highlight(12)
 
     # There should be no functions without the analysis
     assert process.radare2._r2.cmd("afl").strip() == ""
