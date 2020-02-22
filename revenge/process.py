@@ -78,6 +78,7 @@ class Process(object):
         self.verbose = verbose
         self._envp = envp
         self.target = target
+        self._registered_cleanup = []
 
         if not isinstance(load_symbols, (list, type, type(None))):
             load_symbols = [load_symbols]
@@ -149,7 +150,12 @@ class Process(object):
         process, frida will be cleaned out, detatched, and the process should
         continue normally.
         """
+        for c in self._registered_cleanup:
+            c()
         self._at_exit()
+
+    def _register_cleanup(self, c):
+        self._registered_cleanup.append(c)
 
     def _at_exit(self):
         """Called to clean-up at exit."""

@@ -43,6 +43,9 @@ class Radare2(Plugin):
         if isinstance(self.decompiler, GhidraDecompiler):
             self._process.decompiler._register_decompiler(self.decompiler, 70)
 
+        # Always clean ourselves up at exit
+        self._process._register_cleanup(self.disconnect)
+
         # TODO: Add base information about file
 
     def analyze(self):
@@ -207,8 +210,13 @@ class Radare2(Plugin):
 
     def disconnect(self):
         """Disconnect from web server."""
-        self._r2.quit()
-        self._r2 = None
+
+        if self._r2 is not None:
+            try:
+                self._r2.quit()
+            except ConnectionResetError:
+                pass
+            self._r2 = None
 
     def __repr__(self):
         return "<Radare2 Plugin>"
