@@ -42,7 +42,7 @@ Example
     # =h& 12345
 
     # Connect up to that session from your revenge session
-    process.radare2.connect("http://127.0.0.1:12345"e
+    process.radare2.connect("http://127.0.0.1:12345")
 
     # Setup a timeless tracer
     timeless = process.techniques.NativeTimelessTracer()
