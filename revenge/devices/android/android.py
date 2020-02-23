@@ -108,7 +108,7 @@ class AndroidDevice(BaseDevice):
         self.adb("shell", interactive=True)
 
 
-    @common.retry_on_exception((frida.TransportError,))
+    @common.retry_on_exception((frida.TransportError,frida.ProcessNotFoundError))
     def spawn(self, application, gated=True, load_symbols=None):
         """Spawn the given application.
 
