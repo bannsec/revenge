@@ -5,7 +5,7 @@ from codecs import open
 import os, sys, ast
 
 here = os.path.abspath(os.path.dirname(__file__))
-version = '0.17'
+version = '0.18'
 
 #with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 #    long_description = f.read()
