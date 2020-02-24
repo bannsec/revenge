@@ -2,6 +2,28 @@
 Release Notes
 =============
 
+Version 0.18
+============
+
+- Added ability to programmatically talk to
+  :meth:`~revenge.process.Process.stdin`,
+  :meth:`~revenge.process.Process.stdout`, and
+  :meth:`~revenge.process.Process.stderr`
+- Added new plugin for enhancing reversing with
+  :class:`~revenge.plugins.radare2.Radare2`
+  
+  - Ability to :meth:`~revenge.plugins.radare2.Radare2.highlight` execution
+    paths for view in `V` and `VV` modes
+  - Integrated ghidra decompiler
+
+- Added :class:`~revenge.plugins.decompiler.Decompiler` plugin to allow for
+  requesting decompiled code and doing thing such as highlighting paths
+- Added plugin to support enumerating/reading and writing to
+  :class:`~revenge.plugins.handles.Handles`
+- Added helper to discover what file an address belongs to as well as it's
+  relative offset from the beginning of that file:
+  :meth:`~revenge.modules.Modules.lookup_offset`
+
 Version 0.17
 ============
 

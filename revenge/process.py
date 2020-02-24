@@ -29,7 +29,7 @@ class Process(object):
 
     def __init__(self, target, resume=False, verbose=False, load_symbols=None,
             envp=None, engine=None):
-        """Represents a process..
+        """Represents a process.
 
         Args:
             target (str, int, list): File name or pid to attach to. If target

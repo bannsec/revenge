@@ -1,7 +1,8 @@
+=======
 Process
 =======
 
-.. autoclass:: revenge.Process
+.. autoclass:: revenge.process.Process
     :members:
     :undoc-members:
     :show-inheritance:
