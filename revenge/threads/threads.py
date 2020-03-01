@@ -3,11 +3,15 @@ import logging
 logger = logging.getLogger(__name__)
 
 from prettytable import PrettyTable
+import collections
 
 class Threads(object):
 
     def __init__(self, process):
         self._process = process
+
+        # tid: list of exceptions, appended as they come in
+        self._exceptions = collections.defaultdict(lambda: list())
 
     def __len__(self):
         return len(self.threads)

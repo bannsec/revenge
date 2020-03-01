@@ -10,6 +10,266 @@ here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "..", "..", "bins")
 
 cat_stderr_path = os.path.join(bin_location, "cat_stderr")
+basic_send_signal_x86_64_path = os.path.join(bin_location, "basic_send_signal_x86_64")
+basic_send_signal_x86_path = os.path.join(bin_location, "basic_send_signal_x86")
+
+def test_frida_process_main_thread_signals_x86(capsys):
+    # Make sure frida engine is handling catching signals correctly that come from the main thread.
+
+    #
+    # SIGABRT
+    #
+
+    process = revenge.Process([basic_send_signal_x86_path, "6"], verbose=False, resume=True)
+    t = list(process.threads)[0]
+
+    # Wait for exception to register
+    while len(t.exceptions) == 0:
+        sleep(0.1)
+
+    assert len(t.exceptions) == 1
+    exception = t.exceptions[0]
+    assert exception.context is not None
+    assert exception.type == "abort"
+
+    process.quit()
+
+    #
+    # SIGSEGV
+    #
+
+    process = revenge.Process([basic_send_signal_x86_path, "11"], verbose=False, resume=True)
+    t = list(process.threads)[0]
+
+    # Wait for exception to register
+    while len(t.exceptions) == 0:
+        sleep(0.1)
+
+    assert len(t.exceptions) == 1
+    exception = t.exceptions[0]
+    assert exception.context is not None
+    assert exception.type == "access-violation"
+
+    process.quit()
+
+    #
+    # SIGBUS
+    #
+
+    process = revenge.Process([basic_send_signal_x86_path, "7"], verbose=False, resume=True)
+    t = list(process.threads)[0]
+
+    # Wait for exception to register
+    while len(t.exceptions) == 0:
+        sleep(0.1)
+
+    assert len(t.exceptions) == 1
+    exception = t.exceptions[0]
+    assert exception.context is not None
+    assert exception.type == "access-violation"
+
+    process.quit()
+
+    #
+    # SIGILL
+    #
+
+    process = revenge.Process([basic_send_signal_x86_path, "4"], verbose=False, resume=True)
+    t = list(process.threads)[0]
+
+    # Wait for exception to register
+    while len(t.exceptions) == 0:
+        sleep(0.1)
+
+    assert len(t.exceptions) == 1
+    exception = t.exceptions[0]
+    assert exception.context is not None
+    assert exception.type == "illegal-instruction"
+
+    process.quit()
+
+    #
+    # SIGFPE
+    #
+
+    process = revenge.Process([basic_send_signal_x86_path, "8"], verbose=False, resume=True)
+    t = list(process.threads)[0]
+
+    # Wait for exception to register
+    while len(t.exceptions) == 0:
+        sleep(0.1)
+
+    assert len(t.exceptions) == 1
+    exception = t.exceptions[0]
+    assert exception.context is not None
+    assert exception.type == "arithmetic"
+
+    process.quit()
+
+    #
+    # SIGSYS
+    #
+
+    process = revenge.Process([basic_send_signal_x86_path, "31"], verbose=False, resume=True)
+    t = list(process.threads)[0]
+
+    # Wait for exception to register
+    while len(t.exceptions) == 0:
+        sleep(0.1)
+
+    assert len(t.exceptions) == 1
+    exception = t.exceptions[0]
+    assert exception.context is not None
+    assert exception.type == "system"
+
+    process.quit()
+
+    #
+    # SIGTRAP
+    #
+
+    process = revenge.Process([basic_send_signal_x86_path, "5"], verbose=False, resume=True)
+    t = list(process.threads)[0]
+
+    # Wait for exception to register
+    while len(t.exceptions) == 0:
+        sleep(0.1)
+
+    assert len(t.exceptions) == 1
+    exception = t.exceptions[0]
+    assert exception.context is not None
+    assert exception.type == "breakpoint"
+
+    process.quit()
+
+def test_frida_process_main_thread_signals_x86_64(capsys):
+    # Make sure frida engine is handling catching signals correctly that come from the main thread.
+
+    #
+    # SIGABRT
+    #
+
+    process = revenge.Process([basic_send_signal_x86_64_path, "6"], verbose=False, resume=True)
+    t = list(process.threads)[0]
+
+    # Wait for exception to register
+    while len(t.exceptions) == 0:
+        sleep(0.1)
+
+    assert len(t.exceptions) == 1
+    exception = t.exceptions[0]
+    assert exception.context is not None
+    assert exception.type == "abort"
+
+    process.quit()
+
+    #
+    # SIGSEGV
+    #
+
+    process = revenge.Process([basic_send_signal_x86_64_path, "11"], verbose=False, resume=True)
+    t = list(process.threads)[0]
+
+    # Wait for exception to register
+    while len(t.exceptions) == 0:
+        sleep(0.1)
+
+    assert len(t.exceptions) == 1
+    exception = t.exceptions[0]
+    assert exception.context is not None
+    assert exception.type == "access-violation"
+
+    process.quit()
+
+    #
+    # SIGBUS
+    #
+
+    process = revenge.Process([basic_send_signal_x86_64_path, "7"], verbose=False, resume=True)
+    t = list(process.threads)[0]
+
+    # Wait for exception to register
+    while len(t.exceptions) == 0:
+        sleep(0.1)
+
+    assert len(t.exceptions) == 1
+    exception = t.exceptions[0]
+    assert exception.context is not None
+    assert exception.type == "access-violation"
+
+    process.quit()
+
+    #
+    # SIGILL
+    #
+
+    process = revenge.Process([basic_send_signal_x86_64_path, "4"], verbose=False, resume=True)
+    t = list(process.threads)[0]
+
+    # Wait for exception to register
+    while len(t.exceptions) == 0:
+        sleep(0.1)
+
+    assert len(t.exceptions) == 1
+    exception = t.exceptions[0]
+    assert exception.context is not None
+    assert exception.type == "illegal-instruction"
+
+    process.quit()
+
+    #
+    # SIGFPE
+    #
+
+    process = revenge.Process([basic_send_signal_x86_64_path, "8"], verbose=False, resume=True)
+    t = list(process.threads)[0]
+
+    # Wait for exception to register
+    while len(t.exceptions) == 0:
+        sleep(0.1)
+
+    assert len(t.exceptions) == 1
+    exception = t.exceptions[0]
+    assert exception.context is not None
+    assert exception.type == "arithmetic"
+
+    process.quit()
+
+    #
+    # SIGSYS
+    #
+
+    process = revenge.Process([basic_send_signal_x86_64_path, "31"], verbose=False, resume=True)
+    t = list(process.threads)[0]
+
+    # Wait for exception to register
+    while len(t.exceptions) == 0:
+        sleep(0.1)
+
+    assert len(t.exceptions) == 1
+    exception = t.exceptions[0]
+    assert exception.context is not None
+    assert exception.type == "system"
+
+    process.quit()
+
+    #
+    # SIGTRAP
+    #
+
+    process = revenge.Process([basic_send_signal_x86_64_path, "5"], verbose=False, resume=True)
+    t = list(process.threads)[0]
+
+    # Wait for exception to register
+    while len(t.exceptions) == 0:
+        sleep(0.1)
+
+    assert len(t.exceptions) == 1
+    exception = t.exceptions[0]
+    assert exception.context is not None
+    assert exception.type == "breakpoint"
+
+    process.quit()
 
 def stdout_expect(process, thing):
     out = b""

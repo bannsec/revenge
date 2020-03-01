@@ -19,6 +19,7 @@ import atexit
 import signal
 import json
 import pprint
+import collections
 
 import importlib
 from . import common

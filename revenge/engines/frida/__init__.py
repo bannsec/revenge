@@ -68,7 +68,7 @@ class FridaEngine(Engine):
             self.session = self._frida_device.attach(self._process._spawned_pid or self._process.target)
         except frida.ProcessNotFoundError:
             logger.error('Could not find that target process to attach to!')
-            exit(1)
+            sys.exit(1)
 
         print(colorama.Fore.GREEN + '[ DONE ]' + colorama.Style.RESET_ALL)
 
@@ -293,6 +293,7 @@ class FridaEngine(Engine):
         self.session.detach()
 
 import os
+import sys
 import pprint
 import frida
 import colorama

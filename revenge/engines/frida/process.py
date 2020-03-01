@@ -1,4 +1,5 @@
 
+import logging
 from ...process import Process as ProcessBase
 from ... import common
 
@@ -6,6 +7,8 @@ class Process(ProcessBase):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.__frida_process_general_init()
 
         if self.device.platform == "linux":
             self.__frida_process_linux_init()
@@ -15,6 +18,40 @@ class Process(ProcessBase):
         self._stdout_echo = False
         self._stderr_echo = False
         self.engine._frida_device.on('output', self.__fd_cb)
+
+    def __handle_process_exception(self, data, msg):
+
+        def cleanup():
+            self.memory[wait_for].int8 = 1
+
+        assert data['type'] == 'send', "Unexpected type of " + data['type']
+        assert 'payload' in data, "No payload found in data."
+
+        exception = data['payload']
+        wait_for = common.auto_int(exception['wait_for'])
+        thread_id = exception['thread_id']
+
+        native_exception = NativeException._from_frida_dict(self, exception, [])
+
+        # Append this to the appropriate thread
+        # NOTE: For whatever reason, anything that attempts to interact with frida at this point in execution will hang...
+        self.threads._exceptions[thread_id].append(native_exception)
+
+        LOGGER.warning("Caught exception in thread {thread} of type {type} at {at}.\n\tView with process.threads[{thread}].exceptions[-1]".format(
+            thread=thread_id,
+            type=exception['type'],
+            at=exception['address'],
+        ))
+
+        # Make sure this auto-cleans up on exit
+        self._register_cleanup(cleanup)
+
+    def __frida_process_general_init(self):
+        """General purpose frida initializations."""
+
+        # TODO: Optionally specify which signals to allow (such as int3)
+        self.engine.run_script_generic("exception_handler.js", unload=False, runtime='v8', on_message=self.__handle_process_exception, timeout=0,
+                include_js=["dispose.js", "send_batch.js", "telescope.js", "timeless.js"])
 
     def __frida_process_linux_init(self):
         """Setup stuff specifically for Frida process on linux."""
@@ -105,3 +142,6 @@ class Process(ProcessBase):
 
 import prompt_toolkit
 from ...exceptions import *
+from ...native_exception import NativeException
+
+LOGGER = logging.getLogger(__name__)

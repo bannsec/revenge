@@ -49,8 +49,13 @@ def test_thread_create_linux():
     a = process.memory.alloc(8)
     a.int64 = 0
 
+    funcs = {
+        'pthread_setcancelstate': process.memory['pthread_setcancelstate'],
+        'pthread_setcanceltype': process.memory['pthread_setcanceltype'],
+    }
+
     # Create the cmodule function that will set this variable
-    func = process.memory.create_c_function("void func() {{ long *x = (long *){}; while ( 1 ) {{ *x = 1337; }} }}".format(hex(a.address)))
+    func = process.memory.create_c_function("void func() {{ pthread_setcancelstate(0, 0); pthread_setcanceltype(1,0); long *x = (long *){}; while ( 1 ) {{ *x = 1337; }} }}".format(hex(a.address)), **funcs)
 
     # Kick off the thread
     t = process.threads.create(func.address)
@@ -63,6 +68,7 @@ def test_thread_create_linux():
     # Make sure we have a pthread_id
     assert t.pthread_id is not None
 
+    t.kill()
     process.quit()
 
 def test_frida_thread_dummy():

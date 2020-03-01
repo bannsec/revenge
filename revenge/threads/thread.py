@@ -8,6 +8,27 @@ from .. import common, types
 class Thread(object):
 
     def __init__(self, process, info):
+        """Defines a process thread.
+
+        Args:
+            info (dict): frida thread info dict
+
+        Examples:
+            .. code-block:: python
+                
+                # Grab your thread
+                thread = process.threads[tid]
+                
+                # Wait for this thread to return
+                thread.join()
+
+                # Check out any exceptions that may have been thrown on this thread
+                thread.exceptions
+
+                # Check out the attached trace object
+                thread.trace
+        """
+
         self._process = process
         self.pthread_id = None
         self._info = info
@@ -29,6 +50,23 @@ class Thread(object):
 
         else:
             logger.error("Thread join not yet supported on {}".format(self.device_platform))
+
+    def kill(self):
+        """Attempts to kill this thread.
+        
+        Note:
+            If you're having trouble killing the thread, be sure your thread is
+            killable.
+
+            For pthreads, that means: pthread_setcancelstate(0, 0); pthread_setcanceltype(1,0)
+        """
+
+        if self.pthread_id is not None:
+            pthread_cancel = self._process.memory['pthread_cancel']
+            pthread_cancel(self.pthread_id)
+
+        else:
+            logger.error("Thread kill not yet supported on {}".format(self.device_platform))
 
     def __repr__(self):
         attrs = ['Thread', hex(self.id), '@', hex(self.pc), self.state, self.module]
@@ -87,4 +125,12 @@ class Thread(object):
         if self.id in self._process.techniques._active_stalks:
             return self._process.techniques._active_stalks[self.id]
 
+    @property
+    def exceptions(self):
+        """list: Exceptions that have been caught generically for this thread."""
+        return self._process.threads._exceptions[self.id]
+
 from ..cpu import CPUContext
+
+# Doc fixup
+Thread.__doc__ = Thread.__init__.__doc__

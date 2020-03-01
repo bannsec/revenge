@@ -86,6 +86,7 @@ function telescope(v, telescope_depth, type_hint) {
     if ( type_hint !== "instruction") {
 
         try {
+
             // Try to telescope it as another pointer
             var mem_next = ptr_v.readPointer();
             // This is a little implicit test to determine if it's a pointer to
@@ -107,7 +108,6 @@ function telescope(v, telescope_depth, type_hint) {
                 return scope;
             }
         } catch (error) {}
-
 
     }
 
