@@ -3,6 +3,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import os
+import shutil
 import json
 import io
 import requests
@@ -15,6 +16,8 @@ import inspect
 from types import FunctionType, MethodType
 
 from revenge.exceptions import *
+
+import atexit
 
 here = os.path.dirname(os.path.abspath(__file__))
 
@@ -100,8 +103,22 @@ def load_file_local(process, file_path):
 def load_file_remote(process, file_path):
     """Attempt to load the file with file_path remotely, returning it in full as a BytesIO object."""
 
-    if process.device_platform == 'linux':
+    # file cache dir so that we don't re-download expensive things
+    global file_cache_dir
 
+    try:
+        file_cache_dir
+    except:
+        file_cache_dir = tempfile.mkdtemp()
+        atexit.register(shutil.rmtree, file_cache_dir, ignore_errors=True)
+
+    # Check cache first
+    cache_name = os.path.join(file_cache_dir, os.path.basename(file_path))
+    
+    if os.path.isfile(cache_name):
+        return open(cache_name, "rb")
+
+    if process.device_platform == 'linux':
 
         fopen = process.memory[':fopen']
         fseek = process.memory[':fseek']
@@ -129,6 +146,11 @@ def load_file_remote(process, file_path):
         elf_io = io.BytesIO(mem.bytes)
         free(malloc_ptr)
         fclose(fp)
+
+        # Save off a copy to our cache
+        with open(cache_name, "wb") as f:
+            f.write(elf_io.read())
+            elf_io.seek(0)
 
         return elf_io
 
