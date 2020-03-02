@@ -64,7 +64,7 @@ class FridaJava(Java):
 
         # Attempt to enumerate active handles if we don't know of any.
         if self._active_handles[klass_name] == []:
-            self._active_handles[klass_name] = self.run_script_generic("var my_list = []; Java.choose('{}', {{onMatch: function (i) {{my_list.push(i); send(i);}}, onComplete: function () {{send('DONE');}}}})".format(klass_name), raw=True, unload=False,onComplete='DONE')[0]
+            self._active_handles[klass_name] = self.run_script_generic("var my_list = []; Java.choose('{}', {{onMatch: function (i) {{my_list.push(i); send(i.$h);}}, onComplete: function () {{send('DONE');}}}})".format(klass_name), raw=True, unload=False,onComplete='DONE')[0]
 
         # If we can't find any instances
         # TODO: Clean-up script if we don't find anything..
@@ -73,7 +73,7 @@ class FridaJava(Java):
             return
 
         # Build new instance
-        handle = common.auto_int(self._active_handles[klass_name][0]['$handle'])
+        handle = common.auto_int(self._active_handles[klass_name][0])
         klass = JavaClass(self._process, klass_name, handle=handle)
         return klass
 
