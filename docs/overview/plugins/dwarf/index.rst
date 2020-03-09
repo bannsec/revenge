@@ -24,3 +24,11 @@ Functions are enumerated and exposed via the
 :attr:`~revenge.plugins.dwarf.Dwarf.functions` property. You can utilize the 
 :meth:`~revenge.plguins.dwarf.Dwarf.lookup_function` method to resolve an
 address to it's function.
+
+Source Lookup
+=============
+
+The DWARF plugin can assist with looking up what the corresponding file and
+line number would be for a given address. As with all things in ``revenge``
+this address is the current loaded address, rather than a base address. This
+lookup can be done via :meth:`~revenge.plugins.dwarf.Dwarf.lookup_file_line`.

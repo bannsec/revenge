@@ -33,6 +33,10 @@ def dwarf_basic(process):
     assert basic.dwarf.lookup_function(main.address + 5) == b"main"
     assert basic.dwarf.lookup_function(1337) is None
 
+    assert basic.dwarf.lookup_file_line(main.address) == (b'basic_dwarf.c', 12)
+    assert basic.dwarf.lookup_file_line(basic.dwarf.functions[b'func1'].address) == (b'basic_dwarf.c', 4)
+    assert basic.dwarf.lookup_file_line(basic.dwarf.functions[b'main'].address_stop-1) == (b'basic_dwarf.c', 21)
+
 def test_dwarf_x64_basic():
     process = revenge.Process(basic_dwarf_x64_path, resume=False, verbose=False)
     dwarf_basic(process)

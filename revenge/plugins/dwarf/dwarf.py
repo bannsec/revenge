@@ -76,6 +76,59 @@ class Dwarf(Plugin):
         except StopIteration:
             return None
 
+    @common.validate_argument_types(address=int)
+    def lookup_file_line(self, address):
+        """Given the address, try to resolve what the source file name and
+        line are
+
+        Args:
+            address (int): Address to lookup file line info
+
+        Returns:
+            tuple: (filename,line) or None if it wasn't found.
+
+        Example:
+            .. code-block:: python
+
+                mybin = process.module['mybin']
+                filename, line = mybin.dwarf.lookup_file_line(mybin.dwarf.functions[b'main'].address)
+        """
+
+        if not self.has_debug_info:
+            return
+
+        # Adjust for current base
+        address -= self._module.base - self.base_address
+
+        # Go over all the line programs in the DWARF information, looking for
+        # one that describes the given address.
+        for CU in self._dwarffile.iter_CUs():
+            # First, look at line programs to find the file/line for the address
+            lineprog = self._dwarffile.line_program_for_CU(CU)
+            prevstate = None
+            for entry in lineprog.get_entries():
+                print(entry, prevstate)
+                # We're interested in those entries where a new state is assigned
+                if entry.state is None:
+                    continue
+                # Looking for a range of addresses in two consecutive states that
+                # contain the required address.
+                if prevstate and prevstate.address <= address < entry.state.address:
+                    filename = lineprog['file_entry'][prevstate.file - 1].name
+                    line = prevstate.line
+                    return filename, line
+
+                # This if test was originally above the range check... However
+                # it seemed to cause lookup to miss the edge case of the final
+                # line in the function. Not sure what other effects moving it
+                # down here will have...
+                if entry.state.end_sequence:
+                    # if the line number sequence ends, clear prevstate.
+                    prevstate = None
+                    continue
+                prevstate = entry.state
+        return None
+
     @classmethod
     def _modules_plugin(klass, module):
         self = klass(module._process, module)
