@@ -85,7 +85,7 @@ class Dwarf(Plugin):
             address (int): Address to lookup file line info
 
         Returns:
-            tuple: (filename,line) or None if it wasn't found.
+            tuple: (filename,line) or None, None if it wasn't found.
 
         Example:
             .. code-block:: python
@@ -107,7 +107,6 @@ class Dwarf(Plugin):
             lineprog = self._dwarffile.line_program_for_CU(CU)
             prevstate = None
             for entry in lineprog.get_entries():
-                print(entry, prevstate)
                 # We're interested in those entries where a new state is assigned
                 if entry.state is None:
                     continue
@@ -127,7 +126,7 @@ class Dwarf(Plugin):
                     prevstate = None
                     continue
                 prevstate = entry.state
-        return None
+        return (None, None)
 
     @classmethod
     def _modules_plugin(klass, module):
@@ -206,11 +205,36 @@ class Dwarf(Plugin):
 
         return self.__functions
 
+    ####################
+    # Decompiler stuff #
+    ####################
+
+    @property
+    def decompiler(self):
+        """'Decompiler' using dwarf."""
+        try:
+            return self.__decompiler
+        except AttributeError:
+            self.__decompiler = DwarfDecompiler(self._process, self)
+        return self.__decompiler
+
+    def decompile_address(self, address):
+        return self.decompiler.decompile_address(address)
+
+    def add_source_path(self, path):
+        return self.decompiler.add_source_path(path)
+
 from elftools.elf.elffile import ELFFile
 from elftools.common.py3compat import maxint, bytes2str
 from elftools.dwarf.descriptions import describe_form_class
 import elftools.common.exceptions
 
+import os
+
+from .dwarf_decompiler import DwarfDecompiler, DecompilerBase
+
 # Doc fixup
 Dwarf.__doc__ = Dwarf.__init__.__doc__
 #Dwarf._modules_plugin.__doc__ = Dwarf.__init__.__doc__
+Dwarf.decompile_address.__doc__ = DecompilerBase.decompile_address.__doc__
+Dwarf.add_source_path.__doc__ = DwarfDecompiler.add_source_path.__doc__

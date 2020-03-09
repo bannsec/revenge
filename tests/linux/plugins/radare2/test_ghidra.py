@@ -61,7 +61,7 @@ def test_r2_ghidra_decompile_pie64_function():
     assert 0x66d in d
     assert d[0x66d].address == 0x66d
     assert d[0x66d].highlight == 'GREEN'
-    assert "func" in d[0x66d].src
+    assert b"func" in d[0x66d].src
 
     process.quit()
 
@@ -108,7 +108,7 @@ def test_r2_ghidra_decompile_nonpie32_function():
     assert off in d
     assert d[off].highlight == 'CYAN'
     assert d[off].address == off
-    assert "func" in d[off].src
+    assert b"func" in d[off].src
 
     process.quit()
 

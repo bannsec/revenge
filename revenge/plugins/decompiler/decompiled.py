@@ -33,7 +33,7 @@ class DecompiledItem(object):
             attrs.append(hex(self.address))
 
         if self.src is not None:
-            attrs.append(self.src)
+            attrs.append(self.src.decode('latin-1'))
 
         return "<" + " ".join(attrs) + ">"
 
@@ -45,8 +45,9 @@ class DecompiledItem(object):
         first = True
 
         if self.src is not None:
+            src = self.src.decode('latin-1')
 
-            for line in self.src.split("\n"):
+            for line in src.split("\n"):
 
                 if first:
                     # Can't do adjustments since we don't know the name
@@ -54,7 +55,7 @@ class DecompiledItem(object):
                         saddr = "{:18s}".format(hex(self.address))
                     else:
                         # Adjust offset to make sense with our current binary
-                        saddr = "{:18s}".format(hex(self._process.memory[self._file_name + ":" + hex(self.address)].address))
+                        saddr = "{:18s}".format(hex(self._process.memory[self._file_name.decode('latin-1') + ":" + hex(self.address)].address))
                     
                     if self.highlight is not None:
                         s += getattr(colorama.Back, self.highlight) + saddr + colorama.Style.RESET_ALL + "| "
@@ -99,8 +100,10 @@ class DecompiledItem(object):
         return self.__src
 
     @src.setter
-    @common.validate_argument_types(src=(str, type(None)))
+    @common.validate_argument_types(src=(str, bytes, type(None)))
     def src(self, src):
+        if type(src) == str:
+            src = src.encode('latin-1')
         self.__src = src
 
     @property
@@ -112,6 +115,19 @@ class DecompiledItem(object):
     @common.validate_argument_types(address=(int, type(None)))
     def address(self, address):
         self.__address = address
+
+    @property
+    def _file_name(self):
+        try:
+            return self.__file_name
+        except AttributeError:
+            return None
+
+    @_file_name.setter
+    def _file_name(self, file_name):
+        if type(file_name) is str:
+            file_name = file_name.encode('latin-1')
+        self.__file_name = file_name
 
 class Decompiled(object):
     def __init__(self, process, file_name=None):

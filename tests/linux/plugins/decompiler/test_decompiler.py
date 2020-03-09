@@ -35,7 +35,7 @@ def test_decompiler_basic():
     assert len(a) == 1
     assert 0x66d in a
     assert a[0x66d].address == 0x66d
-    assert "sym.func" in a[0x66d].src
+    assert b"sym.func" in a[0x66d].src
 
     process.quit()
 
@@ -52,7 +52,7 @@ def test_decompiler_basic():
     assert len(a) == 1
     assert 0x08048460 in a
     assert a[0x08048460].address == 0x08048460
-    assert "sym.func" in a[0x08048460].src
+    assert b"sym.func" in a[0x08048460].src
 
     process.quit()
 
