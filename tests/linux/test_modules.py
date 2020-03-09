@@ -10,6 +10,7 @@ import revenge
 types = revenge.types
 
 import random
+from revenge.exceptions import *
 
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "bins")
@@ -24,6 +25,43 @@ basic_one_ia32_path = os.path.join(bin_location, "basic_one_ia32")
 basic_one_ia32_nopie_path = os.path.join(bin_location, "basic_one_ia32_nopie")
 
 chess_path = os.path.join(bin_location, "ChessAI.so")
+
+def test_modules_register_plugin():
+    process = revenge.Process(basic_one_path, resume=False, verbose=False)
+
+    class MyPlugin:
+        """My docstring."""
+        def __init__(self, module):
+            self.module = module
+
+    basic_one = process.modules['basic_one']
+    
+    # Shouldn't exist yet
+    with pytest.raises(AttributeError):
+        basic_one.myplugin
+
+    process.modules._register_plugin(MyPlugin, "myplugin")
+    myplugin = basic_one.myplugin
+    assert isinstance(myplugin, MyPlugin)
+    # Make sure we're not regenerating each time
+    assert myplugin is basic_one.myplugin
+    assert myplugin.module is basic_one
+
+    # Make sure we're not overlapping instantiations
+    libc = process.modules['*libc*']
+    assert libc.myplugin is not myplugin
+
+    assert myplugin.__doc__ == "My docstring."
+
+    # Can't share the same name
+    with pytest.raises(RevengeInvalidArgumentType):
+        process.modules._register_plugin(MyPlugin, "myplugin")
+
+    # Not valid callable
+    with pytest.raises(RevengeInvalidArgumentType):
+        process.modules._register_plugin("invalid", "myplugin")
+
+    process.quit()
 
 def test_modules_lookup_offset():
     process = revenge.Process(basic_one_path, resume=False, verbose=False)

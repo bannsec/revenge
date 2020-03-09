@@ -150,6 +150,49 @@ class Modules(object):
         else:
             logger.error("Not yet supported platform for load_library: {}".format(self._process.device_platform))
 
+    @common.validate_argument_types(name=str)
+    def _register_plugin(self, plugin, name):
+        """Registers this plugin to be exposed as a module plugin.
+
+        Args:
+            plugin (callable): A class constructor. Must take an argument for
+                the current module
+            name (str): What will this be called?
+        
+        The plugin will be instantiated at most once per module instance, and
+        done only when referenced.
+
+        Examples:
+            .. code-block:: python
+
+                class MyPlugin:
+                    @classmethod
+                    def _modules_plugin(klass, module):
+                        self = klass()
+                        self._module = module
+                        return self
+
+                process.modules._register_plugin(MyPlugin._modules_plugin, "myplugin")
+
+                # This first call will instantiate the plugin
+                process.modules['proc_name'].myplugin
+        """
+
+        def getter(self):
+            try:
+                return getattr(self, "__" + name)
+            except AttributeError:
+                setattr(self, "__" + name, plugin(self))
+                return getattr(self, "__" + name)
+
+        if not callable(plugin): raise RevengeInvalidArgumentType("plugin must be callable")
+
+        if name in Module.__dict__:
+            raise RevengeInvalidArgumentType("Property name " + name + " is already taken.")
+
+        # Add the new plugin
+        setattr(Module, name, property(getter, doc=plugin.__doc__))
+
     def _flush_cache(self):
         """Make sure the next time we're hit is a full one."""
         self.__last_update = datetime.datetime(1970,1,1)

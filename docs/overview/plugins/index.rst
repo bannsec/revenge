@@ -33,3 +33,28 @@ The general layout is:
 
 That's it. You should now have a working plugin.
 
+Registering a Plugin
+====================
+
+Your plugin will automatically register to the base process object if you
+return True for `_is_valid`. However, you can also dynamically register your
+plugin in a few different locations.
+
+Registering a Module Plugin
+---------------------------
+
+Module plugins end up instantiated under Module.<plugin>. For instance:
+
+.. code-block:: python
+    
+    # "plugin" here is where your plugin would end up
+    # It will get instantiated with the module that it is called from
+    process.modules['my_process'].plugin
+
+If your plugin would likely be specific per module, you can register it as a
+module plugin. To do this, simply call
+:meth:`revenge.modules.Modules._register_plugin` with your class instantiator
+as well as a name for the plugin. If successful, your plugin will now show up
+under the module object.
+
+Example of how to do this can be found in the API docs.
