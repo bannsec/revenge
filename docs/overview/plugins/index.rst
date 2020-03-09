@@ -8,6 +8,7 @@ Plugins
     :hidden:
 
     decompiler/index.rst
+    dwarf/index.rst
     radare2/index.rst
 
 Plugins are a means for ``revenge`` to expose support in a general way. Plugins
