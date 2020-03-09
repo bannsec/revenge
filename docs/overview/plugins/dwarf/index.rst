@@ -21,4 +21,6 @@ Functions
 =========
 
 Functions are enumerated and exposed via the
-:attr:`~revenge.plugins.dwarf.Dwarf.functions` property.
+:attr:`~revenge.plugins.dwarf.Dwarf.functions` property. You can utilize the 
+:meth:`~revenge.plguins.dwarf.Dwarf.lookup_function` method to resolve an
+address to it's function.

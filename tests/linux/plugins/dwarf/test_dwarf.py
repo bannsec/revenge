@@ -28,6 +28,11 @@ def dwarf_basic(process):
         # Check that the dwarf info matches up with what we resolved for symbols
         assert basic.dwarf.functions[func.encode()].address == basic.symbols[func].address
 
+    main = basic.dwarf.functions[b'main']
+    assert basic.dwarf.lookup_function(main.address) == b"main"
+    assert basic.dwarf.lookup_function(main.address + 5) == b"main"
+    assert basic.dwarf.lookup_function(1337) is None
+
 def test_dwarf_x64_basic():
     process = revenge.Process(basic_dwarf_x64_path, resume=False, verbose=False)
     dwarf_basic(process)

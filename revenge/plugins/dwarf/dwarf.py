@@ -61,6 +61,21 @@ class Dwarf(Plugin):
                 except KeyError:
                     continue
 
+    @common.validate_argument_types(address=int)
+    def lookup_function(self, address):
+        """Lookup corresponding function that contains this address.
+
+        Args:
+            address (int): Address inside function
+
+        Returns:
+            bytes: The name of the function or None if lookup fails.
+        """
+        try:
+            return next(name for name, func in self.functions.items() if func.address <= address and func.address_stop >= address)
+        except StopIteration:
+            return None
+
     @classmethod
     def _modules_plugin(klass, module):
         self = klass(module._process, module)
