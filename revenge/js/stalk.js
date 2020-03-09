@@ -181,13 +181,15 @@ function stalker_follow(tid) {
 
                 }
 
-                filtered_events.push(event_dict);
+                //filtered_events.push(event_dict);
+                send_batch(event_dict);
             });
 
+            /*
             if ( filtered_events.length != 0 ) {
                 send_batch(filtered_events);
                 //send(filtered_events);
-            }
+            } */
         }
     })
 }

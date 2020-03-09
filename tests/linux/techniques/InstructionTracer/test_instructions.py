@@ -557,7 +557,7 @@ def test_basic_one_traceitem():
 
     for i in trace_items:
         i['tid'] = tid
-        t._on_message({'type': 'send', 'payload': [[i]]}, None)
+        t._on_message({'type': 'send', 'payload': [i]}, None)
 
     repr(t)
     t2 = list(t)[0]

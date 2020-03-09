@@ -285,9 +285,11 @@ class NativeInstructionTracer(Technique):
             raise
 
         for x in payload:
-            #self.traces[x['tid']].append(x)
+            self.traces[x['tid']].append(x)
+            """
             for y in x:
                 self.traces[y['tid']].append(y)
+            """
 
     def apply(self, threads=None):
         self.threads = threads

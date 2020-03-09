@@ -13,9 +13,15 @@
 
 var send_batch_buf = Array();
 var send_batch_ms = 250;
+var send_batch_max = 1024;
 
 function send_batch(thing) {
     send_batch_buf.push(thing);
+
+    if ( send_batch_buf.length > send_batch_max ) {
+        send(send_batch_buf);
+        send_batch_buf = Array();
+    }
 }
 
 function send_batch_flush() {
