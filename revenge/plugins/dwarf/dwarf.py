@@ -20,7 +20,7 @@ class Dwarf(Plugin):
                 print(dwarf.functions)
 
                 # Print the first instruction block in main
-                print(dwarf.functions[b'main'].instruction_block)
+                print(dwarf.functions['main'].instruction_block)
         """
         self._process = process
         self._module = module
@@ -71,10 +71,7 @@ class Dwarf(Plugin):
         Returns:
             bytes: The name of the function or None if lookup fails.
         """
-        try:
-            return next(name for name, func in self.functions.items() if func.address <= address and func.address_stop >= address)
-        except StopIteration:
-            return None
+        return self.functions[address]
 
     @common.validate_argument_types(address=int)
     def lookup_file_line(self, address):
@@ -201,7 +198,7 @@ class Dwarf(Plugin):
         try:
             return self.__functions
         except AttributeError:
-            self.__functions = {}
+            self.__functions = Functions(self._process)
 
         return self.__functions
 
@@ -235,6 +232,7 @@ import elftools.common.exceptions
 import os
 
 from .dwarf_decompiler import DwarfDecompiler, DecompilerBase
+from ...functions import Functions
 
 # Doc fixup
 Dwarf.__doc__ = Dwarf.__init__.__doc__

@@ -72,7 +72,7 @@ class DwarfDecompiler(DecompilerBase):
             return None
 
         # First, figure out what function we're in
-        func = self._dwarf.lookup_function(address)
+        func = self._dwarf.functions[address]
 
         # We can't find what function this is in :-(
         if func is None:
