@@ -1,6 +1,7 @@
 import logging
 from .common import validate_argument_types
 from .memory import MemoryBytes
+from .symbols import Symbol
 
 """
 This module holds the base classes for other classes that want to describe functions.
@@ -33,6 +34,12 @@ class Functions(object):
                 # Print out functions as table
                 print(functions)
 
+                # Check if a function name exists
+                assert "main" in functions
+
+                # Check if an address belongs to one of the known functions
+                assert 0x12345 in functions
+
                 # Not sure why you'd want to do this, but you can
                 functions[0x1000:0x2000] = "some_function"
         """
@@ -41,7 +48,7 @@ class Functions(object):
         # name: MemoryBytes
         self.__functions = {}
 
-    @validate_argument_types(name=(str,bytes))
+    @validate_argument_types(name=(str,bytes, Symbol))
     def lookup_name(self, name):
         """Lookup MemoryBytes for a given name.
 
@@ -56,6 +63,10 @@ class Functions(object):
                 
                 main = functions.lookup_name("main")
         """
+
+        if isinstance(name, Symbol):
+            name = name.name
+
         # Everything should be bytes
         if isinstance(name, str):
             name = name.encode('latin-1')
@@ -102,7 +113,7 @@ class Functions(object):
         self.__functions[name] = memory_bytes
 
     def __getitem__(self, item):
-        if isinstance(item, (str, bytes)):
+        if isinstance(item, (str, bytes, Symbol)):
             return self.lookup_name(item)
 
         elif isinstance(item, (int, MemoryBytes)):
@@ -136,6 +147,10 @@ class Functions(object):
             table.add_row([name.decode(), hex(address.address), hex(address.address_stop) if address.address_stop is not None else "", hex(address.address_stop-address.address) if address.address_stop is not None else ""])
 
         return str(table)
+
+    def __contains__(self, item):
+        return self[item] is not None
+
 
 from prettytable import PrettyTable
 

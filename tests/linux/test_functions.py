@@ -63,4 +63,10 @@ def test_functions_basic():
     assert "main" in str(functions)
     assert "func1" in str(functions)
 
+    assert "main" in functions
+    assert b"main" in functions
+    assert main in functions # MemoryBytes
+    assert main.address in functions # Symbol
+    assert main.address.address in functions # Pointer
+
     p.quit()
