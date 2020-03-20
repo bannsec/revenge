@@ -25,6 +25,12 @@ def my_func(x, y=None):
     """mydoc"""
     return (x, y)
 
+def test_common_strip_escapes():
+    x = '\x1b[30mHello\x1b[0m'
+    y = b'\x1b[30mHello\x1b[0m'
+    assert common.strip_ansi_escapes(x) == "Hello"
+    assert common.strip_ansi_escapes(y) == b"Hello"
+
 def test_common_validate_argument_types():
 
     #
