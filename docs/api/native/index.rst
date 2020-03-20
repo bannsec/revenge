@@ -8,6 +8,7 @@ Native
     devices/index
     errors
     exceptions
+    functions
     process
     memory
     modules

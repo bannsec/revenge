@@ -204,7 +204,7 @@ class Process(object):
         pass
 
     @common.implement_in_engine()
-    def interactve(self):
+    def interactive(self):
         """Go interactive. Return back to your shell with ctrl-c."""
         pass
 

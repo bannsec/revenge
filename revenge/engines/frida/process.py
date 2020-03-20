@@ -118,7 +118,7 @@ class Process(ProcessBase):
         self.__stdout = self.__stdout[n:]
         return ret
 
-    def interactve(self):
+    def interactive(self):
         old_stdout_echo = self._stdout_echo
         self._stdout_echo = True
 
