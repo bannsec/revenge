@@ -67,6 +67,45 @@ class DwarfDecompiler(DecompilerBase):
         LOGGER.warning("    - process.modules['" + self._dwarf._module.name + "'].dwarf.add_source_path('<path_here>')")
 
     @common.validate_argument_types(address=int)
+    def decompile_function(self, address):
+        if not self._dwarf.has_debug_info:
+            return None
+
+        # First, figure out what function we're in
+        func = self._dwarf.lookup_function(address)
+
+        # We can't find what function this is in :-(
+        if func is None:
+            return
+
+        func = self._dwarf.functions[func]
+
+        # TODO: This is kinda hacky... Maybe rework this later.
+        prev = None
+        decomp = None
+
+        for addr in range(func.address, func.address_stop):
+            out = self.decompile_address(addr)
+            out_addrs = list(out)
+
+            assert len(out_addrs) == 1, "More than one out found but only one expected..."
+            current = out[addr]
+
+            if decomp is None:
+                decomp = out
+                prev = current
+                continue
+
+            # Choosing to not duplicate for now
+            if current.src == prev.src:
+                continue
+
+            decomp[addr] = current
+            prev = current
+
+        return decomp
+
+    @common.validate_argument_types(address=int)
     def decompile_address(self, address):
         if not self._dwarf.has_debug_info:
             return None

@@ -22,7 +22,7 @@ Functions
 
 Functions are enumerated and exposed via the
 :attr:`~revenge.plugins.dwarf.Dwarf.functions` property. You can utilize the 
-:meth:`~revenge.plguins.dwarf.Dwarf.lookup_function` method to resolve an
+:meth:`~revenge.plugins.dwarf.Dwarf.lookup_function` method to resolve an
 address to it's function.
 
 Source Lookup
@@ -40,4 +40,5 @@ address and line for your running address, and then lookup the corresponding
 source code for it. You must ensure you have told the plugin where your source
 directories are by using :meth:`~revenge.plugins.dwarf.Dwarf.add_source_path`.
 Lookups for a source address can be done via
-:meth:`~revenge.plugins.dwarf.Dwarf.decompile_address`.
+:meth:`~revenge.plugins.dwarf.Dwarf.decompile_address` and
+:meth:`~revenge.plugins.dwarf.Dwarf.decompile_function`.

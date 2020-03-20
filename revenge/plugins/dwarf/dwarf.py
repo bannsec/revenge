@@ -221,6 +221,9 @@ class Dwarf(Plugin):
     def decompile_address(self, address):
         return self.decompiler.decompile_address(address)
 
+    def decompile_function(self, address):
+        return self.decompiler.decompile_function(address)
+
     def add_source_path(self, path):
         return self.decompiler.add_source_path(path)
 

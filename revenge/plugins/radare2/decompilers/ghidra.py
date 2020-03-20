@@ -3,9 +3,6 @@ import logging
 import re
 from ...decompiler.base import DecompilerBase
 
-# Used to remove ansi colors
-ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-
 class GhidraDecompiler(DecompilerBase):
     def __init__(self, radare2):
         self._radare2 = radare2
@@ -33,7 +30,7 @@ class GhidraDecompiler(DecompilerBase):
         out = self._r2.cmd("pdgo @ " + hex(adjusted_offset)).strip()
 
         # Strip out colors
-        out = ansi_escape.sub('', out)
+        out = common.strip_ansi_escapes(out)
 
         # Gotta seek past the junk up top
         infunc = False
@@ -109,8 +106,8 @@ class GhidraDecompiler(DecompilerBase):
         return self._radare2._r2
 
 from base64 import b64decode
-import re
 
+from ... import common
 from revenge.plugins.decompiler.decompiled import Decompiled
 
 LOGGER = logging.getLogger(__name__)

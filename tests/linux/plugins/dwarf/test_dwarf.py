@@ -7,6 +7,7 @@ import os
 import pytest
 import revenge
 types = revenge.types
+common = revenge.common
 
 from revenge.plugins.decompiler.decompiled import Decompiled
 from revenge.plugins.dwarf.dwarf_decompiler import DwarfDecompiler
@@ -62,6 +63,19 @@ def dwarf_basic(process):
     repr(item)
     str(item)
     assert item.src == b'int main(int argc, char **argv) {'
+
+    #
+    # Decompile function
+    #
+
+    decomp = basic.dwarf.decompile_function(basic.dwarf.functions[b'main'].address+7)
+    assert isinstance(decomp, Decompiled)
+    assert list(decomp)[0] == basic.dwarf.functions[b'main'].address
+    repr(decomp)
+    str(decomp)
+
+    assert r"""puts("Try more args.");""" in common.strip_ansi_escapes(str(decomp))
+    assert r"""if ( ! strcmp( argv[1], "win" ) ) {""" in common.strip_ansi_escapes(str(decomp))
 
 def test_dwarf_x64_basic():
     process = revenge.Process(basic_dwarf_x64_path, resume=False, verbose=False)

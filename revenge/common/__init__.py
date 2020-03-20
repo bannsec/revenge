@@ -13,6 +13,7 @@ import lzma
 import pprint
 import functools
 import inspect
+import re
 from types import FunctionType, MethodType
 
 from revenge.exceptions import *
@@ -351,3 +352,13 @@ class retry_on_exception(object):
                         raise
         return wrapper
 
+@validate_argument_types(s=(str,bytes))
+def strip_ansi_escapes(s):
+    """Remove any ansi color escapes."""
+    if isinstance(s, str):
+        return ansi_escape.sub('', s)
+    else:
+        return ansi_escape_bytes.sub(b'', s)
+
+ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+ansi_escape_bytes = re.compile(br'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
