@@ -40,7 +40,7 @@ class Symbol(object):
         return self.name or ""
 
     def __int__(self):
-        return self.address
+        return int(self.address)
 
     def __lt__(self, other):
         return self.address < other

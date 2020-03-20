@@ -24,10 +24,17 @@ class Functions(object):
                 assert functions[main.address] == b"main"
 
                 # Add function info
-                function["func1"] = process.memory[<func1 range here>]
+                functions["func1"] = process.memory[<func1 range here>]
+
+                # Loop through function names
+                for name in functions:
+                    pass
+
+                # Print out functions as table
+                print(functions)
 
                 # Not sure why you'd want to do this, but you can
-                function[0x1000:0x2000] = "some_function"
+                functions[0x1000:0x2000] = "some_function"
         """
         self._process = process
 
@@ -111,12 +118,26 @@ class Functions(object):
         elif isinstance(item, slice):
             self.set_function(value, self._process.memory[item])
 
+    def __iter__(self):
+        return self.__functions.__iter__()
+
     def __len__(self):
         return len(self.__functions)
 
     def __repr__(self):
         attrs = ["Functions", str(len(self))]
         return "<" + " ".join(attrs) + ">"
+
+    def __str__(self):
+        table = PrettyTable(["name", "address", "end", "size"])
+        table.align = 'l'
+
+        for name, address in self.__functions.items():
+            table.add_row([name.decode(), hex(address.address), hex(address.address_stop) if address.address_stop is not None else "", hex(address.address_stop-address.address) if address.address_stop is not None else ""])
+
+        return str(table)
+
+from prettytable import PrettyTable
 
 Functions.__doc__ = Functions.__init__.__doc__
 

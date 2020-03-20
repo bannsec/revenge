@@ -59,4 +59,8 @@ def test_functions_basic():
     functions[func1.address:func1.address+16] = "func1"
     assert functions[func1.address+8] == b"func1"
 
+    assert set(functions) == set([b"main", b"func1"])
+    assert "main" in str(functions)
+    assert "func1" in str(functions)
+
     p.quit()
