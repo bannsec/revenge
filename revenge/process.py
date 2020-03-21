@@ -29,9 +29,9 @@ here = os.path.dirname(os.path.abspath(__file__))
 class Process(object):
 
     def __init__(self, target, resume=False, verbose=False, load_symbols=None,
-            envp=None, engine=None):
+                 envp=None, engine=None):
         """Represents a process.
-
+        
         Args:
             target (str, int, list): File name or pid to attach to. If target
                 is a list, it will be set as argv.
@@ -63,6 +63,9 @@ class Process(object):
 
                 # Read from stdout
                 p.stdout(16)
+
+                # Read up to expected output in stdout
+                p.stdout("expected")
 
                 # Interact like a shell
                 p.interactive()
@@ -173,10 +176,15 @@ class Process(object):
 
     @common.implement_in_engine()
     def stdout(self, n):
-        """bytes: Read n bytes from stdout.
+        """Read n bytes from stdout.
         
         Args:
-            n (int, str): Number of bytes to read. Or 'all' to read everything
+            n (int, str, bytes): Number of bytes to read or string to expect.
+                If no value is given, it's presumed you are trying to read 
+                all currently queued output.
+
+        Returns:
+            bytes: Output of stdout
         """
         pass
 

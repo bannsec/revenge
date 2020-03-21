@@ -101,20 +101,29 @@ class Process(ProcessBase):
         self.__stderr = self.__stderr[n:]
         return ret
 
-    @common.validate_argument_types(n=(int, str))
-    def stdout(self, n):
-        
-        if isinstance(n, str):
-            if n.lower() == "all":
-                ret = self.__stdout
-                self.__stdout = b""
-                return ret
-            else:
-                raise RevengeInvalidArgumentType("Only valid string is 'all'")
+    @common.validate_argument_types(n=(int, str, bytes))
+    def stdout(self, n=0):
 
-        ret = self.__stdout[:n]
-        self.__stdout = self.__stdout[n:]
-        return ret
+        if n == 0:
+            ret = self.__stdout
+            self.__stdout = b""
+            return ret
+        
+        # String acts as an expect
+        if isinstance(n, (str, bytes)):
+            n = common.auto_bytes(n)
+            # TODO: Might be more efficient to use try/except...
+            while n not in self.__stdout: sleep(0.01)
+            index = self.__stdout.index(n) + len(n)
+            ret = self.__stdout[:index]
+            self.__stdout = self.__stdout[index:]
+            return ret
+
+        else:
+            # n is an int. take that much
+            ret = self.__stdout[:n]
+            self.__stdout = self.__stdout[n:]
+            return ret
 
     def interactive(self):
         old_stdout_echo = self._stdout_echo
@@ -125,7 +134,8 @@ class Process(ProcessBase):
         self._stderr_echo = True
 
         # Flush out stdout buffer
-        print(self.stdout('all').decode('utf-8'), end="", flush=True)
+        #print(self.stdout('all').decode('utf-8'), end="", flush=True)
+        print(self.stdout().decode('utf-8'), end="", flush=True)
 
         # TODO: Maybe change this to single char get and send at some point?
         while True:
@@ -138,6 +148,7 @@ class Process(ProcessBase):
         self._stdout_echo = old_stdout_echo
         self._stderr_echo = old_stderr_echo
 
+from time import sleep
 import prompt_toolkit
 from ...exceptions import *
 from ...native_exception import NativeException

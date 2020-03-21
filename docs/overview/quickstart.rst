@@ -30,6 +30,7 @@ Just Show Me
 
     # Interact with the process
     p.stdout(12) # Read 12 bytes of stdout
+    p.stdout("something") # Read until "something" is in output
     p.stderr(12) # Read 12 bytes of stderr
     p.stdin(b"hello!\n") # Write to stdin
     p.interactive() # Quasi-interactive shell. ctrl-c to exit.
@@ -42,7 +43,7 @@ A Little Deeper
 The two cent starting guide is that everything in ``revenge`` hangs off the
 core class called ``Process``.
 
-:meth:`revenge.Process`
+:class:`revenge.process.Process`
 
 This has traditionally been the starting point for opening applications,
 however in some cases (Android for the moment) it has become necessary to add a

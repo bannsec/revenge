@@ -290,7 +290,9 @@ def stderr_expect(process, thing):
 def test_frida_process_stdio(capsys):
     process = revenge.Process("/bin/cat", verbose=False, resume=True)
     process.stdin("hello world\n")
-    assert b"hello world" in stdout_expect(process, b"world")
+    #assert b"hello world" in stdout_expect(process, b"world")
+    assert b"hello" == process.stdout(b"lo")
+    assert b" world" == process.stdout("ld")
     process.quit()
 
     process = revenge.Process("/bin/cat", verbose=False, resume=False)
