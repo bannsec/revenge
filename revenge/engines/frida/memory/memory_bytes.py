@@ -677,9 +677,7 @@ class FridaMemoryBytes(MemoryBytes):
 
     @bytes.setter
     def bytes(self, b):
-        if type(b) is str:
-            logger.warning("Implicitly converting str to bytes.")
-            b = b.encode('latin-1')
+        b = common.auto_bytes(b)
 
         if type(b) is not bytes:
             logger.error("Must use type 'bytes' when writing as bytes.")

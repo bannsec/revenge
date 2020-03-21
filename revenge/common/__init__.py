@@ -44,6 +44,7 @@ def int_to_signed(i, n):
     mask = 1 << (n-1)
     return (i^mask) - mask
 
+
 def auto_int(x):
     """Sometimes frida returns ints as a string instead of int. Just auto detect and return as int."""
     if isinstance(x, int):
@@ -359,6 +360,14 @@ def strip_ansi_escapes(s):
         return ansi_escape.sub('', s)
     else:
         return ansi_escape_bytes.sub(b'', s)
+
+@validate_argument_types(x=(str,bytes))
+def auto_bytes(x):
+    """Converts str to bytes. If already bytes, just returns bytes."""
+    if isinstance(x, str):
+        x = x.encode('latin-1')
+
+    return x
 
 ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 ansi_escape_bytes = re.compile(br'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')

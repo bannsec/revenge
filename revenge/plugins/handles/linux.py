@@ -1,6 +1,6 @@
 
 import logging
-from revenge import types
+from revenge import types, common
 
 SEEK_SET = 0
 SEEK_CUR = 1
@@ -17,11 +17,7 @@ def write_handle(process, fd, thing, position=None):
     # Not using alloc_string since we don't want to add the null terminator at the end
     alloc = process.memory.alloc(len(thing))
 
-    # Guess encoding if we need to
-    if isinstance(thing, str):
-        LOGGER.warning("Writing strings is ambiguous. Consider writing bytes instead.")
-        thing = thing.encode('latin-1')
-
+    thing = common.auto_bytes(thing)
     alloc.bytes = thing
     
     # write

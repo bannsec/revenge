@@ -28,9 +28,7 @@ class DwarfDecompiler(DecompilerBase):
             LOGGER.error("path either does not exist or is not a directory.")
             return
 
-        if type(path) is str:
-            path = path.encode('latin-1')
-
+        path = common.auto_bytes(path)
         DwarfDecompiler.SOURCE_DIRECTORIES.append(path)
 
     def _get_line_from_file(self, line, filename):

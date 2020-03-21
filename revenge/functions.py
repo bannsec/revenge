@@ -1,5 +1,5 @@
 import logging
-from .common import validate_argument_types
+from .common import validate_argument_types, auto_bytes
 from .memory import MemoryBytes
 from .symbols import Symbol
 
@@ -67,10 +67,7 @@ class Functions(object):
         if isinstance(name, Symbol):
             name = name.name
 
-        # Everything should be bytes
-        if isinstance(name, str):
-            name = name.encode('latin-1')
-
+        name = auto_bytes(name)
         return self.__functions[name] if name in self.__functions else None
 
     @validate_argument_types(address=(int, MemoryBytes))
@@ -106,10 +103,8 @@ class Functions(object):
             name (str, bytes): Name of function
             memory_bytes (MemoryBytes): MemoryBytes for function
         """
-        # Everything should be bytes
-        if isinstance(name, str):
-            name = name.encode('latin-1')
 
+        name = auto_bytes(name)
         self.__functions[name] = memory_bytes
 
     def __getitem__(self, item):

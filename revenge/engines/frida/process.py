@@ -83,9 +83,7 @@ class Process(ProcessBase):
 
     @common.validate_argument_types(thing=(str, bytes))
     def stdin(self, thing):
-        if isinstance(thing, str):
-            thing = thing.encode('latin-1')
-
+        thing = common.auto_bytes(thing)
         self.engine._frida_device.input(self.pid, thing)
 
     @common.validate_argument_types(n=(int, str))

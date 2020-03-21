@@ -102,9 +102,10 @@ class DecompiledItem(object):
     @src.setter
     @common.validate_argument_types(src=(str, bytes, type(None)))
     def src(self, src):
-        if type(src) == str:
-            src = src.encode('latin-1')
-        self.__src = src
+        if src is None:
+            self.__src = None
+        else:
+            self.__src = common.auto_bytes(src)
 
     @property
     def address(self):
@@ -125,9 +126,10 @@ class DecompiledItem(object):
 
     @_file_name.setter
     def _file_name(self, file_name):
-        if type(file_name) is str:
-            file_name = file_name.encode('latin-1')
-        self.__file_name = file_name
+        if file_name is None:
+            self.__file_name = None
+        else:
+            self.__file_name = common.auto_bytes(file_name)
 
 class Decompiled(object):
     def __init__(self, process, file_name=None):

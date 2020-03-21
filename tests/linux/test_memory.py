@@ -688,7 +688,8 @@ def test_memory_read_write_str_byte():
     assert mem.bytes.startswith(b"\x12\x34\x56")
 
     # Try to write something invalid, shouldn't change anything
-    mem.bytes = 1.23
+    with pytest.raises(RevengeInvalidArgumentType):
+        mem.bytes = 1.23
     assert mem.bytes.startswith(b"\x12\x34\x56")
 
     assert mem.size == 22

@@ -25,6 +25,10 @@ def my_func(x, y=None):
     """mydoc"""
     return (x, y)
 
+def test_common_auto_bytes():
+    assert common.auto_bytes(b"test") == b"test"
+    assert common.auto_bytes("test") == b"test"
+
 def test_common_strip_escapes():
     x = '\x1b[30mHello\x1b[0m'
     y = b'\x1b[30mHello\x1b[0m'
