@@ -271,26 +271,9 @@ def test_frida_process_main_thread_signals_x86_64(capsys):
 
     process.quit()
 
-def stdout_expect(process, thing):
-    out = b""
-
-    while thing not in out:
-        out += process.stdout(1)
-
-    return out
-
-def stderr_expect(process, thing):
-    out = b""
-
-    while thing not in out:
-        out += process.stderr(1)
-
-    return out
-
 def test_frida_process_stdio(capsys):
     process = revenge.Process("/bin/cat", verbose=False, resume=True)
     process.stdin("hello world\n")
-    #assert b"hello world" in stdout_expect(process, b"world")
     assert b"hello" == process.stdout(b"lo")
     assert b" world" == process.stdout("ld")
     process.quit()
@@ -304,7 +287,9 @@ def test_frida_process_stdio(capsys):
     process.quit()
 
     process = revenge.Process([cat_stderr_path, "hello world"], verbose=False, resume=True)
-    assert b"hello world" in stderr_expect(process, b"world")
+    #assert b"hello world" in stderr_expect(process, b"world")
+    assert b"hello" == process.stderr(b"lo")
+    assert b" world" == process.stderr("ld")
     process.quit()
 
     process = revenge.Process([cat_stderr_path, "Test2 Blerg"], verbose=False, resume=False)

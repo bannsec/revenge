@@ -193,10 +193,12 @@ class Process(object):
         """Read n bytes from stderr.
         
         Args:
-            n (int, str): Number of bytes to read. Or 'all' to read everything
+            n (int, str, bytes): Number of bytes to read or string to expect.
+                If no value is given, it's presumed you are trying to read 
+                all currently queued output.
 
         Returns:
-            bytes: The bytes from stderr.
+            bytes: Output of stderr
         """
         pass
 

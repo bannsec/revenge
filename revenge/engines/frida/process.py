@@ -81,25 +81,37 @@ class Process(ProcessBase):
             else:
                 self.__stderr += data
 
+        else:
+            LOGGER.warning("Unhandled fd callback: fd == " + hex(fd))
+
     @common.validate_argument_types(thing=(str, bytes))
     def stdin(self, thing):
         thing = common.auto_bytes(thing)
         self.engine._frida_device.input(self.pid, thing)
 
-    @common.validate_argument_types(n=(int, str))
-    def stderr(self, n):
-        
-        if isinstance(n, str):
-            if n.lower() == "all":
-                ret = self.__stderr
-                self.__stderr = b""
-                return ret
-            else:
-                raise RevengeInvalidArgumentType("Only valid string is 'all'")
+    @common.validate_argument_types(n=(int, str, bytes))
+    def stderr(self, n=0):
 
-        ret = self.__stderr[:n]
-        self.__stderr = self.__stderr[n:]
-        return ret
+        if n == 0:
+            ret = self.__stderr
+            self.__stderr = b""
+            return ret
+        
+        # String acts as an expect
+        if isinstance(n, (str, bytes)):
+            n = common.auto_bytes(n)
+            # TODO: Might be more efficient to use try/except...
+            while n not in self.__stderr: sleep(0.01)
+            index = self.__stderr.index(n) + len(n)
+            ret = self.__stderr[:index]
+            self.__stderr = self.__stderr[index:]
+            return ret
+
+        else:
+            # n is an int. take that much
+            ret = self.__stderr[:n]
+            self.__stderr = self.__stderr[n:]
+            return ret
 
     @common.validate_argument_types(n=(int, str, bytes))
     def stdout(self, n=0):
