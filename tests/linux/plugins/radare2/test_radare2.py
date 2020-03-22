@@ -59,5 +59,9 @@ def test_radare2_basic():
     # entry0 and others should now be recognized
     assert "entry0" in process.radare2._r2.cmd("afl").strip()
 
+    libc = process.modules['*libc*']
+    assert libc.radare2 is not None
+    assert 'libc' in libc.radare2._r2.cmdj("ij")['core']['file']
+
     local_r2.quit()
     process.quit()

@@ -26,3 +26,15 @@ class RevengeMemoryError(RevengeError):
 
 class RevengeMemoryReadError(RevengeMemoryError):
     pass
+
+class RevengeModuleError(RevengeError):
+    pass
+
+class RevengeModulePluginAlreadyRegistered(RevengeModuleError):
+    pass
+
+class RevengeDecompilerError(RevengeError):
+    pass
+
+class RevengeDecompilerAlreadyRegisteredError(RevengeDecompilerError):
+    pass

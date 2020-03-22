@@ -188,7 +188,7 @@ class Modules(object):
         if not callable(plugin): raise RevengeInvalidArgumentType("plugin must be callable")
 
         if name in Module.__dict__:
-            raise RevengeInvalidArgumentType("Property name " + name + " is already taken.")
+            raise RevengeModulePluginAlreadyRegistered("Property name " + name + " is already taken.")
 
         # Add the new plugin
         setattr(Module, name, property(getter, doc=plugin.__doc__))

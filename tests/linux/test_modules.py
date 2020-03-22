@@ -54,7 +54,7 @@ def test_modules_register_plugin():
     assert myplugin.__doc__ == "My docstring."
 
     # Can't share the same name
-    with pytest.raises(RevengeInvalidArgumentType):
+    with pytest.raises(RevengeModulePluginAlreadyRegistered):
         process.modules._register_plugin(MyPlugin, "myplugin")
 
     # Not valid callable

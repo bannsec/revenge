@@ -56,5 +56,9 @@ Example
     # Now that our trace is populated, send that data off to our r2 session
     process.radare2.highlight(t)
 
+    # You can also use r2 for loaded libraries
+    libc = process.memory['*libc*']
+    libc.radare2
+
     # In your other r2, you should now see highlights for this path in the
     # Visual mode and the Very Visual mode

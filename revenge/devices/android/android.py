@@ -176,7 +176,7 @@ class AndroidDevice(BaseDevice):
             return False
 
         # Allow replace by default
-        return self.adb("install -r " + package)
+        return self.adb("install -t -r " + package)
 
     def uninstall(self, application):
         """Uninstall the given application.

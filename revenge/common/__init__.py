@@ -154,7 +154,8 @@ def load_file_remote(process, file_path):
             f.write(elf_io.read())
             elf_io.seek(0)
 
-        return elf_io
+        #return elf_io
+        return open(cache_name, "rb")
 
     else:
         logger.error("No remote file load support yet for: " + process.device_platform)

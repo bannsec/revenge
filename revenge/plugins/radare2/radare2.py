@@ -4,9 +4,13 @@ from collections.abc import Iterable
 from ... import common
 from .. import Plugin
 
+# TODO: For now, if you use both process.radare2 and module[main_object].radare2,
+# you will open up a duplicate r2 session. This shouldn't hurt anything
+# but it's definitely not optimal
+
 class Radare2(Plugin):
 
-    def __init__(self, process):
+    def __init__(self, process, module=None):
         """Use radare2 to enrich reversing information.
 
         Examples:
@@ -35,13 +39,24 @@ class Radare2(Plugin):
                 process.radare2.highlight(t)
         """
         self._process = process
+        self._module = module or list(self._process.modules)[0]
         self._r2 = None
         self._find_r2()
+
+        try:
+            self._process.modules._register_plugin(Radare2._modules_plugin, "radare2")
+        except RevengeModulePluginAlreadyRegistered:
+            # This will error out if we're already registered
+            pass
+
         self._load_file()
 
         # Register myself as a decompiler if Ghidra plugin is present
         if isinstance(self.decompiler, GhidraDecompiler):
-            self._process.decompiler._register_decompiler(self.decompiler, 70)
+            try:
+                self._process.decompiler._register_decompiler(self.decompiler, 70)
+            except RevengeDecompilerAlreadyRegisteredError:
+                pass
 
         # Always clean ourselves up at exit
         self._process._register_cleanup(self.disconnect)
@@ -65,21 +80,20 @@ class Radare2(Plugin):
     def _load_file(self):
         """Attempt to load this revenge file."""
 
-        # TODO: Pull file down if we can't find it
-        # TODO: Not sure argv is going to be right if this is remote...
-
+        """
         if not os.path.isfile(self._process.argv[0]):
             LOGGER.warning("Cannot find file to load.")
             return
+        """
 
-        self._r2 = r2pipe.open(self._process.argv[0])
+        self._r2 = r2pipe.open(common.load_file(self._process, self._module.path).name)
 
         try:
             self._r2.cmd('i')
 
         except BrokenPipeError:
             self._r2 = None
-            LOGGER.error("Error opening file " + self._process.file_name + " with r2.")
+            LOGGER.error("Error opening file " + self._module.name + " with r2.")
 
     def _find_r2(self):
         """Locate and save what radare2 we're dealing with."""
@@ -94,6 +108,10 @@ class Radare2(Plugin):
                 return
 
         LOGGER.debug("Couldn't find r2...")
+
+    @classmethod
+    def _modules_plugin(klass, module):
+        return klass(module._process, module)
 
     @common.validate_argument_types(address=int, color=str)
     def _highlight_address(self, address, color):

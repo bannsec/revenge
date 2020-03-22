@@ -45,7 +45,7 @@ class Decompiler(Plugin):
             raise RevengeInvalidArgumentType("decompiler must be a subclass of DecompilerBase.")
 
         if priority in self._decompilers:
-            raise RevengeInvalidArgumentType("Cannot register {}. Priority is already in use by: {}".format(self.decompiler, self._decompilers[priority]))
+            raise RevengeDecompilerAlreadyRegisteredError("Cannot register {}. Priority is already in use by: {}".format(decompiler, self._decompilers[priority]))
 
         self._decompilers[priority] = decompiler
 
