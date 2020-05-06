@@ -27,6 +27,7 @@ See notes for each decompiler engine about possible caveats.
 Engines
 =======
 
+ - :ref:`dwarf_decompiler` (priority 100)
  - :ref:`radare2_ghidra_decompiler` (priority 70)
 
 Building A Decompiler

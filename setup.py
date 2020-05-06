@@ -1,13 +1,12 @@
 # Always prefer setuptools over distutils
 from setuptools import setup, find_packages
 # To use a consistent encoding
-from codecs import open
-import os, sys, ast
+import os
 
 here = os.path.abspath(os.path.dirname(__file__))
-version = '0.18'
+version = '0.19'
 
-#with open(path.join(here, 'README.md'), encoding='utf-8') as f:
+# with open(path.join(here, 'README.md'), encoding='utf-8') as f:
 #    long_description = f.read()
 long_description = "See website for more info."
 
@@ -32,15 +31,19 @@ setup(
     ],
     keywords='frida python3 reversing dbi',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
-    install_requires=['frida', 'prettytable', 'colorama', 'termcolor', 'psutil', 'pyelftools', 'pefile', 'appdirs', 'bs4', 'requests', 'unicorn==1.0.2rc1', 'prompt-toolkit', 'r2pipe', 'pygments'],
+    install_requires=['frida', 'prettytable', 'colorama', 'termcolor', 'psutil',
+                      'pyelftools', 'pefile', 'appdirs', 'bs4', 'requests',
+                      'unicorn==1.0.2rc1', 'prompt-toolkit', 'r2pipe', 'pygments'],
     extras_require={
-        'dev': ['ipython','twine','pytest','python-coveralls','coverage==4.5.4','pytest-cov','pytest-xdist','sphinxcontrib-napoleon', 'sphinx_rtd_theme','sphinx-autodoc-typehints', 'pyOpenSSL', 'numpy'],
+        'dev': ['ipython', 'twine', 'pytest', 'python-coveralls',
+                'coverage==4.5.4', 'pytest-cov', 'pytest-xdist',
+                'sphinxcontrib-napoleon', 'sphinx_rtd_theme',
+                'sphinx-autodoc-typehints', 'pyOpenSSL', 'numpy'],
     },
     entry_points={
         'console_scripts': [
             'revenge = revenge.cli.cli:main',
         ],
     },
-    include_package_data = True,
+    include_package_data=True,
 )
-

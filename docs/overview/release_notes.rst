@@ -2,6 +2,24 @@
 Release Notes
 =============
 
+Version 0.19
+============
+
+- Added exception catching for the main thread. Any exceptions encountered will
+  now be added to :attr:`~revenge.threads.Thread.exceptions`
+- You can now expect output by supplying a string or bytes to 
+  :meth:`~revenge.process.Process.stdout` or
+  :meth:`~revenge.process.Process.stderr`
+- Added ability to :meth:`~revenge.threads.Thread.kill` your thread more
+  easily
+- Modules can now have plugins registered with
+  :meth:`~revenge.modules.Modules._register_plugin`
+- The radare2 plugin is now a Module plugin
+- Added initial DWARF decompiler
+- All remote file loads will use a local cache, speeding up access times
+- Backend updates to batch sending and timeless tracer
+- Updated for frida api changing
+
 Version 0.18
 ============
 

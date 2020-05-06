@@ -1,3 +1,5 @@
+.. _dwarf_decompiler:
+
 =====
 DWARF
 =====
