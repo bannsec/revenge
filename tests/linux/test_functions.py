@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 types = revenge.types
 
-
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "bins")
 
