@@ -1,25 +1,27 @@
 
 import logging
-logger = logging.getLogger(__name__)
-
 import os
+
 import pytest
 import revenge
-types = revenge.types
 from revenge.functions import Functions
+from revenge.exceptions import RevengeInvalidArgumentType
 
-import random
-from revenge.exceptions import *
+logger = logging.getLogger(__name__)
+
+types = revenge.types
+
 
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "bins")
 
 basic_dwarf_x64_path = os.path.join(bin_location, "basic_dwarf_x64")
 
+
 def test_functions_basic():
     p = revenge.Process(basic_dwarf_x64_path, resume=False, verbose=False)
 
-    basic = p.modules['basic*'] 
+    basic = p.modules['basic*']
 
     main = p.memory[basic.symbols['main']]
     func1 = p.memory[basic.symbols['func1']]
@@ -52,7 +54,7 @@ def test_functions_basic():
 
     main = p.memory[basic.symbols['main']:basic.symbols['main']+16]
     functions['main'] = main
-    assert len(functions) == 2 # Should overwrite old one
+    assert len(functions) == 2  # Should overwrite old one
     # This should now fall in the range
     assert functions[main.address+8] == b"main"
 
@@ -65,8 +67,8 @@ def test_functions_basic():
 
     assert "main" in functions
     assert b"main" in functions
-    assert main in functions # MemoryBytes
-    assert main.address in functions # Symbol
-    assert main.address.address in functions # Pointer
+    assert main in functions  # MemoryBytes
+    assert main.address in functions  # Symbol
+    assert main.address.address in functions  # Pointer
 
     p.quit()
