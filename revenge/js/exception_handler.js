@@ -15,8 +15,7 @@ Process.setExceptionHandler(
         details.thread_id = Process.getCurrentThreadId();
         details.wait_for = wait_for;
 
-        // TODO: Re-enable this once try/catch works inside the exception handler
-        //details.context = timeless_snapshot(details, false).context;
+        details.context = timeless_snapshot(details, false).context;
         send(details);
 
         while ( wait_for.readS8() == 0 ) { Thread.sleep(0.25); };
