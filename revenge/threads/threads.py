@@ -3,6 +3,9 @@ import logging
 from prettytable import PrettyTable
 import collections
 
+from revenge import common
+from revenge.exceptions import *
+
 logger = logging.getLogger(__name__)
 
 
@@ -109,6 +112,50 @@ class Threads(object):
                 new_thread.pthread_id = out
 
             return new_thread
+
+    @common.validate_argument_types(name=str)
+    def _register_plugin(self, plugin, name):
+        """Registers this plugin to be exposed as a thread plugin.
+
+        Args:
+            plugin (callable): A class constructor. Must take an argument for
+                the current thread
+            name (str): What will this be called?
+
+        The plugin will be instantiated at most once per thread instance, and
+        done only when referenced.
+
+        Examples:
+            .. code-block:: python
+
+                class MyPlugin:
+                    @classmethod
+                    def _thread_plugin(klass, thread):
+                        self = klass()
+                        self._thread = module
+                        return self
+
+                process.threads._register_plugin(MyPlugin._thread_plugin, "myplugin")
+
+                # This first call will instantiate the plugin
+                process.threads[1234].myplugin
+        """
+
+        def getter(self):
+            try:
+                return getattr(self, "__" + name)
+            except AttributeError:
+                setattr(self, "__" + name, plugin(self))
+                return getattr(self, "__" + name)
+
+        if not callable(plugin):
+            raise RevengeInvalidArgumentType("plugin must be callable")
+
+        if name in Thread.__dict__:
+            raise RevengeModulePluginAlreadyRegistered("Property name " + name + " is already taken.")
+
+        # Add the new plugin
+        setattr(Thread, name, property(getter, doc=plugin.__doc__))
 
     @property
     def threads(self):

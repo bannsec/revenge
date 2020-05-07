@@ -10,6 +10,7 @@ Threads class object is what you get when you request ``Process.threads``.
     :members:
     :undoc-members:
     :show-inheritance:
+    :private-members:
 
 Thread
 ------
@@ -20,3 +21,4 @@ The Thread class is an actual description of the thread itself.
     :members:
     :undoc-members:
     :show-inheritance:
+    :private-members:

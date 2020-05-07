@@ -75,7 +75,9 @@ class Thread(object):
         return "<{}>".format(' '.join(attrs))
 
     def __getattr__(self, elm):
-        #return common.auto_int(self._info['context'][elm])
+        # return common.auto_int(self._info['context'][elm])
+        if elm.startswith("__"):
+            raise AttributeError
         return getattr(self.context, elm)
 
     def __str__(self):

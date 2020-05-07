@@ -7,6 +7,7 @@ Plugins
     :caption: Plugins
     :hidden:
 
+    angr/index.rst
     decompiler/index.rst
     dwarf/index.rst
     radare2/index.rst
@@ -59,3 +60,9 @@ as well as a name for the plugin. If successful, your plugin will now show up
 under the module object.
 
 Example of how to do this can be found in the API docs.
+
+Registering a Thread Plugin
+---------------------------
+
+Thread plugin registration works exactly the same way that module registration
+works. See :meth:`revenge.threads.Threads._register_plugin`.
