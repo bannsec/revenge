@@ -18,7 +18,7 @@ class Thread(object):
                 
                 # Grab your thread
                 thread = process.threads[tid]
-                
+
                 # Wait for this thread to return
                 thread.join()
 
@@ -32,7 +32,7 @@ class Thread(object):
         self._process = process
         self.pthread_id = None
         self._info = info
-        self.context = CPUContext(self._process, **self._info['context'])
+        self._context = CPUContext(self._process, **self._info['context'])
 
     def join(self):
         """Traditional thread join. Wait for thread to exit and return the thread's return value."""
@@ -53,7 +53,7 @@ class Thread(object):
 
     def kill(self):
         """Attempts to kill this thread.
-        
+
         Note:
             If you're having trouble killing the thread, be sure your thread is
             killable.
@@ -75,7 +75,8 @@ class Thread(object):
         return "<{}>".format(' '.join(attrs))
 
     def __getattr__(self, elm):
-        return common.auto_int(self._info['context'][elm])
+        #return common.auto_int(self._info['context'][elm])
+        return getattr(self.context, elm)
 
     def __str__(self):
 
@@ -85,17 +86,33 @@ class Thread(object):
         table.add_row(["State", self.state])
         table.add_row(["Module", self.module])
         table.add_row(["Tracing?", "Yes" if self.trace is not None else "No"])
+        table.add_row(["Breakpoint?", "Yes" if self.breakpoint else "No"])
 
         """
         for reg in self._info['context']:
             table.add_row([reg, hex(getattr(self, reg))])
-        
         """
         table.header = False
         table.align = "l"
 
         return str(table) + '\n' + str(self.context)
 
+    @property
+    def breakpoint(self):
+        """bool: Is this thread at a breakpoint?"""
+        return self.id in self._process.threads._breakpoint_context
+
+    @breakpoint.setter
+    @common.validate_argument_types(breakpoint=bool)
+    def breakpoint(self, breakpoint):
+        if breakpoint is not False:
+            logger.error("Can only unset breakpoints via thread. Try: breakpoint = False")
+            return
+
+        if self.breakpoint is not True:
+            return
+
+        self._process.memory[self.pc].breakpoint = False
 
     @property
     def id(self) -> int:
@@ -110,7 +127,7 @@ class Thread(object):
     @property
     def pc(self) -> int:
         """The current program counter/instruction pointer."""
-        return int(self._info['context']['pc'],16)
+        return self.context.pc
 
     @property
     def module(self) -> str:
@@ -118,7 +135,7 @@ class Thread(object):
         libc-2.27.so."""
         mod = self._process.modules[self.pc]
         return mod.name if mod is not None else "Unknown"
-    
+
     @property
     def trace(self):
         """revenge.tracer.instruction_tracer.Trace: Returns Trace object if this thread is currently being traced, otherwise None."""
@@ -129,6 +146,18 @@ class Thread(object):
     def exceptions(self):
         """list: Exceptions that have been caught generically for this thread."""
         return self._process.threads._exceptions[self.id]
+
+    @property
+    def context(self):
+        """revenge.cpu.contexts.CPUContext: The current context for this thread."""
+        # self.context = CPUContext(self._process, **self._info['context'])
+
+        # First, if we're at a breakpoint, use that context instead as it is
+        # more accurate
+        if self.breakpoint:
+            return self._process.threads._breakpoint_context[self.id]
+
+        return self._context
 
 from ..cpu import CPUContext
 

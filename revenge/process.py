@@ -88,7 +88,7 @@ class Process(object):
             load_symbols = [load_symbols]
         self._load_symbols = load_symbols
 
-        #self.memory = self.engine.memory.Memory(self)
+        # self.memory = self.engine.memory.Memory(self)
         self.memory = self.engine.memory
         self.threads = Threads(self)
         self.modules = Modules(self)
@@ -97,6 +97,9 @@ class Process(object):
         atexit.register(self._at_exit)
         self.engine.start_session()
         self._register_plugins()
+
+        # Cache arch right away so we don't have resource locks
+        self.arch
 
         # TODO: move this into frida engine
         # ELF binaries start up in ptrace, which causes some issues, shim at entrypoint so we can remove ptrace

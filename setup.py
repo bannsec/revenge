@@ -38,7 +38,7 @@ setup(
         'dev': ['ipython', 'twine', 'pytest', 'python-coveralls',
                 'coverage==4.5.4', 'pytest-cov', 'pytest-xdist',
                 'sphinxcontrib-napoleon', 'sphinx_rtd_theme',
-                'sphinx-autodoc-typehints', 'pyOpenSSL', 'numpy'],
+                'sphinx-autodoc-typehints', 'pyOpenSSL', 'numpy', 'flake8'],
     },
     entry_points={
         'console_scripts': [

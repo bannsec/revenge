@@ -26,7 +26,7 @@ Just Show Me
     print(p.memory)
 
     # This will remove the breakpoint and resume execution
-    p.memory[p.entrypoint_rebased].breakpoint = False
+    p.memory[p.entrypoint].breakpoint = False
 
     # Interact with the process
     p.stdout(12) # Read 12 bytes of stdout

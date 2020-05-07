@@ -85,7 +85,7 @@ class CPUContext(object):
         """Represents a CPU for this running process."""
 
         arch = process.arch
-        
+
         if arch == "x64":
             return X64Context(process, *args, **kwargs)
 
@@ -103,4 +103,3 @@ from .x64 import X64Context
 from .x86 import X86Context
 from .arm import ARMContext
 from ... import types, common
-

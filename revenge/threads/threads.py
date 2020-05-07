@@ -1,9 +1,10 @@
 
 import logging
-logger = logging.getLogger(__name__)
-
 from prettytable import PrettyTable
 import collections
+
+logger = logging.getLogger(__name__)
+
 
 class Threads(object):
 
@@ -12,6 +13,10 @@ class Threads(object):
 
         # tid: list of exceptions, appended as they come in
         self._exceptions = collections.defaultdict(lambda: list())
+
+        # tid: breakpoint_context to keep track of when we hit a breakpoint
+        # and what the thread state is at that point
+        self._breakpoint_context = {}
 
     def __len__(self):
         return len(self.threads)
@@ -23,11 +28,15 @@ class Threads(object):
         return "<{} {}>".format(len(self), "Thread" if len(self) == 1 else "Threads")
 
     def __str__(self):
-        table = PrettyTable(['id', 'state', 'pc', 'module', 'Trace'])
+        table = PrettyTable(['id', 'state', 'pc', 'module', 'Trace', 'Breakpoint'])
 
         for thread in self:
             table.add_row([str(thread.id), thread.state,
-                self._process.memory.describe_address(thread.pc).split(":")[-1], thread.module, 'Yes' if thread.trace is not None else 'No'])
+                           self._process.memory.describe_address(thread.pc).split(":")[-1],
+                           thread.module,
+                           'Yes' if thread.trace is not None else 'No',
+                           "Yes" if thread.breakpoint else "No"
+                           ])
 
         return str(table)
 
@@ -48,7 +57,6 @@ class Threads(object):
         else:
             logger.error("Not sure how to handle this.")
 
-
     def create(self, callback):
         """Create and start a new thread on the given callback.
 
@@ -58,7 +66,9 @@ class Threads(object):
                 function in the binary
 
         Returns:
-            revenge.threads.Thread: The new thread that was created or None if either the thread create failed or the thread finished before this method returned.
+            revenge.threads.Thread: The new thread that was created or None if
+            either the thread create failed or the thread finished before this
+            method returned.
 
         Example:
             .. code-block:: python3
@@ -103,8 +113,12 @@ class Threads(object):
     @property
     def threads(self):
         """Current snapshop of active threads."""
-        threads = self._process.engine.run_script_generic("""send(Process.enumerateThreadsSync());""", raw=True, unload=True)[0][0]
+        threads = self._process.engine.run_script_generic(
+            "send(Process.enumerateThreadsSync());",
+            raw=True,
+            unload=True)[0][0]
         return [Thread(self._process, thread) for thread in threads]
+
 
 from . import Thread
 from .create import create_thread

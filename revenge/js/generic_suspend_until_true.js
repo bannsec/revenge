@@ -11,16 +11,22 @@ Interceptor.attach(func_ptr, function (args) {
 
     this.alloc = shared_var;
 
-    send("Waiting at function.");
+    var state = {
+        "context": this.context,
+        "tid": this.threadId,
+        "depth": this.depth,
+    }
+
+    send({"type": "breakpoint_hit", "data": state});
 
     while ( shared_var.readS8() == 0 ) {
 
         Thread.sleep(0.2);
-        send("Still waiting for variable change at " + shared_var);
+        //send("Still waiting for variable change at " + shared_var);
     }
 
-    send("Done waiting at function.");
+    send({"type": "breakpoint_leave", "data": state});
 });
 
 // Let the caller know where the memory is
-send(shared_var);
+send({"type": "resume_pointer", "data": shared_var});

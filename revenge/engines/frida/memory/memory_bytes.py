@@ -1,12 +1,15 @@
 
 import logging
-logger = logging.getLogger(__name__)
-
 import json
-import time
+
+from termcolor import cprint
 
 from ....memory import MemoryBytes
 from .... import common, types
+from revenge.cpu import CPUContext
+
+logger = logging.getLogger(__name__)
+
 
 class FridaMemoryBytes(MemoryBytes):
     """Meta-class used for resolving bytes into something else."""
@@ -641,8 +644,27 @@ class FridaMemoryBytes(MemoryBytes):
     @breakpoint.setter
     def breakpoint(self, val):
         """bool: Set this as a breakpoint or remove the breakpoint."""
-        
+
         assert type(val) is bool, "breakpoint set must be boolean."
+        resume_pointer = []
+
+        def breakpoint_on_message(msg, data=None):
+            payload = msg['payload']
+            ptype = payload["type"]
+            data = payload["data"]
+
+            if ptype == "resume_pointer":
+                resume_pointer.append(int(data, 16))
+
+            elif ptype == "breakpoint_hit":
+                # Save off the correct context
+                context = CPUContext(self._process, **data["context"])
+                self._process.threads._breakpoint_context[data["tid"]] = context
+                cprint("Thread " + str(data["tid"]) + " hit breakpoint at " + hex(context.ip), "green")
+
+            elif ptype == "breakpoint_leave":
+                # Remove our state
+                self._process.threads._breakpoint_context.pop(data["tid"])
 
         # Remove breakpoint
         if val is False:
@@ -660,16 +682,27 @@ class FridaMemoryBytes(MemoryBytes):
             if self.breakpoint:
                 return
 
-            unbreak = int(self._engine.run_script_generic('generic_suspend_until_true.js', replace={"FUNCTION_HERE": hex(self.address)})[0][0],16)
-            #print('Unsuspend pointer: ' + hex(unbreak))
-            self._engine.memory._active_breakpoints[self.address] = unbreak
+            unbreak = self._engine.run_script_generic(
+                            'generic_suspend_until_true.js',
+                            replace={"FUNCTION_HERE": hex(self.address)},
+                            unload=False,
+                            on_message=breakpoint_on_message,
+                            )
 
+            # Wait for notification of our unbreak address
+            while resume_pointer == []:
+                pass
+
+            unbreak = resume_pointer[0]
+
+            # print('Unsuspend pointer: ' + hex(unbreak))
+            self._engine.memory._active_breakpoints[self.address] = unbreak
 
     @property
     def bytes(self):
         """bytes: Return this as raw bytes."""
         if self.address_stop is None:
-            length = 1 # Default to 1 byte
+            length = 1  # Default to 1 byte
         else:
             length = self.address_stop - self.address
 
