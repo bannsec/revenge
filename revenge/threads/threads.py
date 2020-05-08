@@ -21,6 +21,10 @@ class Threads(object):
         # and what the thread state is at that point
         self._breakpoint_context = {}
 
+        # addr: bytes -- what bytes were in the binary at this location before
+        # we overwrote them with stuff (like Frida Interceptor)
+        self._breakpoint_original_bytes = {}
+
     def __len__(self):
         return len(self.threads)
 

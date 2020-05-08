@@ -7,6 +7,7 @@ Plugins
     :caption: Plugins
     :hidden:
 
+    angr/index.rst
     decompiler/index.rst
     dwarf/index.rst
     java/index.rst

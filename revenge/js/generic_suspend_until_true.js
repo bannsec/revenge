@@ -7,6 +7,8 @@ var func_ptr = ptr("FUNCTION_HERE");
 var shared_var = Memory.alloc(1);
 shared_var.writeS8(0); // Init to false
 
+send({"type": "before_replace", "data": func_ptr}, func_ptr.readByteArray(16))
+
 Interceptor.attach(func_ptr, function (args) {
 
     this.alloc = shared_var;

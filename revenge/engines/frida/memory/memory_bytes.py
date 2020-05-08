@@ -648,7 +648,7 @@ class FridaMemoryBytes(MemoryBytes):
         assert type(val) is bool, "breakpoint set must be boolean."
         resume_pointer = []
 
-        def breakpoint_on_message(msg, data=None):
+        def breakpoint_on_message(msg, raw_data=None):
             payload = msg['payload']
             ptype = payload["type"]
             data = payload["data"]
@@ -666,6 +666,9 @@ class FridaMemoryBytes(MemoryBytes):
                 # Remove our state
                 self._process.threads._breakpoint_context.pop(data["tid"])
 
+            elif ptype == "before_replace":
+                self._process.threads._breakpoint_original_bytes[common.auto_int(data)] = raw_data
+
         # Remove breakpoint
         if val is False:
             # We're already not a breakpoint
@@ -682,12 +685,11 @@ class FridaMemoryBytes(MemoryBytes):
             if self.breakpoint:
                 return
 
-            unbreak = self._engine.run_script_generic(
-                            'generic_suspend_until_true.js',
-                            replace={"FUNCTION_HERE": hex(self.address)},
-                            unload=False,
-                            on_message=breakpoint_on_message,
-                            )
+            self._engine.run_script_generic(
+                'generic_suspend_until_true.js',
+                replace={"FUNCTION_HERE": hex(self.address)},
+                unload=False,
+                on_message=breakpoint_on_message)
 
             # Wait for notification of our unbreak address
             while resume_pointer == []:
