@@ -16,12 +16,18 @@ The current requirements to use the `angr` plugin are:
 Setup
 =====
 
-You can install `angr` with:
+As of writing, the version of `angr` in pypi is very out of date and will not
+work correctly for `revenge`. You will need to perform a dev install until
+`angr` pushes a new build.
 
 .. code-block:: bash
 
-    pip install angr
-    pip install --process-dependency-links https://github.com/angr/angr-targets/archive/master.zip
+    git clone --depth=1 https://github.com/angr/angr-dev.git
+    cd angr-dev
+    ./setup.sh -e angr -i
+
+Note the `-e`. Choose whichever python virtual environment you have `revenge`
+installed in.
 
 angr also has pre-built docker containers available which alleviate build
 issues.
