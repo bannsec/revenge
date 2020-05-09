@@ -8,7 +8,9 @@ from .. import Plugin
 # you will open up a duplicate r2 session. This shouldn't hurt anything
 # but it's definitely not optimal
 
+
 class Radare2(Plugin):
+    _R2WARNING = False
 
     def __init__(self, process, module=None):
         """Use radare2 to enrich reversing information.
@@ -28,11 +30,11 @@ class Radare2(Plugin):
 
                 # Connect up to it with revenge
                 process.radare2.connect("http://127.0.0.1:12345")
-                
+
                 # Highlight paths that have executed
                 timeless = process.techniques.NativeTimelessTracer()
                 timeless.apply()
-                
+
                 # Do whatever
                 t = list(timeless)[0]
 
@@ -40,8 +42,17 @@ class Radare2(Plugin):
         """
         self._process = process
         self._module = module or list(self._process.modules)[0]
+        self._r2exe = None
         self._r2 = None
         self._find_r2()
+
+        if self._r2exe is None:
+            # Looks like we don't have r2 installed
+            if not Radare2._R2WARNING:
+                LOGGER.warning("Cannot find radare2 in your path. Disabling this functionality.")
+                Radare2._R2WARNING = True
+
+            return
 
         try:
             self._process.modules._register_plugin(Radare2._modules_plugin, "radare2")
@@ -128,11 +139,11 @@ class Radare2(Plugin):
         if self._r2 is None:
             LOGGER.warning("Can't find connected r2 instance...")
             return
-        
+
         # First gotta clear any existing color
         # ecH- is broken atm. ecHi __should__ overwrite it though...
         #self._r2.cmd("ecH-@" + hex(address))
-        
+
         # Now add the new color
         self._r2.cmd("ecHi " + color + "@" + hex(address))
 
