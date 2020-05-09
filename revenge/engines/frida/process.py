@@ -3,6 +3,7 @@ import logging
 from ...process import Process as ProcessBase
 from ... import common
 
+
 class Process(ProcessBase):
 
     def __init__(self, *args, **kwargs):
@@ -51,7 +52,11 @@ class Process(ProcessBase):
 
         # TODO: Optionally specify which signals to allow (such as int3)
         self.engine.run_script_generic("exception_handler.js", unload=False, runtime='v8', on_message=self.__handle_process_exception, timeout=0,
-                include_js=["dispose.js", "send_batch.js", "telescope.js", "timeless.js"])
+                                       include_js=["dispose.js", "send_batch.js", "telescope.js", "timeless.js"])
+
+        # Register this for cleanup since we need it to be removed first.
+        script = self.engine._scripts.pop(0)
+        self._register_cleanup(lambda: script[0].unload())
 
     def __frida_process_linux_init(self):
         """Setup stuff specifically for Frida process on linux."""
