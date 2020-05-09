@@ -115,6 +115,11 @@ class Process(object):
             # Resume to remove ptrace
             self.engine.resume(self._spawned_pid)
 
+        if self.device.platform == "windows":
+            # Set exit breakpoints
+            for c in ['msvcrt.dll:exit', 'msvcrt.dll:_exit']:
+                self.memory[c].breakpoint = True
+
         if self.device_platform == 'linux':
             try:
                 str(self.threads)
