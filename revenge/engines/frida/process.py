@@ -2,6 +2,7 @@
 import logging
 from ...process import Process as ProcessBase
 from ... import common
+from revenge.exceptions import *
 
 
 class Process(ProcessBase):
@@ -13,6 +14,8 @@ class Process(ProcessBase):
 
         if self.device.platform == "linux":
             self.__frida_process_linux_init()
+        elif self.device.platform == "windows":
+            self.__frida_process_windows_init()
 
         self.__stdout = b""
         self.__stderr = b""
@@ -57,6 +60,25 @@ class Process(ProcessBase):
         # Register this for cleanup since we need it to be removed first.
         script = self.engine._scripts.pop(0)
         self._register_cleanup(lambda: script[0].unload())
+
+    def __frida_process_windows_init(self):
+        """Setup stuff specifically for Frida process on windows."""
+
+        try:
+            setbuf = self.memory['setbuf']
+        except RevengeSymbolLookupFailure:
+            LOGGER.warning("Couldn't resolve setbuf. Unbuffering of io is disabled.")
+            return
+
+        # Windows resolves stdin/out/error using __iob_func
+        try:
+            iob = self.memory['__iob_func']()
+        except RevengeSymbolLookupFailure:
+            LOGGER.warning("Couldn't resolve __iob_func. Unbuffering of io is disabled.")
+            return
+
+        # Unbuffer stdout
+        setbuf(iob + 0x30, 0)
 
     def __frida_process_linux_init(self):
         """Setup stuff specifically for Frida process on linux."""
