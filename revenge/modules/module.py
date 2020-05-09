@@ -63,7 +63,7 @@ class Module(object):
         #
 
         for sym, address in cache['symbols'].items():
-            if self._process.file_type is "PE" or \
+            if self._process.file_type == "PE" or \
                     (self.elf is not None and self.elf.type_str == 'DYN'):
                 address = address + self.base
 
