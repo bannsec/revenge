@@ -151,13 +151,14 @@ class Module(object):
                 name = sym.name.decode()
 
                 rel_address = sym.address
-                address = rel_address + self.base
+                # address = rel_address + self.base
 
-                self._process.modules._symbol_to_address[self.name][name] = types.Pointer(address)
-                self._process.modules._address_to_symbol[address] = name
+                # self._process.modules._symbol_to_address[self.name][name] = types.Pointer(address)
+                # self._process.modules._address_to_symbol[address] = name
                 cache['symbols'][name] = rel_address
 
         self._save_symbols_cache(pe_io, cache)
+        self._load_symbols_cache(cache)
         cprint("[ DONE ]", "green")
 
     def _load_symbols_elf(self, elf_io):

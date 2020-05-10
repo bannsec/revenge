@@ -164,7 +164,7 @@ class Angr(Plugin):
 
                 # Fixup angr's Sim Procedures since it cannot handle PIC
                 me = self._process.modules[self._thread.pc]
-                imports = [rel.symbol.name for rel in self.project.loader.main_object.relocs if rel.symbol.is_import]
+                imports = [rel.symbol.name for rel in self.project.loader.main_object.relocs if rel.symbol is not None and rel.symbol.is_import]
 
                 for imp in imports:
                     # TODO: This will only work for ELF...

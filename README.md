@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.com/bannsec/revenge.svg?branch=master)](https://travis-ci.com/bannsec/revenge)
+![windows](https://github.com/bannsec/revenge/workflows/windows/badge.svg)
 [![PyPI Statistics](https://img.shields.io/pypi/dm/revenge.svg)](https://pypistats.org/packages/revenge)
 [![Latest Release](https://img.shields.io/pypi/v/revenge.svg)](https://pypi.python.org/pypi/revenge/)
 [![Coverage Status](https://coveralls.io/repos/github/bannsec/revenge/badge.svg?branch=master)](https://coveralls.io/github/bannsec/revenge?branch=master)
