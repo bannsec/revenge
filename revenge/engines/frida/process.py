@@ -187,6 +187,21 @@ class Process(ProcessBase):
         self._stdout_echo = old_stdout_echo
         self._stderr_echo = old_stderr_echo
 
+    def resume(self):
+        """Resume execution of any current breakpoint hit or suspended thread."""
+        threads = list(self.threads)
+
+        # First, check for suspended threads
+        for thread in threads:
+            if thread.state == "stopped":
+                # Can only resume the entire process for now
+                return self.engine.resume(self.pid)
+
+        # Next, check for revenge breakpoints
+        for thread in threads:
+            if thread.breakpoint:
+                thread.breakpoint = False
+
 from time import sleep
 import prompt_toolkit
 from ...exceptions import *

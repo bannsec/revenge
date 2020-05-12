@@ -19,7 +19,7 @@ basic_one_64_path = os.path.join(bin_location, "basic_one_64.exe")
 def test_memory_basic():
 
     process = revenge.Process(basic_one_64_path, resume=False, load_symbols='basic_one_64.exe')
-    process.engine.resume(process.pid)
+    process.resume()
 
     process.stdout("i8: ")
     assert process.memory[int(process.stdout("\n"), 16)].int8 == -13
@@ -122,5 +122,21 @@ def test_replace_with_js():
     assert strlen("123456") == 6
 
     assert strlen.replace == strlen.implementation
+
+    process.quit()
+
+
+def test_memory_map_basic():
+
+    process = revenge.Process(basic_one_64_path, resume=False, load_symbols=[])
+
+    strlen = process.memory[':strlen']
+    assert process.memory.maps[strlen.address] is not None
+    assert process.memory.maps[123].protection == "---"
+    assert process.memory.maps[123.12] is None
+
+    str(process.memory.maps)
+    repr(process.memory.maps)
+    list(process.memory.maps)
 
     process.quit()

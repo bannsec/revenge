@@ -14,7 +14,7 @@ import re
 import pytest
 
 import revenge
-#from revenge.memory import MemoryRange
+# from revenge.memory import MemoryRange
 from revenge.engines.frida.memory import MemoryRange
 types = revenge.types
 common = revenge.common
@@ -23,7 +23,7 @@ from revenge.exceptions import *
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "bins")
 
-# 
+#
 # Basic One
 #
 
@@ -53,43 +53,45 @@ basic_two_d_addr = 0x201018
 
 basic_looper_path = os.path.join(bin_location, "basic_looper")
 
+
 def test_memory_bytes_on_enter():
     p = revenge.Process(crackme_count_path, resume=False, verbose=False)
 
-    l = []
+    puts_output = []
 
-    def on_msg(x,y):
-        l.append(x['payload'])
+    def on_msg(x, y):
+        puts_output.append(x['payload'])
 
     puts = p.memory['puts']
     puts.replace_on_message = on_msg
     puts.on_enter = """function (args) { send(args[0].readUtf8String()) }"""
 
     puts("Hello world!")
-    while l == []:
+    while puts_output == []:
         pass
 
-    assert l == ["Hello world!"]
+    assert puts_output == ["Hello world!"]
 
     puts.on_enter = None
-    l = []
+    puts_output = []
 
     puts("Goodbye world!")
     time.sleep(0.1)
-    assert l == []
+    assert puts_output == []
 
-    puts.replace_on_message = lambda:1
+    puts.replace_on_message = lambda: 1
     puts.on_enter = """function (args) { send(args[0].readUtf8String()) }"""
     puts.replace_on_message = on_msg
 
     puts("Blerg")
 
-    while l == []:
+    while puts_output == []:
         pass
 
-    assert l == ["Blerg"]
+    assert puts_output == ["Blerg"]
 
     p.quit()
+
 
 def test_memory_call_with_technique():
     p = revenge.Process(crackme_count_path, resume=False, verbose=False)
@@ -99,7 +101,7 @@ def test_memory_call_with_technique():
 
     # First time around we're seeing setup instructions too..
     win._call_as_thread('bbbb')
-    
+
     trace = p.techniques.NativeInstructionTracer(exec=True)
     assert win('bbbb', techniques=trace) == 0
     t1 = list(trace)[0]
@@ -137,6 +139,7 @@ def test_memory_call_with_technique():
 
     p.quit()
 
+
 def test_memory_call_as_thread():
     p = revenge.Process(basic_one_path, resume=False, verbose=False)
 
@@ -147,7 +150,7 @@ def test_memory_call_as_thread():
     strlen.return_type = types.Int
 
     assert strlen._call_as_thread(mystr) == 5
-    assert strlen._call_as_thread(mystr) == 5 # Uses cache
+    assert strlen._call_as_thread(mystr) == 5  # Uses cache
     assert strlen._call_as_thread("blerg") == 5
     assert len(p.memory._thread_call_cache) == 1
     assert list(p.memory._thread_call_cache.keys())[0].startswith(hex(strlen.address))
@@ -169,7 +172,7 @@ def test_memory_call_as_thread():
 
     strtof = p.memory['strtof']
     strtof.return_type = types.Float
-    assert abs(strtof._call_as_thread("12.123",0) - 12.123) < 0.001
+    assert abs(strtof._call_as_thread("12.123", 0) - 12.123) < 0.001
 
     with pytest.raises(RevengeInvalidArgumentType):
         # Not valid atm
@@ -181,11 +184,12 @@ def test_memory_call_as_thread():
 
     p.quit()
 
+
 def test_memory_cast_struct(caplog):
     process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
     basic_one_module = process.modules['basic_one']
     basic_one_i8_addr = basic_one_module.symbols['i8'].address
-    
+
     # Just need scratch space
     addr = basic_one_i8_addr
 
@@ -194,7 +198,7 @@ def test_memory_cast_struct(caplog):
     struct.add_member('test2', types.Int8(-12))
     struct.add_member('test3', types.UInt16(16))
     struct.add_member('test4', types.Pointer(4444))
-    struct.add_member('test5', types.Int16) # This should cause warning
+    struct.add_member('test5', types.Int16)  # This should cause warning
     struct.add_member('test6', types.Pointer(5555))
 
     mem = process.memory[addr]
@@ -211,7 +215,7 @@ def test_memory_write_struct(caplog):
     process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
     basic_one_module = process.modules['basic_one']
     basic_one_i8_addr = basic_one_module.symbols['i8'].address
-    
+
     # Just need scratch space
     addr = basic_one_i8_addr
 
@@ -220,7 +224,7 @@ def test_memory_write_struct(caplog):
     struct.add_member('test2', types.Int8(-12))
     struct.add_member('test3', types.UInt16(16))
     struct.add_member('test4', types.Pointer(4444))
-    struct.add_member('test5', types.Int16) # This should cause warning
+    struct.add_member('test5', types.Int16)  # This should cause warning
     struct.add_member('test6', types.Pointer(5555))
 
     mem = process.memory[addr]
@@ -231,10 +235,10 @@ def test_memory_write_struct(caplog):
     caplog.clear()
 
     assert mem.int32 == -5
-    assert process.memory[addr+4].int8 == -12
-    assert process.memory[addr+4+1].uint16 == 16
-    assert process.memory[addr+4+1+2].pointer == 4444
-    assert process.memory[addr+4+1+2+8+2].pointer == 5555
+    assert process.memory[addr + 4].int8 == -12
+    assert process.memory[addr + 4 + 1].uint16 == 16
+    assert process.memory[addr + 4 + 1 + 2].pointer == 4444
+    assert process.memory[addr + 4 + 1 + 2 + 8 + 2].pointer == 5555
 
     process.quit()
 
@@ -243,7 +247,7 @@ def test_memory_setitem():
     process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
     basic_one_module = process.modules['basic_one']
     basic_one_i8_addr = basic_one_module.symbols['i8'].address
-    
+
     # Just need scratch space
     addr = basic_one_i8_addr
 
@@ -285,11 +289,12 @@ def test_memory_setitem():
 
     process.quit()
 
+
 def test_replace_with_js():
     global messages
     messages = []
 
-    def on_message(x,y):
+    def on_message(x, y):
         global messages
         messages.append(x['payload'])
 
@@ -319,6 +324,7 @@ def test_replace_with_js():
 
     p.quit()
 
+
 def test_argument_types():
 
     p = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
@@ -326,7 +332,7 @@ def test_argument_types():
     strlen = p.memory[':strlen']
 
     assert strlen.argument_types is None
-    
+
     # This should produce logger error and not set
     strlen.argument_types = 12
     assert strlen.argument_types is None
@@ -341,6 +347,7 @@ def test_argument_types():
     assert strlen.argument_types == (types.Int32, types.Double)
 
     p.quit()
+
 
 def test_describe_address():
 
@@ -362,10 +369,10 @@ def test_describe_address():
 
     #
     # Don't have symbols
-    # 
+    #
 
     p = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols=[])
-    
+
     assert p.memory.describe_address(p.modules['basic_one'].base) == "basic_one"
     assert p.memory.describe_address(p.modules['basic_one'].base + 0x123) == "basic_one+0x123"
 
@@ -375,9 +382,11 @@ def test_describe_address():
 
     p.quit()
 
+
 def test_memory_local_symbol_resolve():
     assert util.memory['basic_one:i8'].address == basic_one_i8_addr
     assert util.memory['basic_one:i8'].address == util.modules['basic_one'].base + 0x201010
+
 
 def test_memory_bytes_function_replace():
     basic_looper = revenge.Process(basic_looper_path, resume=False, verbose=False, load_symbols='basic_one')
@@ -388,9 +397,10 @@ def test_memory_bytes_function_replace():
 
     assert global_var.int64 == 0
     assert func.replace is None
-    
+
     # Start the looper!
-    basic_looper.memory[basic_looper.entrypoint].breakpoint = False
+    # basic_looper.memory[basic_looper.entrypoint].breakpoint = False
+    basic_looper.resume()
     time.sleep(0.2)
 
     # Base value from func is 1
@@ -407,15 +417,15 @@ def test_memory_bytes_function_replace():
 
     assert global_var.int64 == 31337
     # Replace with something not supported
-    func.replace = lambda x:1
-    assert func.replace == None
+    func.replace = lambda x: 1
+    assert func.replace is None
 
     func.replace = None
     assert func.replace is None
     time.sleep(0.2)
 
     assert global_var.int64 == 1
-    func.replace = None # Shouldn't affect anything
+    func.replace = None  # Shouldn't affect anything
 
     basic_looper.quit()
 
@@ -423,9 +433,10 @@ def test_memory_bytes_function_replace():
 def test_memory_bytes_address_as_pointer():
 
     strlen = util.memory[':strlen']
-    mem = util.memory[strlen.address:strlen.address+20]
+    mem = util.memory[strlen.address:strlen.address + 20]
     assert isinstance(mem.address, types.Pointer)
     assert isinstance(mem.address_stop, types.Pointer)
+
 
 def test_memory_type_to_search():
 
@@ -476,7 +487,8 @@ def test_memory_call():
     assert mem.bytes.startswith(b"Hello world!")
     mem.free()
 
-    assert abs({}) == None
+    assert abs({}) is None
+
 
 def test_memory_alloc():
 
@@ -489,20 +501,22 @@ def test_memory_alloc():
     # Fail
     assert not mem.free()
 
+
 def test_memory_maps():
 
     ranges = util.memory.maps
 
     # Expecting the following libraries to show up
-    next(range for range in ranges if range.file != None and re.findall(r'/ld.+\.so', range.file) != [] and range.protection == 'rw-')
-    next(range for range in ranges if range.file != None and re.findall(r'/ld.+\.so', range.file) != [] and range.protection == 'r--')
+    next(range for range in ranges if range.file is not None and re.findall(r'/ld.+\.so', range.file) != [] and range.protection == 'rw-')
+    next(range for range in ranges if range.file is not None and re.findall(r'/ld.+\.so', range.file) != [] and range.protection == 'r--')
 
-    next(range for range in ranges if range.file != None and re.findall(r'/libc.+\.so', range.file) != [] and range.protection == 'r--')
-    next(range for range in ranges if range.file != None and re.findall(r'/libc.+\.so', range.file) != [] and range.protection == 'rw-')
-    next(range for range in ranges if range.file != None and re.findall(r'/libc.+\.so', range.file) != [] and range.protection == 'r-x')
+    next(range for range in ranges if range.file is not None and re.findall(r'/libc.+\.so', range.file) != [] and range.protection == 'r--')
+    next(range for range in ranges if range.file is not None and re.findall(r'/libc.+\.so', range.file) != [] and range.protection == 'rw-')
+    next(range for range in ranges if range.file is not None and re.findall(r'/libc.+\.so', range.file) != [] and range.protection == 'r-x')
 
-    next(range for range in ranges if range.file != None and range.file.endswith('basic_one') and range.protection == 'rw-')
-    next(range for range in ranges if range.file != None and range.file.endswith('basic_one') and range.protection == 'r--')
+    next(range for range in ranges if range.file is not None and range.file.endswith('basic_one') and range.protection == 'rw-')
+    next(range for range in ranges if range.file is not None and range.file.endswith('basic_one') and range.protection == 'r--')
+
 
 def test_memory_range_class():
 
@@ -510,7 +524,7 @@ def test_memory_range_class():
     y = [repr(x) for x in util.memory.maps]
 
     mr = MemoryRange(util.engine, 0x123, 0x5, 'rw-', {'offset': 12, 'path': '/bin/ls'})
-    
+
     assert mr.file == '/bin/ls'
     assert mr.base == 0x123
     assert mr.size == 0x5
@@ -565,13 +579,13 @@ def test_memory_breakpoint():
     i32 = util2.memory['basic_two:{}'.format(hex(basic_two_i32_addr))]
 
     # Break here
-    assert func.breakpoint == False
+    assert func.breakpoint is False
 
     # Setting already false breakpoint to false shouldn't change anything
     old_breakpoints = copy(util2.memory._active_breakpoints)
     func.breakpoint = False
     assert old_breakpoints == util2.memory._active_breakpoints
-    
+
     # Set new breakpoint, this should change our active breakpoints dict
     func.breakpoint = True
     assert old_breakpoints != util2.memory._active_breakpoints
@@ -581,13 +595,13 @@ def test_memory_breakpoint():
     func.breakpoint = True
     assert old_breakpoints == util2.memory._active_breakpoints
 
-    assert func.breakpoint == True
+    assert func.breakpoint is True
 
     # Release from entrypoint
     util2.memory[util2.entrypoint].breakpoint = False
-    assert util2.memory[util2.entrypoint].breakpoint == False
-    assert func.breakpoint == True
-    
+    assert util2.memory[util2.entrypoint].breakpoint is False
+    assert func.breakpoint is True
+
     # Ensure we're not duplicating alloc places
     assert len(util2.memory._active_breakpoints.values()) == len(set(util2.memory._active_breakpoints.values()))
 
@@ -605,6 +619,7 @@ def test_memory_breakpoint():
 
     util2.quit()
 
+
 def test_memory_read_float_double():
     util2 = revenge.Process(basic_two_path, resume=False, verbose=False, load_symbols=['basic_one'])
 
@@ -613,6 +628,7 @@ def test_memory_read_float_double():
     assert abs(util2.memory['basic_two:{}'.format(hex(basic_two_d_addr))].cast(types.Double) - 10.4421) < 0.0001
 
     util2.quit()
+
 
 def test_memory_read_int():
 
@@ -656,14 +672,15 @@ def test_memory_read_int():
     assert util.memory[basic_one_ui64_addr].cast(types.UInt64) == 1337
     assert isinstance(util.memory[basic_one_ui64_addr].cast(types.UInt64), types.UInt64)
 
+
 def test_memory_read_write_str_byte():
 
-    #string_addr = util.memory['basic_one:{}'.format(hex(basic_one_string_addr))].address
+    # string_addr = util.memory['basic_one:{}'.format(hex(basic_one_string_addr))].address
     string = util.memory['basic_one:{}'.format(hex(basic_one_string_addr))]
     assert string.string_utf8 == "This is my string"
     assert string.cast(types.StringUTF8) == "This is my string"
     assert string.bytes == b'T'
-    assert util.memory[string.address:string.address+17].bytes == b"This is my string"
+    assert util.memory[string.address:string.address + 17].bytes == b"This is my string"
 
     string.string_utf8 = "New string"
     assert string.string_utf8 == "New string"
@@ -674,11 +691,11 @@ def test_memory_read_write_str_byte():
     assert string.cast(types.StringUTF16) == "New string"
 
     # This currently isn't supported
-    assert util.memory[string.address:] == None
-    assert util.memory[:string.address] == None
-    assert util.memory[string.address:string.address+5:2] == None
-    assert util.memory[b'blerg'] == None
-    
+    assert util.memory[string.address:] is None
+    assert util.memory[:string.address] is None
+    assert util.memory[string.address:string.address + 5:2] is None
+    assert util.memory[b'blerg'] is None
+
     # Read/write into bytes
     mem = util.memory.alloc(22)
     mem.bytes = "Hello"
@@ -695,7 +712,7 @@ def test_memory_read_write_str_byte():
     assert mem.size == 22
 
     # Testing overwrite. TODO: Catch the logger output...
-    mem.bytes = "A"*23
+    mem.bytes = "A" * 23
     mem.free()
 
     #
@@ -718,67 +735,68 @@ def test_memory_read_write_str_byte():
     assert mem.string_utf16 == "Test!"
     mem.free()
 
-    assert util.memory.alloc_string(1.23) == None
+    assert util.memory.alloc_string(1.23) is None
 
 
 def test_memory_write():
 
     ui64 = util.memory[basic_one_ui64_addr]
 
-    x = -random.randint(1, 2**7-1)
+    x = -random.randint(1, 2**7 - 1)
     ui64.int8 = x
     assert ui64.int8 == x
     assert ui64.uint8 == np.uint8(x)
-    
-    x = random.randint(1, 2**7-1)
+
+    x = random.randint(1, 2**7 - 1)
     ui64.uint8 = x
     assert ui64.int8 == x
     assert ui64.uint8 == x
 
-    x = -random.randint(1, 2**15-1)
+    x = -random.randint(1, 2**15 - 1)
     ui64.int16 = x
     assert ui64.int16 == x
     assert ui64.uint16 == np.uint16(x)
 
-    x = random.randint(1, 2**15-1)
+    x = random.randint(1, 2**15 - 1)
     ui64.uint16 = x
     assert ui64.int16 == x
     assert ui64.uint16 == x
 
-    x = -random.randint(1, 2**31-1)
+    x = -random.randint(1, 2**31 - 1)
     ui64.int32 = x
     assert ui64.int32 == x
     assert ui64.uint32 == np.uint32(x)
 
-    x = random.randint(1, 2**31-1)
+    x = random.randint(1, 2**31 - 1)
     ui64.uint32 = x
     assert ui64.int32 == x
     assert ui64.uint32 == x
 
-    x = -random.randint(1, 2**63-1)
+    x = -random.randint(1, 2**63 - 1)
     ui64.int64 = x
     assert ui64.int64 == x
     assert ui64.uint64 == np.uint64(x)
 
-    x = random.randint(1, 2**63-1)
+    x = random.randint(1, 2**63 - 1)
     ui64.uint64 = x
     assert ui64.int64 == x
     assert ui64.uint64 == x
 
-    x = random.randint(1, 2**64-1)
+    x = random.randint(1, 2**64 - 1)
     ui64.pointer = x
     assert ui64.pointer == x
     assert ui64.cast(types.Pointer) == x
 
-    x = round(random.random(),4)
+    x = round(random.random(), 4)
     ui64.float = x
     assert abs(ui64.float - x) < 0.0001
     assert isinstance(ui64.float, types.Float)
 
-    x = round(random.random(),4)
+    x = round(random.random(), 4)
     ui64.double = x
     assert abs(ui64.double - x) < 0.0001
     assert isinstance(ui64.double, types.Double)
+
 
 def test_memory_create_c_function():
     process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
@@ -789,12 +807,12 @@ def test_memory_create_c_function():
 
     function_add = r"""int add(int x, int y) { return x+y; }"""
     add = process.memory.create_c_function(function_add)
-    assert add(5,6) == 11
+    assert add(5, 6) == 11
 
     eq = process.memory.create_c_function("int eq(int x, int y) { return x==y; }")
-    assert eq(1,1) == 1
-    assert eq(1,0) == 0
-    assert eq(1,-1) == 0
+    assert eq(1, 1) == 1
+    assert eq(1, 0) == 0
+    assert eq(1, -1) == 0
     assert eq(-4, -4) == 1
 
     add_float = process.memory.create_c_function("float add_float(float x, float y) { return x+y; }")
@@ -817,6 +835,7 @@ def test_memory_create_c_function():
 
     process.quit()
 
+
 def test_memorybytes_dynamic_assembly_call_str():
 
     process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
@@ -830,8 +849,9 @@ def test_memorybytes_dynamic_assembly_call_str():
 
     process.quit()
 
+
 if __name__ == '__main__':
     test_memory_call_as_thread()
-    #test_memory_create_c_function()
-    #test_memory_read_int()
-    #test_memory_write()
+    # test_memory_create_c_function()
+    # test_memory_read_int()
+    # test_memory_write()
