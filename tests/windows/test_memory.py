@@ -1,6 +1,7 @@
 
 import logging
 import os
+import time
 
 import revenge
 
@@ -43,5 +44,83 @@ def test_memory_basic():
     process.stdout("func: ")
     func = process.memory[int(process.stdout("\n"), 16)]
     assert func() == 12
+
+    find = process.memory.find(types.StringUTF8("func: 0x%p\n"))
+    find.sleep_until_completed()
+    assert len(find) == 1
+    assert process.memory[list(find)[0]].string_utf8 == "func: 0x%p\n"
+
+    process.quit()
+
+
+def test_memory_bytes_on_enter():
+    process = revenge.Process(basic_one_64_path, resume=False, verbose=False)
+
+    puts_output = []
+
+    def on_msg(x, y):
+        puts_output.append(x['payload'])
+
+    puts = process.memory['puts']
+    puts.replace_on_message = on_msg
+    puts.on_enter = """function (args) { send(args[0].readUtf8String()) }"""
+
+    puts("Hello world!")
+    while puts_output == []:
+        pass
+
+    assert puts_output == ["Hello world!"]
+
+    puts.on_enter = None
+    puts_output = []
+
+    puts("Goodbye world!")
+    time.sleep(0.1)
+    assert puts_output == []
+
+    puts.replace_on_message = lambda: 1
+    puts.on_enter = """function (args) { send(args[0].readUtf8String()) }"""
+    puts.replace_on_message = on_msg
+
+    puts("Blerg")
+
+    while puts_output == []:
+        pass
+
+    assert puts_output == ["Blerg"]
+
+    process.quit()
+
+
+def test_replace_with_js():
+    messages = []
+
+    def on_message(x, y):
+        messages.append(x['payload'])
+
+    process = revenge.Process(basic_one_64_path, resume=False, load_symbols=[])
+
+    strlen = process.memory[':strlen']
+
+    # "original" is helper var that should always be the original function
+    strlen.replace = """function (x) { send(x.readUtf8String()); return original(x)-1; }"""
+
+    # Adding this after setting replace to test that it updates the replace
+    strlen.argument_types = types.Pointer
+    strlen.return_type = types.Int64
+    strlen.replace_on_message = on_message
+
+    assert strlen("123456") == 5
+    while messages == []:
+        pass
+    assert messages == ["123456"]
+
+    # implementation is just a pass-through
+    assert strlen.replace == strlen.implementation
+
+    strlen.implementation = None
+    assert strlen("123456") == 6
+
+    assert strlen.replace == strlen.implementation
 
     process.quit()

@@ -1,10 +1,10 @@
 import logging
-logger = logging.getLogger(__name__)
-
 import json
-import time
 
 from ....memory import MemoryFind
+
+logger = logging.getLogger(__name__)
+
 
 class FridaMemoryFind(MemoryFind):
 
@@ -23,17 +23,17 @@ class FridaMemoryFind(MemoryFind):
                 "SEARCH_SPACE_HERE": json.dumps(self._ranges_js),
                 }
 
-        self._engine.run_script_generic("find_in_memory.js", replace=replace, unload=False, on_message=self._on_message)
+        self._engine.run_script_generic("find_in_memory.js", replace=replace, unload=False, on_message=self._on_message, runtime='v8')
         self._script = self._engine._scripts.pop(0)
 
-    def _on_message(self, m,d):
+    def _on_message(self, m, d):
         """Catch messages from our search."""
         payload = m['payload']
 
         if type(payload) is list:
             for addr in payload:
                 self.found.add(types.Pointer(common.auto_int(addr['address'])))
-        
+
         elif type(payload) is str and payload == 'DONE':
             self.completed = True
 

@@ -43,12 +43,19 @@ setTimeout(function () {
         function (range) {
             base = eval(range.base);
             size = range.size;
-            protection = Process.getRangeByAddress(base).protection;
+            //protection = Process.getRangeByAddress(base).protection;
 
+            try { 
+                Memory.scanSync(base, size, "SCAN_PATTERN_HERE").forEach( memory_scan_match );
+            } catch {}
+
+            /*
             // Protection can actually change between enumerating at the execution of scan. Try to catch that.
             if ( protection == "rw-" || protection == "rwx" || protection == "r-x") {
-                Memory.scanSync(base, size, "SCAN_PATTERN_HERE").forEach( memory_scan_match );
-            }
+                try { 
+                    Memory.scanSync(base, size, "SCAN_PATTERN_HERE").forEach( memory_scan_match );
+                } catch {}
+            }*/
         });
 
     memory_scan_completed();
