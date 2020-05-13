@@ -314,9 +314,13 @@ class Process(object):
 
         # TODO: Update this with other formats. PE/COFF/MACHO/etc
         if self.__file_type is None:
-            if self.engine.run_script_generic("""send('bytes', Process.getModuleByName('{}').base.readByteArray(4))""".format(self.file_name), raw=True, unload=True)[1][0] == b'\x7fELF':
+            me = self.modules[self.file_name]
+            # if self.engine.run_script_generic("""send('bytes', Process.getModuleByName('{}').base.readByteArray(4))""".format(self.file_name), raw=True, unload=True)[1][0] == b'\x7fELF':
+            # elif self.engine.run_script_generic("""send('bytes', Process.getModuleByName('{}').base.readByteArray(2))""".format(self.file_name), raw=True, unload=True)[1][0] == b'MZ':
+            b = self.memory[me.base:me.base + 16].bytes
+            if b.startswith(b'\x7fELF'):
                 self.__file_type = 'ELF'
-            elif self.engine.run_script_generic("""send('bytes', Process.getModuleByName('{}').base.readByteArray(2))""".format(self.file_name), raw=True, unload=True)[1][0] == b'MZ':
+            elif b.startswith(b'MZ'):
                 self.__file_type = "PE"
             else:
                 self.__file_type = 'Unknown'
@@ -335,9 +339,9 @@ class Process(object):
     @property
     def bits(self):
         """int: How many bits is the CPU?"""
-        if self.__bits == None:
+        if self.__bits is None:
             self.__bits = self.engine.run_script_generic("""send(Process.pointerSize);""", raw=True, unload=True)[0][0] * 8
-        
+
         return self.__bits
 
     @property
@@ -345,7 +349,7 @@ class Process(object):
         """str: What architecture? (x64, ia32, arm, others?)"""
         try:
             return self.__arch
-        except:
+        except Exception:
             known_arch = ['x64', 'ia32', 'arm']
             arch = self.engine.run_script_generic("""send(Process.arch);""", raw=True, unload=True)[0][0]
 
@@ -363,7 +367,6 @@ class Process(object):
     def verbose(self, verbose):
         if verbose:
             logging.getLogger().setLevel(logging.DEBUG)
-            #logger.setLevel(logging.DEBUG)
         self.__verbose = verbose
 
     @property

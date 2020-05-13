@@ -1,11 +1,11 @@
 
 import logging
-logger = logging.getLogger(__name__)
 
-import json
+logger = logging.getLogger(__name__)
 
 from .. import common, types
 import time
+
 
 class MemoryFind(object):
 
@@ -43,7 +43,7 @@ class MemoryFind(object):
     def __repr__(self):
         attr = ["MemoryFind"]
         attr += ["found", str(len(self.found))]
-        
+
         if self.completed:
             attr.append("completed")
         else:
@@ -82,7 +82,7 @@ class MemoryFind(object):
 
     @thing.setter
     def thing(self, thing):
-        
+
         if not isinstance(thing, types.all_types):
             error = "Invalid search thing of type {}".format(type(thing))
             logger.error(error)
@@ -96,7 +96,7 @@ class MemoryFind(object):
 
     @ranges.setter
     def ranges(self, ranges):
-        
+
         if ranges is None:
             # It appears the first time maps gets run, something in the Frida actually changes... Not sure what.
             # Running this here to prime the pump as it were.. Maybe some day figure out wtf is going on.
@@ -104,7 +104,7 @@ class MemoryFind(object):
             self._process.memory.maps
             self._process.memory.maps
 
-            ranges = list(self._process.memory.maps)
+            ranges = [range for range in self._process.memory.maps if range.readable]
 
         if type(ranges) is MemoryRange:
             self.__ranges = [ranges]
@@ -115,5 +115,6 @@ class MemoryFind(object):
             raise Exception(error)
 
         self.__ranges = ranges
+
 
 from . import MemoryRange
