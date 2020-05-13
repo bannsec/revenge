@@ -34,16 +34,17 @@ class RevengeConcreteTarget(ConcreteTarget):
         try:
             out = self._process.memory[address:address + nbytes].bytes
 
-            if out is None:
-                error = "RevengeConcreteTarget can't read_memory at address {address}"
-                LOGGER.error(error, hex(address))
-                raise SimConcreteMemoryError(error)
-
-            return out
         except Exception as e:
             error = "RevengeConcreteTarget can't read_memory at address {address}: {e}".format(address=hex(address), e=e)
             LOGGER.error(error)
             raise SimConcreteMemoryError(error)
+
+        if out is None:
+            error = "RevengeConcreteTarget can't read_memory at address {address}".format(address=hex(address))
+            LOGGER.error(error)
+            raise SimConcreteMemoryError(error)
+
+        return out
 
     def write_memory(self, address, value, **kwargs):
         """

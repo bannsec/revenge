@@ -38,7 +38,7 @@ class Angr(Plugin):
                 thread.angr.load_options
                 thread.angr.support_selfmodifying_code
                 thread.angr.use_sim_procedures
-                thread.angr.options
+                thread.angr.add_options
 
                 # Ask for a simgr for this location
                 simgr = thread.angr.simgr
@@ -60,7 +60,8 @@ class Angr(Plugin):
         self.support_selfmodifying_code = False
         self.use_sim_procedures = True
         self.exclude_sim_procedures_list = []
-        self.options = set([])
+        self.add_options = set([])
+        self.remove_options = set([])
 
         if ANGR_OK:
             try:
@@ -141,6 +142,7 @@ class Angr(Plugin):
             exclude_sim_procedures_list=self.exclude_sim_procedures_list,
             support_selfmodifying_code=self.support_selfmodifying_code)
 
+        self.__sim_procedures_resolved = False
         return self.__project
 
     @property
@@ -155,24 +157,30 @@ class Angr(Plugin):
             self._process.memory[self._thread.pc:self._thread.pc + len(orig_bytes)].bytes = orig_bytes
 
         state = self.project.factory.entry_state(
-            add_options=self.options)
+            add_options=self.add_options, remove_options=self.remove_options)
 
         if self._concrete_target is not None:
             state.concrete.sync()
 
             if not self.__sim_procedures_resolved:
 
+                LOGGER.debug("Attempting to resolve angr sim procs")
+
                 # Fixup angr's Sim Procedures since it cannot handle PIC
                 me = self._process.modules[self._thread.pc]
                 imports = [rel.symbol.name for rel in self.project.loader.main_object.relocs if rel.symbol is not None and rel.symbol.is_import]
 
                 for imp in imports:
-                    # TODO: This will only work for ELF...
-
                     try:
+                        # Try to find the plt first
                         imp_addr = me.symbols["plt." + imp].address
                     except KeyError:
-                        continue
+                        # Fallback to trying to find the actual resolved function symbol
+                        try:
+                            imp_addr = self._process.memory[imp].address
+                        except RevengeSymbolLookupFailure:
+                            # Give up
+                            continue
 
                     self.project.rehook_symbol(imp_addr, imp, True)
 

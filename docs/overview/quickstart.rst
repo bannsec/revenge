@@ -25,8 +25,8 @@ Just Show Me
     print(p.modules)
     print(p.memory)
 
-    # This will remove the breakpoint and resume execution
-    p.memory[p.entrypoint].breakpoint = False
+    # Resume execution
+    p.resume()
 
     # Interact with the process
     p.stdout(12) # Read 12 bytes of stdout
@@ -47,6 +47,6 @@ core class called ``Process``.
 
 This has traditionally been the starting point for opening applications,
 however in some cases (Android for the moment) it has become necessary to add a
-wrapper aroud Process to get the ball rolling. This is the Device class that is
+wrapper around Process to get the ball rolling. This is the Device class that is
 extended for various platforms. In the future, it will likely be the starting
 point for running an application.
