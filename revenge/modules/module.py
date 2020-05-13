@@ -310,7 +310,7 @@ class Module(object):
         # Load up the symbols for this file if we haven't already
         if self.name not in self._process.modules._symbol_to_address:
             self._load_symbols()
-        
+
     @property
     def size(self):
         """int: Size of this module."""
@@ -319,6 +319,11 @@ class Module(object):
     @size.setter
     def size(self, size):
         self.__size = common.auto_int(size)
+
+    @property
+    def file(self):
+        """io.BufferReader: Opened file reader to a local copy of this module."""
+        return common.load_file(self._process, self.path)
 
     @property
     def elf(self):

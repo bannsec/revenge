@@ -31,4 +31,12 @@ def test_modules_basic():
 
     assert "IsDebuggerPresent" in kernel32.symbols
 
+    # New pointer each time
+    assert kernel32.file is not kernel32.file
+    assert kernel32.file.readable()
+    assert not kernel32.file.writable()
+    # Read twice to confirm we're getting a fresh version
+    assert kernel32.file.read(2) == b"MZ"
+    assert kernel32.file.read(2) == b"MZ"
+
     process.quit()

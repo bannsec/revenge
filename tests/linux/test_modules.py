@@ -1,6 +1,6 @@
 
 import logging
-logging.basicConfig(level=logging.WARN)
+logging.basicConfig(level=logging.DEBUG)
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +15,7 @@ from revenge.exceptions import *
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "bins")
 
-# 
+#
 # Basic One
 #
 
@@ -26,6 +26,7 @@ basic_one_ia32_nopie_path = os.path.join(bin_location, "basic_one_ia32_nopie")
 
 chess_path = os.path.join(bin_location, "ChessAI.so")
 
+
 def test_modules_register_plugin():
     process = revenge.Process(basic_one_path, resume=False, verbose=False)
 
@@ -35,7 +36,7 @@ def test_modules_register_plugin():
             self.module = module
 
     basic_one = process.modules['basic_one']
-    
+
     # Shouldn't exist yet
     with pytest.raises(AttributeError):
         basic_one.myplugin
@@ -63,6 +64,7 @@ def test_modules_register_plugin():
 
     process.quit()
 
+
 def test_modules_lookup_offset():
     process = revenge.Process(basic_one_path, resume=False, verbose=False)
 
@@ -77,6 +79,7 @@ def test_modules_lookup_offset():
     assert process.modules.lookup_offset('basic_one_ia32_nopie:i64') == ('basic_one_ia32_nopie', 0x2030)
 
     process.quit()
+
 
 def test_memory_symbol_resolve():
     process = revenge.Process(basic_one_path, resume=False, verbose=False)
@@ -95,6 +98,7 @@ def test_memory_symbol_resolve():
 
     process.quit()
 
+
 def test_load_library():
     process = revenge.Process(basic_one_path, resume=False, verbose=False)
 
@@ -109,6 +113,7 @@ def test_load_library():
 
     process.quit()
 
+
 def test_plt():
     process = revenge.Process(basic_one_path, resume=False, verbose=False)
     basic_one_64_nopie = revenge.Process(basic_one_64_nopie_path, resume=False)
@@ -117,7 +122,7 @@ def test_plt():
 
     #
     # First parse
-    # 
+    #
 
     basic_one_mod = process.modules['basic_one']
     assert basic_one_mod.plt & 0xfff == 0x510
@@ -139,7 +144,7 @@ def test_plt():
     assert basic_one_mod.plt & 0xfff == 0x3a0
     printf = basic_one_ia32.memory[basic_one_mod.symbols['plt.printf']]
     # This uses thunks... No easy way of testing call through plt rn..
-    #assert printf("123456") == 6
+    # assert printf("123456") == 6
     assert 'printf' in basic_one_ia32.memory.describe_address(basic_one_mod.symbols['plt.printf'])
     assert 'printf' in basic_one_ia32.memory.describe_address(basic_one_mod.symbols['got.printf'])
     assert 'printf' in basic_one_ia32.memory.describe_address(basic_one_ia32.memory[basic_one_mod.symbols['got.printf']].pointer)
@@ -157,6 +162,7 @@ def test_plt():
     basic_one_64_nopie.quit()
     basic_one_ia32.quit()
     basic_one_ia32_nopie.quit()
+
 
 def test_modules_symbols():
     process = revenge.Process(basic_one_path, resume=False, verbose=False)
@@ -180,14 +186,15 @@ def test_modules_by_int():
     process = revenge.Process(basic_one_path, resume=False, verbose=False)
 
     libc = process.modules['libc*']
-    
+
     for _ in range(10):
         r = random.randint(libc.base, libc.base + libc.size)
         assert process.modules[r] == libc
 
-    assert process.modules[123] == None
+    assert process.modules[123] is None
 
     process.quit()
+
 
 def test_modules_basic():
     process = revenge.Process(basic_one_path, resume=False, verbose=False)
@@ -195,25 +202,24 @@ def test_modules_basic():
     assert process.modules['libc*'] is not None
     assert process.modules['basic_one'] is not None
 
-
-    m = process.modules['basic_one']
+    basic_one_mod = process.modules['basic_one']
 
     # Just make sure it does something..
-    repr(m)
+    repr(basic_one_mod)
 
     with pytest.raises(Exception):
-        m.name = 12
+        basic_one_mod.name = 12
 
-    m.path = "test"
-    assert m.path == "test"
+    basic_one_mod.path = "test"
+    assert basic_one_mod.path == "test"
 
     with pytest.raises(Exception):
-        m.path = 12
+        basic_one_mod.path = 12
 
-    assert isinstance(m.base, types.Pointer)
+    assert isinstance(basic_one_mod.base, types.Pointer)
 
-    m.base = types.Pointer(123)
-    assert m.base == 123
+    basic_one_mod.base = types.Pointer(123)
+    assert basic_one_mod.base == 123
 
     # Hopefully this doesn't change all that often
     assert len(process.modules) == 10
@@ -225,8 +231,17 @@ def test_modules_basic():
 
     with pytest.raises(NotImplementedError):
         process.modules[:]
-    
+
     with pytest.raises(StopIteration):
         process.modules["Not a valid module"]
+
+    libc = process.modules['*libc*']
+    # New pointer each time
+    assert libc.file is not libc.file
+    assert libc.file.readable()
+    assert not libc.file.writable()
+    # Read twice to confirm we're getting a fresh version
+    assert libc.file.read(4) == b'\x7fELF'
+    assert libc.file.read(4) == b'\x7fELF'
 
     process.quit()
