@@ -121,10 +121,10 @@ class Module(object):
 
             if cache is not None:
                 return self._load_symbols_cache(cache)
-        
+
             if self._process.file_type == 'ELF':
                 self._load_symbols_elf(file_io)
-            
+
             elif self._process.file_type == "PE":
                 self._load_symbols_pe(file_io)
 
@@ -180,9 +180,8 @@ class Module(object):
 
         symbols = []
         cache = {
-                'symbols': {},
-                'plt': [],
-                }
+            'symbols': {},
+            'plt': []}
 
         #
         # Static Symbols
@@ -234,7 +233,7 @@ class Module(object):
                 rels.append(e.get_section_by_name('.rel.plt').iter_relocations())
             except AttributeError:
                 pass
-            
+
             i = 1
             for s in itertools.chain(*rels):
                 sym_name = dynsym.get_symbol(s.entry.r_info_sym).name
@@ -324,6 +323,19 @@ class Module(object):
     def file(self):
         """io.BufferReader: Opened file reader to a local copy of this module."""
         return common.load_file(self._process, self.path)
+
+    @property
+    def pe(self):
+        """Returns PE object, if applicable, otherwise None."""
+
+        if self._process.file_type != 'PE':
+            return
+
+        try:
+            return self.__pe
+        except AttributeError:
+            self.__pe = pefile.PE(self.file.name)
+            return self.__pe
 
     @property
     def elf(self):

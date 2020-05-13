@@ -2,6 +2,8 @@
 import logging
 import os
 
+import pefile
+
 import revenge
 
 logging.basicConfig(level=logging.DEBUG)
@@ -38,5 +40,7 @@ def test_modules_basic():
     # Read twice to confirm we're getting a fresh version
     assert kernel32.file.read(2) == b"MZ"
     assert kernel32.file.read(2) == b"MZ"
+
+    assert isinstance(kernel32.pe, pefile.PE)
 
     process.quit()
