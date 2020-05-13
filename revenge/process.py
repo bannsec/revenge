@@ -266,16 +266,19 @@ class Process(object):
 
         if self.__entrypoint is None:
             if self.file_type == 'ELF':
-                self.__entrypoint = self.memory[mod.base+0x18].pointer
-                
+                self.__entrypoint = self.memory[mod.base + 0x18].pointer
+
                 if mod.elf.type_str == 'DYN':
                     self.__entrypoint = self.__entrypoint + mod.base
+
+            elif self.file_type == "PE":
+                me = self.modules[self.file_name]
+                self.__entrypoint = me.base + me.pe.OPTIONAL_HEADER.AddressOfEntryPoint
 
             else:
                 logger.warn('entrypoint not implemented for file of type {}'.format(self.file_type))
                 return None
-            
-        # TODO: Windows?
+
         # TODO: Mac?
 
         return self.__entrypoint
@@ -284,7 +287,7 @@ class Process(object):
     def endianness(self):
         """Determine which endianness this binary is. (little, big)"""
 
-        if self.__endianness != None:
+        if self.__endianness is not None:
             return self.__endianness
 
         if self.device_platform == 'windows':
