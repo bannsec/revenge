@@ -53,13 +53,15 @@ class Process(ProcessBase):
     def __frida_process_general_init(self):
         """General purpose frida initializations."""
 
-        # TODO: Optionally specify which signals to allow (such as int3)
-        self.engine.run_script_generic("exception_handler.js", unload=False, runtime='v8', on_message=self.__handle_process_exception, timeout=0,
-                                       include_js=["dispose.js", "send_batch.js", "telescope.js", "timeless.js"])
+        if self._ignore_exceptions is not True:
 
-        # Register this for cleanup since we need it to be removed first.
-        script = self.engine._scripts.pop(0)
-        self._register_cleanup(lambda: script[0].unload())
+            # TODO: Optionally specify which signals to allow (such as int3)
+            self.engine.run_script_generic("exception_handler.js", unload=False, runtime='v8', on_message=self.__handle_process_exception, timeout=0,
+                                           include_js=["dispose.js", "send_batch.js", "telescope.js", "timeless.js"])
+
+            # Register this for cleanup since we need it to be removed first.
+            script = self.engine._scripts.pop(0)
+            self._register_cleanup(lambda: script[0].unload())
 
     def __frida_process_windows_init(self):
         """Setup stuff specifically for Frida process on windows."""

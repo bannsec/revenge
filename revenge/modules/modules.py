@@ -195,7 +195,7 @@ class Modules(object):
 
     def _flush_cache(self):
         """Make sure the next time we're hit is a full one."""
-        self.__last_update = datetime.datetime(1970,1,1)
+        self.__last_update = datetime.datetime(1970, 1, 1)
 
     def __iter__(self):
         return self.modules.__iter__()
@@ -214,7 +214,7 @@ class Modules(object):
             table.add_row([module.name, hex(module.base), hex(module.size), module.path])
 
         table.align['path'] = 'l'
-        
+
         return str(table)
 
     def __getitem__(self, item):

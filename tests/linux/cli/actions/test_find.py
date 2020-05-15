@@ -5,11 +5,6 @@ logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
 import os
-import random
-import numpy as np
-import time
-from copy import copy
-import re
 import subprocess
 
 import revenge
@@ -18,14 +13,15 @@ types = revenge.types
 here = os.path.dirname(os.path.abspath(__file__))
 bin_location = os.path.join(here, "..", "..", "bins")
 
-# 
+#
 # Basic One
 #
 
 basic_one_path = os.path.join(bin_location, "basic_one")
 
+
 def test_find_basic():
-    basic_one = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
+    basic_one = revenge.Process(basic_one_path, resume=False, ignore_exceptions=True, load_symbols='basic_one')
     basic_one_module = basic_one.modules['basic_one']
     basic_one_i8_addr = basic_one_module.symbols['i8']
     basic_one_ui8_addr = basic_one_module.symbols['ui8']
@@ -39,15 +35,15 @@ def test_find_basic():
     basic_open_func_addr = basic_one_module.symbols['func']
 
     find_action = ["revenge", "--string", "This is my string",
-            "--int8", "-13",
-            "--uint8", "13",
-            "--int16", "-1337",
-            "--uint16", "1337",
-            "--int32", "-1337",
-            "--uint32", "1337",
-            "--int64", "-1337",
-            "--uint64", "1337",
-            "find", str(basic_one.pid)]
+                   "--int8", "-13",
+                   "--uint8", "13",
+                   "--int16", "-1337",
+                   "--uint16", "1337",
+                   "--int32", "-1337",
+                   "--uint32", "1337",
+                   "--int64", "-1337",
+                   "--uint64", "1337",
+                   "find", str(basic_one.pid)]
 
     out = subprocess.check_output(find_action).decode()
 

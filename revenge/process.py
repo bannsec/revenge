@@ -26,12 +26,13 @@ from . import common
 
 here = os.path.dirname(os.path.abspath(__file__))
 
+
 class Process(object):
 
     def __init__(self, target, resume=False, verbose=False, load_symbols=None,
-                 envp=None, engine=None):
+                 envp=None, engine=None, ignore_exceptions=False):
         """Represents a process.
-        
+
         Args:
             target (str, int, list): File name or pid to attach to. If target
                 is a list, it will be set as argv.
@@ -44,6 +45,8 @@ class Process(object):
                 envp is.
             engine (revenge.engines.Engine): Instantiated Engine for this
                 process
+            ignore_exceptions (bool): Should we not attempt to generically
+                catch process exceptions? Default is False.
 
         Examples:
             .. code-block:: python3
@@ -82,6 +85,7 @@ class Process(object):
         self.verbose = verbose
         self._envp = envp
         self.target = target
+        self._ignore_exceptions = ignore_exceptions
         self._registered_cleanup = []
 
         if not isinstance(load_symbols, (list, type, type(None))):
@@ -132,7 +136,7 @@ class Process(object):
             # If we are using a resume variable
             if self.memory[self.entrypoint].breakpoint:
                 self.memory[self.entrypoint].breakpoint = False
-            
+
             else:
                 self.engine.resume(self._spawned_pid)
 
@@ -314,9 +318,10 @@ class Process(object):
 
         # TODO: Update this with other formats. PE/COFF/MACHO/etc
         if self.__file_type is None:
-            me = self.modules[self.file_name]
-            # if self.engine.run_script_generic("""send('bytes', Process.getModuleByName('{}').base.readByteArray(4))""".format(self.file_name), raw=True, unload=True)[1][0] == b'\x7fELF':
-            # elif self.engine.run_script_generic("""send('bytes', Process.getModuleByName('{}').base.readByteArray(2))""".format(self.file_name), raw=True, unload=True)[1][0] == b'MZ':
+            # Sometimes the file name and module name differ (such as /bin/sh -> dash)
+            # To handle this, we're assuming the core module will always come back first
+            # in the list.
+            me = list(self.modules)[0]
             b = self.memory[me.base:me.base + 16].bytes
             if b.startswith(b'\x7fELF'):
                 self.__file_type = 'ELF'
