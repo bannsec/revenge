@@ -21,6 +21,7 @@ basic_one_path = os.path.join(bin_location, "basic_one")
 basic_one_ia32_path = os.path.join(bin_location, "basic_one_ia32")
 basic_struct_path = os.path.join(bin_location, "basic_struct")
 
+
 def test_ctypes():
     process = revenge.Process(basic_struct_path, resume=False, verbose=False)
 
@@ -47,10 +48,11 @@ def test_ctypes():
 
     process.quit()
 
+
 def test_struct_calling():
     basic_struct = revenge.Process(basic_struct_path, resume=False, verbose=False)
     basic_struct_module = basic_struct.modules['basic_struct']
-    
+
     struct = types.Struct()
     struct['d'] = types.Double
     struct['f'] = types.Float
@@ -90,7 +92,7 @@ def test_struct_calling():
     struct['f'] = 3.141592
     assert abs(struct['f'] - 3.141592) < 0.000001
     assert return_float(types.Pointer(struct)) == struct['f']
-    
+
     return_i32 = basic_struct_module.symbols['return_i32'].memory
     return_i32.return_type = types.Int32
     struct['i32'] = 45124
@@ -126,7 +128,7 @@ def test_struct_read_write():
     struct.add_member('test2', types.Int8(-12))
     struct.add_member('test3', types.UInt16(16))
     struct.add_member('test4', types.Pointer(4444))
-    struct.add_member('test5', types.Int16) # This should cause warning
+    struct.add_member('test5', types.Int16)  # This should cause warning
     struct.add_member('test6', types.Pointer(5555))
 
     assert struct['test1'] == -5
@@ -136,8 +138,9 @@ def test_struct_read_write():
     assert struct['test5'] == types.Int16
     assert struct['test6'] == 5555
 
-    writable = next(x for x in basic_one.memory.maps if x.writable)
-    basic_one.memory[writable.base] = struct
+    # writable = next(x for x in basic_one.memory.maps if x.writable)
+    writable = basic_one.memory.alloc(1024)
+    basic_one.memory[writable.address] = struct
 
     # Make it generic so we don't accidentally re-read our defined struct
     struct = types.Struct()
@@ -145,11 +148,11 @@ def test_struct_read_write():
     struct.add_member('test2', types.Int8)
     struct.add_member('test3', types.UInt16)
     struct.add_member('test4', types.Pointer)
-    struct.add_member('test5', types.Int16) # This should cause warning
+    struct.add_member('test5', types.Int16)  # This should cause warning
     struct.add_member('test6', types.Pointer)
 
     # Bind it to the memory address
-    struct.memory = basic_one.memory[writable.base]
+    struct.memory = basic_one.memory[writable.address]
 
     assert struct['test1'] == -5
     assert struct['test2'] == -12
@@ -177,14 +180,14 @@ def test_struct_read_write():
     struct['test2'] = types.Int8
     struct['test3'] = types.UInt16
     struct['test4'] = types.Pointer
-    struct['test5'] = types.Int16 # This should cause warning
+    struct['test5'] = types.Int16  # This should cause warning
     struct['test6'] = types.Pointer
 
     str(struct)
     repr(struct)
 
     # Bind it to the memory address
-    struct.memory = basic_one.memory[writable.base]
+    struct.memory = basic_one.memory[writable.address]
 
     assert struct['test1'] == -18
     assert struct['test2'] == 3
@@ -207,17 +210,17 @@ def test_struct_get_member_offset(caplog):
     struct.add_member('test2', types.Int8(-12))
     struct.add_member('test3', types.UInt16(16))
     struct.add_member('test4', types.Pointer(4444))
-    struct.add_member('test5', types.Int16) # This should cause warning
+    struct.add_member('test5', types.Int16)  # This should cause warning
     struct.add_member('test6', types.Pointer(5555))
 
     struct._process = basic_one
 
     assert struct._get_member_offset('test1') == 0
     assert struct._get_member_offset('test2') == 4
-    assert struct._get_member_offset('test3') == 4+1
-    assert struct._get_member_offset('test4') == 4+1+2
-    assert struct._get_member_offset('test5') == 4+1+2+8
-    assert struct._get_member_offset('test6') == 4+1+2+8+2
+    assert struct._get_member_offset('test3') == 4 + 1
+    assert struct._get_member_offset('test4') == 4 + 1 + 2
+    assert struct._get_member_offset('test5') == 4 + 1 + 2 + 8
+    assert struct._get_member_offset('test6') == 4 + 1 + 2 + 8 + 2
 
     basic_one.quit()
 
@@ -320,10 +323,11 @@ def test_sizeof():
     basic_one.quit()
     basic_one_ia32.quit()
 
+
 def test_js_attr():
 
     for t in types.frida_types:
-        i = random.randint(1,0xff)
+        i = random.randint(1, 0xff)
         x = t(i)
 
         if issubclass(type(x), types.Pointer):
@@ -338,11 +342,12 @@ def test_js_attr():
         else:
             assert x.js == str(x)
 
+
 def test_types_attr():
-    
+
     for t in types.frida_types:
 
-        i = random.randint(1,0xff)
+        i = random.randint(1, 0xff)
         x = t(i)
         assert type(x + 3) == type(x)
 
@@ -351,4 +356,3 @@ def test_types_attr():
 
     for t in [types.StringUTF8, types.StringUTF16]:
         x = t("something here")
-
