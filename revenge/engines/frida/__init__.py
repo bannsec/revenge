@@ -211,13 +211,16 @@ class FridaEngine(Engine):
         """Helper to unload frida scripts while optionally allowing for exceptions.
 
         Args:
-            allow_exceptions (list, None): List of exceptions to be OK with
+            allow_exceptions (tuple, None): List of exceptions to be OK with
 
         If an exception happens during unloading that is not allowed, it will be re-raised.
         """
 
-        if allow_exceptions is not None and not isinstance(allow_exceptions, (tuple, list)):
-            allow_exceptions = [allow_exceptions]
+        if allow_exceptions is not None:
+            if not isinstance(allow_exceptions, (tuple, list)):
+                allow_exceptions = [allow_exceptions]
+            elif isinstance(allow_exceptions, list):
+                allow_exceptions = tuple(allow_exceptions)
 
         try:
             script.unload()
