@@ -5,6 +5,7 @@ logger = logging.getLogger(__name__)
 import colorama
 colorama.init()
 
+
 class Technique(object):
     """This is a base mix-in class. To implement a technique, you need to extend this class."""
     TYPES = ("stalk", "replace")
@@ -13,6 +14,7 @@ class Technique(object):
 
     def __init__(self, process):
         self._process = process
+        self.threads = []
 
     def apply(self, threads=None):
         """Applies this technique, optionally to the given threads."""
@@ -35,7 +37,38 @@ class Technique(object):
 
         This can be called multiple times, with other MemoryRange objects.
         """
-        return        
+        return
+
+    @property
+    def threads(self):
+        """list: Threads that are being traced by this object."""
+        return self.__threads
+
+    @threads.setter
+    def threads(self, threads):
+        assert isinstance(threads, (type(None), list, tuple, Thread)), "Invalid threads type of {}".format(type(threads))
+
+        if threads is None:
+            threads = list(self._process.threads)
+
+        if not isinstance(threads, (list, tuple)):
+            threads = [threads]
+
+        else:
+            threads_new = []
+            for thread in threads:
+                threads_new.append(self._process.threads[thread])
+
+            threads = threads_new
+
+        # Make sure the threads aren't already being traced
+        for thread in threads:
+            if thread.id in self._process.techniques._active_stalks:
+                error = "Cannot have more than one trace on the same thread at a time. Stop the existing trace with: process.threads[{}].trace.stop()".format(thread.id)
+                logger.error(error)
+                raise Exception(error)
+
+        self.__threads = threads
 
 
 class Techniques(object):
@@ -86,6 +119,7 @@ class Techniques(object):
 
 import os
 from ..exceptions import *
+from revenge.threads import Thread
 from importlib import import_module
 from pathlib import Path
 import pkgutil

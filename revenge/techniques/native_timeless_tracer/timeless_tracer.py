@@ -5,15 +5,16 @@ logger = logging.getLogger(__name__)
 from prettytable import PrettyTable
 from .. import Technique
 
+
 class NativeTimelessTracer(Technique):
     TYPE = "stalk"
 
     def __init__(self, process):
         """Performs timeless tracing.
-        
+
         Examples:
             .. code-block:: python3
-                
+
                 #
                 # Global apply
                 #
@@ -51,16 +52,10 @@ class NativeTimelessTracer(Technique):
         self.traces = {}
 
     def apply(self, threads=None):
-        
-        if threads is None:
-            threads = list(self._process.threads)
 
-        if not isinstance(threads, (list, tuple)):
-            threads = [threads]
+        self.threads = threads
 
-        for thread in threads:
-            # Resolve int/Thread/etc
-            thread = self._process.threads[thread]
+        for thread in self.threads:
             self.traces[thread.id] = NativeTimelessTrace(self._process, thread.id)
             self.traces[thread.id].start()
 

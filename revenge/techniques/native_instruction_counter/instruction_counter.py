@@ -64,7 +64,6 @@ class NativeInstructionCounter(Technique):
         self.exec = exec
         self.block = block
         self.compile = compile
-        self.threads = []
         self._from_modules = from_modules
         self._exclude_ranges = exclude_ranges or []
 
@@ -129,37 +128,6 @@ class NativeInstructionCounter(Technique):
             table.add_row([str(tid), str(count.count)])
 
         return str(table)
-
-    @property
-    def threads(self):
-        """list: Threads that are being traced by this object."""
-        return self.__threads
-
-    @threads.setter
-    def threads(self, threads):
-        assert isinstance(threads, (NoneType, list, tuple, Thread)), "Invalid threads type of {}".format(type(threads))
-
-        if threads is None:
-            threads = list(self._process.threads)
-
-        if not isinstance(threads, (list, tuple)):
-            threads = [threads]
-
-        else:
-            threads_new = []
-            for thread in threads:
-                threads_new.append(self._process.threads[thread])
-
-            threads = threads_new
-
-        # Make sure the threads aren't already being traced
-        for thread in threads:
-            if thread.id in self._process.techniques._active_stalks:
-                error = "Cannot have more than one trace on the same thread at a time. Stop the existing trace with: process.threads[{}].trace.stop()".format(thread.id)
-                logger.error(error)
-                raise Exception(error)
-
-        self.__threads = threads
 
     @property
     def _from_modules(self):

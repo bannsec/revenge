@@ -2,17 +2,15 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import time
 import json
-import collections
-from termcolor import cprint, colored
+from termcolor import colored
 from prettytable import PrettyTable
 
 from ... import types, common
-from ...threads import Thread
 from .. import Technique
 
 NoneType = type(None)
+
 
 class TraceItem(object):
 
@@ -45,9 +43,9 @@ class TraceItem(object):
             self.depth = common.auto_int(item['depth'])
 
     def _str_add_table_row(self, table):
-        
+
         if self.depth is not None:
-            indent = ' '*self.depth
+            indent = ' ' * self.depth
         else:
             indent = ''
 
@@ -55,8 +53,7 @@ class TraceItem(object):
             colored(self.type, attrs=['bold']),
             indent + self._process.memory.describe_address(self.from_ip, color=True),
             indent + self._process.memory.describe_address(self.to_ip, color=True) if self.to_ip is not None else "",
-            str(self.depth) if self.depth is not None else ""
-            ])
+            str(self.depth) if self.depth is not None else ""])
 
     def __str__(self):
 
@@ -96,12 +93,11 @@ class TraceItem(object):
         self.__type = t
 
 
-
 class Trace(object):
-    
+
     def __init__(self, process, tid, script, callback=None):
         """Keeps information about a Trace.
-        
+
         Args:
             process (revenge.Proces): revenge process object
             tid (int): Thread ID for this trace
@@ -131,8 +127,8 @@ class Trace(object):
             self._script[0].exports.unfollow()
             # TODO: Add unload back in once it doesn't take forever for it to unload the script...
             # Until then, calling unfollow and not unloading the script seems to be OK.
-            #time.sleep(1)
-            #self._script[0].unload()
+            # time.sleep(1)
+            # self._script[0].unload()
             self._process.techniques._active_stalks.pop(self._tid)
             self._script = None
 
@@ -147,7 +143,7 @@ class Trace(object):
                 break
             except StopIteration:
                 continue
-        
+
     def __iter__(self):
         return (x for x in self._trace)
 
@@ -166,7 +162,7 @@ class Trace(object):
             # Implicitly assign depths
             if i.depth is None:
                 i.depth = depth
-            
+
             i._str_add_table_row(table)
 
             if i.type == 'call':
@@ -264,7 +260,6 @@ class NativeInstructionTracer(Technique):
         self.exec = exec
         self.block = block
         self.compile = compile
-        self.threads = []
         self._script = {}
         self._from_modules = from_modules
         self.callback = callback
@@ -321,7 +316,7 @@ class NativeInstructionTracer(Technique):
 
     def _technique_code_range(self, range):
         # We want to ignore anything we know to not be target code.
-        self._exclude_ranges.append( [ range.base, range.base + range.size ])
+        self._exclude_ranges.append([range.base, range.base + range.size])
 
     def __repr__(self):
         attrs = ["NativeInstructionTracer"]
@@ -341,37 +336,6 @@ class NativeInstructionTracer(Technique):
         return str(table)
 
     @property
-    def threads(self):
-        """list: Threads that are being traced by this object."""
-        return self.__threads
-
-    @threads.setter
-    def threads(self, threads):
-        assert isinstance(threads, (type(None), list, tuple, Thread)), "Invalid threads type of {}".format(type(threads))
-
-        if threads is None:
-            threads = list(self._process.threads)
-
-        if not isinstance(threads, (list, tuple)):
-            threads = [threads]
-
-        else:
-            threads_new = []
-            for thread in threads:
-                threads_new.append(self._process.threads[thread])
-
-            threads = threads_new
-
-        # Make sure the threads aren't already being traced
-        for thread in threads:
-            if thread.id in self._process.techniques._active_stalks:
-                error = "Cannot have more than one trace on the same thread at a time. Stop the existing trace with: process.threads[{}].trace.stop()".format(thread.id)
-                logger.error(error)
-                raise Exception(error)
-
-        self.__threads = threads
-
-    @property
     def _from_modules(self):
         """list,tuple,str,Module,None: What modules to restrict tracing from. Items can be strings (which will resolve) or Module objects."""
         return self.__from_modules
@@ -380,11 +344,11 @@ class NativeInstructionTracer(Technique):
     def _from_modules(self, modules):
 
         assert isinstance(modules, (list, tuple, type(None), str, Module)), "Unsupported type for from_modules of {}".format(type(modules))
-        
+
         if modules is None:
             self.__from_modules = []
             return
-        
+
         if not isinstance(modules, (list, tuple)):
             modules = [modules]
 
@@ -398,7 +362,7 @@ class NativeInstructionTracer(Technique):
                 error = "Unsupported type for module of {}".format(type(module))
                 logger.error(error)
                 raise Exception(error)
-        
+
         self.__from_modules = new_modules
 
     @property
