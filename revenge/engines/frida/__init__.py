@@ -191,7 +191,7 @@ class FridaEngine(Engine):
         # This needs to happen before unlink so we ensure we get all messages
         while onComplete is not None and completed == []:
             time.sleep(0.01)
-        
+
         if unload:
             # TODO: Maybe not do this for every unload? Not sure performance impact...
             try:
@@ -206,6 +206,26 @@ class FridaEngine(Engine):
             self._scripts.insert(0, [script, js])
 
         return msg, data
+
+    def _unload_script(self, script, allow_exceptions=None):
+        """Helper to unload frida scripts while optionally allowing for exceptions.
+
+        Args:
+            allow_exceptions (list, None): List of exceptions to be OK with
+
+        If an exception happens during unloading that is not allowed, it will be re-raised.
+        """
+
+        if allow_exceptions is not None and not isinstance(allow_exceptions, (tuple, list)):
+            allow_exceptions = [allow_exceptions]
+
+        try:
+            script.unload()
+        except Exception as e:
+            if allow_exceptions is not None and isinstance(e, allow_exceptions):
+                pass
+            else:
+                raise
 
     def resume(self, pid):
         return self._frida_device.resume(pid)

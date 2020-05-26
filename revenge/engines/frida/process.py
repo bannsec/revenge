@@ -1,7 +1,10 @@
 
 import logging
+
+import frida
+
 from ...process import Process as ProcessBase
-from ... import common
+from revenge import common
 from revenge.exceptions import *
 
 
@@ -61,7 +64,7 @@ class Process(ProcessBase):
 
             # Register this for cleanup since we need it to be removed first.
             script = self.engine._scripts.pop(0)
-            self._register_cleanup(lambda: script[0].unload())
+            self._register_cleanup(lambda: self.engine._unload_script(script[0], allow_exceptions=[frida.InvalidOperationError]))
 
     def __frida_process_windows_init(self):
         """Setup stuff specifically for Frida process on windows."""
@@ -125,12 +128,13 @@ class Process(ProcessBase):
             ret = self.__stderr
             self.__stderr = b""
             return ret
-        
+
         # String acts as an expect
         if isinstance(n, (str, bytes)):
             n = common.auto_bytes(n)
             # TODO: Might be more efficient to use try/except...
-            while n not in self.__stderr: sleep(0.01)
+            while n not in self.__stderr:
+                sleep(0.01)
             index = self.__stderr.index(n) + len(n)
             ret = self.__stderr[:index]
             self.__stderr = self.__stderr[index:]
@@ -149,12 +153,13 @@ class Process(ProcessBase):
             ret = self.__stdout
             self.__stdout = b""
             return ret
-        
+
         # String acts as an expect
         if isinstance(n, (str, bytes)):
             n = common.auto_bytes(n)
             # TODO: Might be more efficient to use try/except...
-            while n not in self.__stdout: sleep(0.01)
+            while n not in self.__stdout:
+                sleep(0.01)
             index = self.__stdout.index(n) + len(n)
             ret = self.__stdout[:index]
             self.__stdout = self.__stdout[index:]
@@ -175,7 +180,7 @@ class Process(ProcessBase):
         self._stderr_echo = True
 
         # Flush out stdout buffer
-        #print(self.stdout('all').decode('utf-8'), end="", flush=True)
+        # print(self.stdout('all').decode('utf-8'), end="", flush=True)
         print(self.stdout().decode('utf-8'), end="", flush=True)
 
         # TODO: Maybe change this to single char get and send at some point?
@@ -204,9 +209,9 @@ class Process(ProcessBase):
             if thread.breakpoint:
                 thread.breakpoint = False
 
+
 from time import sleep
 import prompt_toolkit
-from ...exceptions import *
 from ...native_exception import NativeException
 
 LOGGER = logging.getLogger(__name__)
