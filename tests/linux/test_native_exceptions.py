@@ -2,6 +2,7 @@
 import os
 import revenge
 import logging
+from time import sleep
 logging.basicConfig(level=logging.WARN)
 
 logger = logging.getLogger(__name__)
@@ -23,16 +24,17 @@ dvb_path_x86_64 = os.path.join(bin_location, "dvb_x86_64_nocanary_nopie_elf")
 
 def test_access_violation_x86_main_thread(caplog):
     p = revenge.Process(dvb_path_x86, resume=True, verbose=False)
+    caplog.set_level(logging.INFO)
 
     p.stdout("?> ")
     p.stdin("1\n")
     p.stdout("input: ")
-    p.stdin("A"*128 + "\n")
+    p.stdin("A" * 128 + "\n")
 
     assert isinstance(list(p.threads)[0].exceptions, list)
 
     while list(p.threads)[0].exceptions == []:
-        pass
+        sleep(0.1)
 
     e = list(p.threads)[0].exceptions[0]
     str(e)
@@ -343,11 +345,12 @@ def test_access_violation_amd64():
 
 def test_access_violation_amd64_main_thread(caplog):
     p = revenge.Process(dvb_path_x86_64, resume=True, verbose=False)
+    caplog.set_level(logging.INFO)
 
     p.stdout("?> ")
     p.stdin("1\n")
     p.stdout("input: ")
-    p.stdin("A"*128 + "\n")
+    p.stdin("A" * 128 + "\n")
 
     assert isinstance(list(p.threads)[0].exceptions, list)
 
