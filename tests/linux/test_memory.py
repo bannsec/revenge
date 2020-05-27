@@ -212,6 +212,7 @@ def test_memory_cast_struct(caplog):
 
 
 def test_memory_write_struct(caplog):
+    caplog.set_level(logging.INFO)
     process = revenge.Process(basic_one_path, resume=False, verbose=False, load_symbols='basic_one')
     basic_one_module = process.modules['basic_one']
     basic_one_i8_addr = basic_one_module.symbols['i8'].address
