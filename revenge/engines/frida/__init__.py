@@ -236,7 +236,7 @@ class FridaEngine(Engine):
     def _at_exit(self):
 
         # TODO: Remove this once pytest fixes their at_exit issue
-        logging.getLogger().setLevel(logging.WARN)
+        logging.getLogger().setLevel(logging.CRITICAL)
 
         try:
 
