@@ -195,7 +195,6 @@ class Process(ProcessBase):
         self._stderr_echo = old_stderr_echo
 
     def resume(self):
-        """Resume execution of any current breakpoint hit or suspended thread."""
         threads = list(self.threads)
 
         # First, check for suspended threads

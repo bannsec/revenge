@@ -161,7 +161,7 @@ class Process(object):
 
     def quit(self):
         """Call to quit your session without exiting. Do NOT continue to use this object after.
-        
+
         If you spawned the process, it will be killed. If you attached to the
         process, frida will be cleaned out, detatched, and the process should
         continue normally.
@@ -169,6 +169,10 @@ class Process(object):
         for c in self._registered_cleanup:
             c()
         self._at_exit()
+
+    def resume(self):
+        """Resume execution of any current breakpoint hit or suspended thread."""
+        raise NotImplementedError("resume has not been implemented yet in this backend.")
 
     def _register_cleanup(self, c):
         self._registered_cleanup.append(c)
@@ -183,16 +187,16 @@ class Process(object):
             return int(x)
 
         # Probably process name
-        except:
+        except Exception:
             return x
 
     @common.implement_in_engine()
     def stdout(self, n):
         """Read n bytes from stdout.
-        
+
         Args:
             n (int, str, bytes): Number of bytes to read or string to expect.
-                If no value is given, it's presumed you are trying to read 
+                If no value is given, it's presumed you are trying to read
                 all currently queued output.
 
         Returns:
@@ -203,10 +207,10 @@ class Process(object):
     @common.implement_in_engine()
     def stderr(self, n):
         """Read n bytes from stderr.
-        
+
         Args:
             n (int, str, bytes): Number of bytes to read or string to expect.
-                If no value is given, it's presumed you are trying to read 
+                If no value is given, it's presumed you are trying to read
                 all currently queued output.
 
         Returns:
@@ -217,7 +221,7 @@ class Process(object):
     @common.implement_in_engine()
     def stdin(self, thing):
         """Write thing to stdin.
-        
+
         Args:
             thing (str, bytes): If str, it will be encoded as latin-1.
 
@@ -391,7 +395,6 @@ class Process(object):
             # Place holder until we resolve target
             self.argv = [target]
 
-
         # Check if this is a pid
         try:
             p = next(x for x in self.engine._frida_device.enumerate_processes() if x.pid == common.auto_int(target))
@@ -409,7 +412,6 @@ class Process(object):
             # If this string points to an actual file, we will launch it later
             if os.path.isfile(full_path):
                 self._spawn_target = full_path
-            
 
         self.__target = target
 
@@ -463,6 +465,7 @@ class Process(object):
 
         return self.__engine
 
+
 import inspect
 from . import types, config, devices
 from .memory import Memory
@@ -478,10 +481,13 @@ from .engines import Engine
 Process.BatchContext.__doc__ += BatchContext.__init__.__doc__
 Process.__doc__ = Process.__init__.__doc__
 
+
 def sigint_handler(sig, frame):
     sys.exit()
 
+
 signal.signal(signal.SIGINT, sigint_handler)
+
 
 def main():
     signal.signal(signal.SIGINT, sigint_handler)
@@ -491,6 +497,7 @@ def main():
 
     while True:
         time.sleep(1)
+
 
 if __name__ == '__main__':
     main()

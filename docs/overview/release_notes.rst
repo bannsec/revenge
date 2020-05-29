@@ -2,6 +2,30 @@
 Release Notes
 =============
 
+Version 0.20
+============
+
+- Introducing new :class:`~revenge.plugins.angr.Angr` plugin that allows you to
+  pick up an angr state at virtually any point in execution
+- :class:`~revenge.threads.Thread` now shows breakpoint register information
+  when at a breakpoint instead of actual internal state
+- You can now register a plugin to specifically be a
+  :class:`~revenge.threads.Thread` plugin the same way as modules
+- Better Windows handling
+
+  - Automatically breaks at process exit (like linux)
+  - Unbuffers stdout (like linux)
+  - Exposed :attr:`revenge.modules.Module.pe` to manually use PEFile
+  - Implemented :attr:`~revenge.process.Process.entrypoint` finding
+  - Properly handle radare2 not being installed
+
+- Created :meth:`revenge.process.Process.resume` to generically allow resuming
+  of all paused threads
+- Created new technique for
+  :class:`~revenge.techniques.native_instruction_counter.NativeInstructionCounter`
+  to more easily allow counting instructions executed
+- General updates and bug fixes
+
 Version 0.19
 ============
 
