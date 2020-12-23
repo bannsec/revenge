@@ -31,7 +31,7 @@ setup(
     ],
     keywords='frida python3 reversing dbi',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
-    install_requires=['frida', 'prettytable', 'colorama', 'termcolor', 'psutil',
+    install_requires=['frida==12.11.18', 'prettytable', 'colorama', 'termcolor', 'psutil',
                       'pyelftools', 'pefile', 'appdirs', 'bs4', 'requests',
                       'unicorn', 'prompt-toolkit', 'r2pipe', 'pygments'],
     extras_require={
