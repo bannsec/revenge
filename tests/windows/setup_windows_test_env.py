@@ -10,7 +10,7 @@ import shutil
 
 def install_radare():
     r = requests.get("https://github.com/radareorg/radare2/releases/latest")
-    download_url = "https://github.com/" + re.findall(r"href=\"(.*?releases/download/.*?\.zip)", r.text)[0]
+    download_url = "https://github.com/" + re.findall(r"href=\"(.*?archive/release.*?\.zip)", r.text)[0]
     r = requests.get(download_url)
 
     zfile = zipfile.ZipFile(io.BytesIO(r.content))
