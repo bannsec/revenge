@@ -31,7 +31,7 @@ jobs:
       run: conda activate revenge && python tests/windows/setup_windows_test_env.py
     
     - name: Add r2 to PATH
-      run: echo "::add-path::C:\Radare2\bin"
+      run: echo "C:\Radare2\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
 
     - name: Setup MSVC Environment
       uses: ilammy/msvc-dev-cmd@v1.2.0
