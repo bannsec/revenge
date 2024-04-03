@@ -79,7 +79,7 @@ class FridaEngine(Engine):
 
 
     def run_script_generic(self, script_name, raw=False, replace=None,
-            unload=False, runtime='duk', on_message=None, timeout=None,
+            unload=False, runtime='qjs', on_message=None, timeout=None,
             context=None, onComplete=None, include_js=None):
         """Run scripts that don't require anything special.
         

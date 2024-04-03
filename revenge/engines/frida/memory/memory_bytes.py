@@ -264,7 +264,7 @@ class FridaMemoryBytes(MemoryBytes):
 
         
         # Something about v8 is broken here... Breaks after doing a function replace->call. Not sure why.
-        ret = self._engine.run_script_generic(js, raw=True, unload=True, runtime='duk', **kwargs)
+        ret = self._engine.run_script_generic(js, raw=True, unload=True, runtime='qjs', **kwargs)
 
         # If we changed on_message or context, this might be None. That's ok.
         if ret is None:

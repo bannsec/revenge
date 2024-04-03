@@ -95,7 +95,6 @@ class Process(ProcessBase):
         setbuf(stdout.pointer, 0)
 
     def __fd_cb(self, pid, fd, data):
-
         if pid != self.pid:
             return
 
@@ -196,6 +195,9 @@ class Process(ProcessBase):
 
     def resume(self):
         threads = list(self.threads)
+
+        if len(self.threads) == 0:
+            return self.engine.resume(self.pid)
 
         # First, check for suspended threads
         for thread in threads:

@@ -109,15 +109,15 @@ class Process(object):
         # ELF binaries start up in ptrace, which causes some issues, shim at entrypoint so we can remove ptrace
         if self._spawned_pid is not None and self.file_type == 'ELF':
 
-            # Set breakpoint at entry
-            self.memory[self.entrypoint].breakpoint = True
+            # Set breakpoint at entry -- Frida changed how it resumes... So can't use entry breakpoint anymore
+            # self.memory[self.entrypoint].breakpoint = True
 
             # Set breakpoints at exit calls
             for c in [':exit', ':_exit']:
                 self.memory[c].breakpoint = True
 
-            # Resume to remove ptrace
-            self.engine.resume(self._spawned_pid)
+            # Resume to remove ptrace -- Frida changed how it resumes... So can't use entry breakpoint anymore
+            #self.engine.resume(self._spawned_pid)
 
         if self.device.platform == "windows":
             # Set exit breakpoints
@@ -132,7 +132,6 @@ class Process(object):
 
         # Resume file if need be
         if resume:
-
             # If we are using a resume variable
             if self.memory[self.entrypoint].breakpoint:
                 self.memory[self.entrypoint].breakpoint = False
