@@ -225,11 +225,10 @@ class Dwarf(Plugin):
         return self.decompiler.add_source_path(path)
 
 from elftools.elf.elffile import ELFFile
-from elftools.common.py3compat import maxint, bytes2str
+# removed maxint since it moved in the library and i don't see that i need it...
+from elftools.common.utils import bytes2str
 from elftools.dwarf.descriptions import describe_form_class
 import elftools.common.exceptions
-
-import os
 
 from .dwarf_decompiler import DwarfDecompiler, DecompilerBase
 from ...functions import Functions
