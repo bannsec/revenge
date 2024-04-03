@@ -26,6 +26,9 @@ class Process(ProcessBase):
         self._stderr_echo = False
         self.engine._frida_device.on('output', self.__fd_cb)
 
+        if "resume" in kwargs and kwargs["resume"]:
+            self.resume()
+
     def __handle_process_exception(self, data, msg):
 
         def cleanup():

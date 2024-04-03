@@ -130,6 +130,7 @@ class Process(object):
             except IndexError:
                 logger.error("Can't enumerate threads. Please check sysctl kernel.yama.ptrace_scope=0 or run as root.")
 
+        """ Handle this at each engine level, not here.
         # Resume file if need be
         if resume:
             # If we are using a resume variable
@@ -138,6 +139,7 @@ class Process(object):
 
             else:
                 self.engine.resume(self._spawned_pid)
+        """
 
     def _register_plugins(self):
         """Figures out which plugins to load and loads them."""
