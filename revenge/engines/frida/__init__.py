@@ -195,7 +195,8 @@ class FridaEngine(Engine):
         if unload:
             # TODO: Maybe not do this for every unload? Not sure performance impact...
             try:
-                script.exports.dispose()
+                #script.exports.dispose()
+                script.exports_sync.dispose()
             except frida.core.RPCException as e:
                 # We're OK if this didn't exist.
                 if "unable to find method" not in e.args[0]:
