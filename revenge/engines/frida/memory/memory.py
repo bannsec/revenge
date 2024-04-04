@@ -92,9 +92,22 @@ class FridaMemory(Memory):
         logger.debug("CModule inject: " + js)
         out = self._engine.run_script_generic(js, raw=True, unload=False, runtime='v8')[0][0]
 
-        # TODO: Verify inject worked instead of assuming. Not sure what it'll return on error.
         logger.warning("This method does not auto-set your function arguments or return type for you yet. Be aware.")
-        return self._process.memory[common.auto_int(out['func']):common.auto_int(out['_end'])]
+
+        ret = []
+        for func_name, func_addr in out.items():
+            # Ignoring our injected things
+            if func_name in kwargs.keys() or func_name.startswith("_"):
+                continue
+
+            func_addr = common.auto_int(func_addr)
+            logger.debug("Found injected function '{}' at '{}'".format(func_name, hex(func_addr)))
+            ret.append(self._process.memory[func_addr])
+
+        if len(ret) == 1:
+            return ret[0]
+
+        return ret
 
 from .... import common, types, symbols
 from . import MemoryBytes, MemoryMap, MemoryFind
