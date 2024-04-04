@@ -124,7 +124,7 @@ class Trace(object):
         if self._script is not None:
             # TODO: Why the hell is Frida freezing on attempting to unload the stalker script?
             # Must unfollow a Stalked thread in the SAME CONTEXT IT IS STALKING! Thus the RPC export here.
-            self._script[0].exports.unfollow()
+            self._script[0].exports_sync.unfollow()
             # TODO: Add unload back in once it doesn't take forever for it to unload the script...
             # Until then, calling unfollow and not unloading the script seems to be OK.
             # time.sleep(1)
