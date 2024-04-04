@@ -5,3 +5,4 @@ __handlers__
 dist/
 coverage/
 docs/_build/
+build/
