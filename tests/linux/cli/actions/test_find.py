@@ -34,6 +34,9 @@ def test_find_basic():
     basic_one_string_addr = 0x724
     basic_open_func_addr = basic_one_module.symbols['func']
 
+    basic_one_module.symbols['main'].memory.breakpoint = True
+    basic_one.resume()
+
     find_action = ["revenge", "--string", "This is my string",
                    "--int8", "-13",
                    "--uint8", "13",

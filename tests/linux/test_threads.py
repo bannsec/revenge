@@ -25,16 +25,20 @@ basic_threads_after_create = 0x7df
 def test_thread_breakpoint():
     p = revenge.Process(basic_threads_path, resume=False, verbose=False, load_symbols='basic_threads')
 
+    #start_address = p.memory["basic_threads:0x670"].address
+    #p.memory["basic_threads:0x670"].breakpoint = True
+    main = p.modules["basic_threads"].symbols["main"]
+    main.memory.breakpoint = True
+    p.resume()
+
     t = list(p.threads)[0]
 
     # Wait to hit the breakpoint
     while not t.breakpoint:
         pass
 
-    start_address = p.memory["basic_threads:0x670"].address
-
     assert t.id in p.threads._breakpoint_context
-    assert t.context.pc == start_address
+    assert t.context.pc == main.address # start_address
 
     t.breakpoint = False
 
@@ -45,7 +49,7 @@ def test_thread_breakpoint():
         if not t.breakpoint:
             break
 
-        elif t.breakpoint and t.context.pc != start_address:
+        elif t.breakpoint and t.context.pc != main.address: # start_address:
             break
 
     p.quit()
@@ -54,6 +58,9 @@ def test_thread_breakpoint():
 def test_thread_join_linux():
 
     process = revenge.Process(basic_threads_path, resume=False, verbose=False)
+    main = process.modules['basic_threads'].symbols['main']
+    main.memory.breakpoint = True
+    process.resume()
 
     malloc = process.memory['malloc']
     malloc.argument_types = types.Int
@@ -125,6 +132,10 @@ def test_frida_thread_dummy():
 def test_thread_tracing_indicator():
 
     process = revenge.Process(basic_threads_path, resume=False, verbose=False, load_symbols='basic_threads')
+    main = process.modules['basic_threads'].symbols['main']
+    main.memory.breakpoint = True
+    process.resume()
+
     th = list(process.threads)[0]
 
     assert th.trace is None
@@ -146,6 +157,9 @@ def test_thread_tracing_indicator():
 
 def test_thread_enum():
     util = revenge.Process(basic_threads_path, resume=False, verbose=False, load_symbols='basic_threads')
+    main = util.modules['basic_threads'].symbols['main']
+    main.memory.breakpoint = True
+    util.resume()
 
     # Should only be one thread to start with
     assert len(util.threads) == 1
@@ -153,7 +167,8 @@ def test_thread_enum():
     util.memory['basic_threads:' + hex(basic_threads_after_create)].breakpoint = True
 
     # Continue
-    util.memory[util.entrypoint].breakpoint = False
+    #util.memory[util.entrypoint].breakpoint = False
+    util.resume()
 
     # Race condition...
     time.sleep(0.5)
@@ -166,6 +181,9 @@ def test_thread_enum():
 
 def test_thread_regs_amd64():
     util = revenge.Process(basic_threads_path, resume=False, verbose=False, load_symbols='basic_threads')
+    main = util.modules['basic_threads'].symbols['main']
+    main.memory.breakpoint = True
+    util.resume()
 
     # Just checking that the regs are exposed
     t = list(util.threads)[0]
@@ -178,6 +196,10 @@ def test_thread_regs_amd64():
 
 def test_thread_repr_str():
     util = revenge.Process(basic_threads_path, resume=False, verbose=False, load_symbols='basic_threads')
+
+    main = util.modules['basic_threads'].symbols['main']
+    main.memory.breakpoint = True
+    util.resume()
 
     # For now, just make sure they return...
     repr(util.threads)
@@ -192,6 +214,9 @@ def test_thread_repr_str():
 
 def test_thread_getitem():
     util = revenge.Process(basic_threads_path, resume=False, verbose=False, load_symbols='basic_threads')
+    main = util.modules['basic_threads'].symbols['main']
+    main.memory.breakpoint = True
+    util.resume()
 
     t = list(util.threads)[0]
     assert util.threads[t.id] is not None
