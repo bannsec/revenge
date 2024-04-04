@@ -78,3 +78,15 @@ revenge stalk ./a.out --resume -rf "a.out:0x64a?0x123"
 # Disable alarm and ptrace functions
 revenge stalk test2 -f ./test2 --resume -rf ":alarm?1" ":ptrace?1"
 ```
+
+# FAQ
+## Why am I getting an error when trying to run a 32-bit ELF?
+There have been some changes recently with Frida and it appears they are no longer dual building their pip installable wheels. For the time being, you can build your own version of frida if you want dual architecture support.
+
+Building instructions here: https://frida.re/docs/building/
+Be sure to install the latest node: https://www.digitalocean.com/community/tutorials/how-to-install-node-js-on-ubuntu-22-04
+
+Once you have it built, you can force the python output into your path:
+```bash
+export PYTHONPATH=/home/user/frida/build/frida-linux-x86_64/lib/python3.12/site-packages
+```
