@@ -20,6 +20,11 @@ def test_contexts_amd64():
 
     basic_one = revenge.Process(os.path.join(bin_location, 'basic_one'),
                                 resume=False, verbose=False, load_symbols='basic_one')
+    
+    main = basic_one.memory['basic_one:main']
+    main.breakpoint = True
+    basic_one.resume()
+
     t = list(basic_one.threads)[0]
     assert type(t.context) is contexts.X64Context
 
@@ -169,6 +174,10 @@ def test_contexts_x86():
 
     basic_one = revenge.Process(os.path.join(bin_location, 'basic_one_ia32'),
                                 resume=False, verbose=False, load_symbols='basic_one_ia32')
+    main = basic_one.memory['basic_one_ia32:main']
+    main.breakpoint = True
+    basic_one.resume()
+    
     t = list(basic_one.threads)[0]
     assert type(t.context) is contexts.X86Context
 

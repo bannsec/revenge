@@ -77,7 +77,7 @@ def test_telescope_js_basic():
     assert scope['mem_range']['file']['path'].endswith('/telescope')
     assert scope['next']['type'] == "int"
     assert scope['next']['telescope'] is True
-    assert scope['next']['mem_range']['protection'] == 'rwx'
+    assert scope['next']['mem_range']['protection'] == 'r-x'
     assert scope['next']['next']['thing'] == 'This is a test'
     assert scope['next']['next']['type'] == 'string'
 
@@ -110,7 +110,7 @@ def test_telescope_js_basic():
     assert scope['next']['mem_range']['file']['path'].endswith('/telescope')
     assert scope['next']['next']['type'] == "int"
     assert scope['next']['next']['telescope'] is True
-    assert scope['next']['next']['mem_range']['protection'] == 'rwx'
+    assert scope['next']['next']['mem_range']['protection'] == 'r-x'
     assert scope['next']['next']['next']['thing'] == 'This is a test'
     assert scope['next']['next']['next']['type'] == 'string'
     
@@ -148,7 +148,7 @@ def test_telescope_js_basic():
     assert scope['type'] == 'int'
     assert scope['mem_range']['protection'] == 'rw-'
     assert scope['next']['type'] == "int"
-    assert scope['next']['mem_range']['protection'] == 'rwx'
+    assert scope['next']['mem_range']['protection'] == 'r-x'
     assert common.auto_int(scope['next']['thing']) == common.auto_int(telescope.symbols['main'].address)
     assert scope['next']['next']['type'] == 'instruction'
     assert common.auto_int(scope['next']['next']['thing']['address']) == common.auto_int(telescope.symbols['main'].address)

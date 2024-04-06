@@ -18,6 +18,10 @@ def test_native_instruction_counting_basic_x86_64():
 
     process = revenge.Process(basic_one_path, resume=False)
 
+    main = process.memory['basic_one:main']
+    main.breakpoint = True
+    process.resume()
+
     counters = process.techniques.NativeInstructionCounter()
     counters.apply()
     counter = list(counters)[0]
@@ -48,6 +52,9 @@ def test_native_instruction_counting_basic_x86_64():
 def test_native_instruction_counting_basic_ia32():
 
     process = revenge.Process(basic_one_ia32_path, resume=False)
+    main = process.memory['basic_one_ia32:main']
+    main.breakpoint = True
+    process.resume()
 
     counters = process.techniques.NativeInstructionCounter(from_modules='basic*')
     counters.apply()

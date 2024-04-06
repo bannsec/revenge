@@ -21,12 +21,16 @@ timeless_three_path = os.path.join(bin_location, "timeless_three")
 
 def test_timeless_basic_two_i386():
 
-    p = revenge.Process(timeless_two_i386_path, resume=False, verbose=True)
+    p = revenge.Process(timeless_two_i386_path, resume=False, verbose=False)
+    main = p.memory['timeless_two_i386:main']
+    main.breakpoint = True
+    p.resume()
 
     timeless = p.techniques.NativeTimelessTracer()
     timeless.apply()
     t = list(timeless)[0]
-    p.memory[p.entrypoint].breakpoint = False
+    #p.memory[p.entrypoint].breakpoint = False
+    p.resume()
 
     end_of_main = p.memory['timeless_two_i386:0x554'].address
     t.wait_for(end_of_main)
@@ -34,6 +38,7 @@ def test_timeless_basic_two_i386():
     insts = iter(t)
 
     begin_main = p.memory['timeless_two_i386:0x511'].address
+
     while int(next(insts).context.pc) != begin_main:
         pass
 

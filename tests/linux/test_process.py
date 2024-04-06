@@ -136,7 +136,7 @@ def test_process_spawn_argv():
     d.replace_on_message = done_on_msg
     d.replace = "function () { send(1); return; }"
 
-    basic_spawn.memory[basic_spawn.entrypoint].breakpoint = False
+    basic_spawn.resume()
 
     # Make sure we're done first
     while done == []:

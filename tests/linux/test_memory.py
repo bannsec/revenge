@@ -511,9 +511,9 @@ def test_memory_maps():
     next(range for range in ranges if range.file is not None and re.findall(r'/ld.+\.so', range.file) != [] and range.protection == 'rw-')
     next(range for range in ranges if range.file is not None and re.findall(r'/ld.+\.so', range.file) != [] and range.protection == 'r--')
 
-    next(range for range in ranges if range.file is not None and re.findall(r'/libc.+\.so', range.file) != [] and range.protection == 'r--')
-    next(range for range in ranges if range.file is not None and re.findall(r'/libc.+\.so', range.file) != [] and range.protection == 'rw-')
-    next(range for range in ranges if range.file is not None and re.findall(r'/libc.+\.so', range.file) != [] and range.protection == 'r-x')
+    next(range for range in ranges if range.file is not None and re.findall(r'/libc.+', range.file) != [] and range.protection == 'r--')
+    next(range for range in ranges if range.file is not None and re.findall(r'/libc.+', range.file) != [] and range.protection == 'rw-')
+    next(range for range in ranges if range.file is not None and re.findall(r'/libc.+', range.file) != [] and range.protection == 'r-x')
 
     next(range for range in ranges if range.file is not None and range.file.endswith('basic_one') and range.protection == 'rw-')
     next(range for range in ranges if range.file is not None and range.file.endswith('basic_one') and range.protection == 'r--')
@@ -599,7 +599,7 @@ def test_memory_breakpoint():
     assert func.breakpoint is True
 
     # Release from entrypoint
-    util2.memory[util2.entrypoint].breakpoint = False
+    util2.resume()
     assert util2.memory[util2.entrypoint].breakpoint is False
     assert func.breakpoint is True
 
@@ -683,6 +683,8 @@ def test_memory_read_write_str_byte():
     assert string.bytes == b'T'
     assert util.memory[string.address:string.address + 17].bytes == b"This is my string"
 
+    # Loader changed between bionic and jammy... changing this to creating a memory location for a string instead of using the const one
+    string = util.memory.alloc(128)
     string.string_utf8 = "New string"
     assert string.string_utf8 == "New string"
 
