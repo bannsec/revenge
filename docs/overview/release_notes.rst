@@ -2,6 +2,11 @@
 Release Notes
 =============
 
+Version 0.22
+============
+
+- Silly Path string bug for older version of python fixed
+
 Version 0.21
 ============
 
