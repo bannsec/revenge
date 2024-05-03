@@ -2,6 +2,14 @@
 Release Notes
 =============
 
+Version 0.21
+============
+
+- Lots changed while I was away. Slightly less broken now...
+- Had to change how breaking on start works. Specifically, if you don't choose
+  auto-resume on start, the process will be suspended instead of breakpointed
+  at the entrypoint. This is due to changes in Frida.
+
 Version 0.20
 ============
 
